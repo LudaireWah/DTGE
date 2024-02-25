@@ -42,3 +42,4 @@ size_flags_stretch_ratio = 0.3
 [node name="ErrorAcceptDialog" type="AcceptDialog" parent="."]
 title = "Oops!"
 initial_position = 1
+always_on_top = true

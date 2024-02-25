@@ -59,8 +59,11 @@ public partial class Game : Control
 
     private void UpdateUIFromScene()
     {
-        this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
-        this.navigationButtonGrid.BindSceneOptionsToButtons(currentDtgeScene, this.HandleOptionChosen);
+        if (this.currentDtgeScene != null)
+        {
+            this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
+            this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
+        }
     }
 
     public void OnWindowSizeChanged()
@@ -119,6 +122,11 @@ public partial class Game : Control
 
                 sceneFile.Close();
             }
+        }
+
+        if (this.currentDtgeScene == null)
+        {
+            this.OnGameError("Eror code labyrinth: No start scene found.");
         }
     }
 }
