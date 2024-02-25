@@ -1,0 +1,92 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8omam8nhoff"]
+
+[ext_resource type="Script" path="res://src/Editor/OptionEditPanel.cs" id="1_i7rdm"]
+
+[node name="OptionEditPanelContainer" type="PanelContainer"]
+offset_right = 407.0
+offset_bottom = 280.0
+size_flags_horizontal = 3
+script = ExtResource("1_i7rdm")
+
+[node name="OptionEditMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="OptionEditVBoxContainer" type="VBoxContainer" parent="OptionEditMarginContainer"]
+layout_mode = 2
+
+[node name="OptionEditHeaderContainer" type="HBoxContainer" parent="OptionEditMarginContainer/OptionEditVBoxContainer"]
+layout_mode = 2
+
+[node name="OptionLocationLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Option #"
+
+[node name="DeleteButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="OptionPropertiesContainer" type="HBoxContainer" parent="OptionEditMarginContainer/OptionEditVBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="OptionPropertiesLabelContainer" type="VBoxContainer" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer"]
+layout_mode = 2
+
+[node name="IdLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Id"
+vertical_alignment = 1
+
+[node name="TargetSceneLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Target Scene"
+vertical_alignment = 1
+
+[node name="DisplayNameLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Display Name"
+vertical_alignment = 1
+
+[node name="EnabledLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
+visible = false
+layout_mode = 2
+text = "Enabled"
+
+[node name="OptionPropertiesEntryContainer" type="VBoxContainer" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="IdLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+
+[node name="TargetSceneLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+
+[node name="DisplayNameLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+
+[node name="OptionEnabledCheckButton" type="CheckButton" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 0
+button_pressed = true
+
+[connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/DeleteButton" to="." method="_on_delete_button_pressed"]
+[connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_focus_exited"]
+[connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_submitted"]
+[connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneLineEdit" to="." method="_on_target_scene_line_edit_focus_exited"]
+[connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneLineEdit" to="." method="_on_target_scene_line_edit_text_submitted"]
+[connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_focus_exited"]
+[connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_text_submitted"]
+[connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton" to="." method="_on_option_enabled_check_button_pressed"]

@@ -1,0 +1,44 @@
+[gd_scene load_steps=3 format=3 uid="uid://bwr4datds52sk"]
+
+[ext_resource type="Script" path="res://src/Game/Game.cs" id="1_xkaer"]
+[ext_resource type="PackedScene" uid="uid://w1m3fd66hri1" path="res://src/Game/navigation_button_grid.tscn" id="2_1mosd"]
+
+[node name="DtgeGameRoot" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_xkaer")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="SceneTextDisplay" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
+theme_override_font_sizes/italics_font_size = 24
+theme_override_font_sizes/bold_italics_font_size = 24
+theme_override_font_sizes/mono_font_size = 24
+bbcode_enabled = true
+text = "[center]Scene Text![/center]
+"
+
+[node name="NavigationButtonGridContainer" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_1mosd")]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.3
+
+[node name="ErrorAcceptDialog" type="AcceptDialog" parent="."]
+title = "Oops!"
+initial_position = 1

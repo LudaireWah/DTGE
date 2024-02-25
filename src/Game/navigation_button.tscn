@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3 uid="uid://b117vdesg5652"]
+
+[ext_resource type="Script" path="res://src/Game/NavigationButton.cs" id="1_63q1i"]
+
+[node name="NavigationButtonContainer" type="MarginContainer"]
+offset_right = 257.0
+offset_bottom = 104.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 1
+theme_override_constants/margin_top = 1
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 1
+script = ExtResource("1_63q1i")
+
+[node name="NavigationButtonPlaceholderColorRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 2
+color = Color(0.28, 0.28, 0.28, 1)
+
+[node name="NavigationButton" type="Button" parent="."]
+layout_mode = 2
+button_mask = 3
+
+[node name="RightClickMenuCapture" type="ColorRect" parent="NavigationButton"]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+offset_right = 255.0
+offset_bottom = 102.0
+mouse_filter = 1
+
+[node name="ShortcutContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 5
+
+[node name="ShortcutLabel" type="Label" parent="ShortcutContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+text = "[Shortcut]"
+
+[connection signal="pressed" from="NavigationButton" to="." method="_on_navigation_button_pressed"]
+[connection signal="gui_input" from="NavigationButton/RightClickMenuCapture" to="." method="_on_right_click_menu_capture_gui_input"]

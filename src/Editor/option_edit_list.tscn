@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://d2tclmur7pj0d"]
+
+[ext_resource type="Script" path="res://src/Editor/OptionEditList.cs" id="1_tihpb"]
+
+[node name="OptionEditList" type="VBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_tihpb")
+
+[node name="AddOptionButton" type="Button" parent="."]
+layout_mode = 2
+text = "Add Option"
+
+[node name="OptionEditListScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="OptionEditListVBoxContainer" type="VBoxContainer" parent="OptionEditListScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="pressed" from="AddOptionButton" to="." method="_on_add_option_button_pressed"]

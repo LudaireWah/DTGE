@@ -1,0 +1,120 @@
+[gd_scene load_steps=3 format=3 uid="uid://jeisn4kmgonf"]
+
+[ext_resource type="Script" path="res://src/Editor/Editor.cs" id="1_ufwon"]
+[ext_resource type="PackedScene" uid="uid://cfepolkldqo55" path="res://src/Editor/dtge_scene_edit_containerv1.tscn" id="2_ap0h8"]
+
+[node name="DtgeEditorRoot" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_ufwon")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="File" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
+
+[node name="Game" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
+
+[node name="Help" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
+
+[node name="DtgeSceneEditContainer" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_ap0h8")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OpenFileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+initial_position = 2
+size = Vector2i(600, 350)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[node name="SaveAsFileDialog" type="FileDialog" parent="."]
+initial_position = 2
+size = Vector2i(600, 350)
+access = 2
+
+[node name="GamePreviewAcceptDialog" type="AcceptDialog" parent="."]
+title = "Debug Game"
+initial_position = 2
+size = Vector2i(1280, 720)
+ok_button_text = "Close"
+
+[node name="AboutAcceptDialog" type="AcceptDialog" parent="."]
+title = "About"
+initial_position = 2
+size = Vector2i(2366, 265)
+dialog_text = "Dynamic Text Game Engine
+Version: v0.1
+
+DTGE, short for Dynamic Text Game Engine, is a game engine for creating complex text-based games using a graphical editor to make authorship as easy and accessible as possible. The engine aims to create games that leverage the flexibility text offers to respond dynamically to a player and their choices.
+
+DTGE and its associated tools are built on top of Godot.
+
+DTGE is still in extremely early development, and it only has the most basic features implemented with much more to come."
+dialog_autowrap = true
+
+[node name="TutorialAcceptDialog" type="AcceptDialog" parent="."]
+title = "Tutorial"
+initial_position = 2
+dialog_text = "Welcome to DTGE!
+
+DTGE, short for Dynamic Text Game Engine, is a game engine that allows you to deliver extremely deep and complex text-based games that can respond to players' decisions with more fidelity than is practical in non-text-based games.
+
+DTGE is still in very early development, so what's possible is still fairly limited, but with the v0.1 release, a \"choose your own adventure\" style of game is entirely possible. Future updates will introduce the ability for players to customize their character, allow you to track everything from small changes to large player decisions, support save games, and more.
+
+The fundamental element of DTGE is the Scene. The core idea of DTGE is that you present the player with a Scene, which has text describing the situation and a set of options they can choose from. Each option takes them to a new Scene, and the process repeats. This may seem simple, but it's extremely powerful, and you can create a lot just by combining together a bunch of Scenes.
+
+To create a scene, give your scene an id so you can reference it later and fill in your description of the scene in the large scene text below the id. Afterwards, click the Add Option button to add enough options to cover all the decisions a player can make. Each option will list itself by its keyboard shortcut.
+
+Options should also be given a unique id, and otherwise are made up of a target scene that should be opened if it's selected, a display name to communicate to the player what decision the option represents.
+
+When the game starts, it will look in the DTGEScenes folder and load all scenes to be played. It will also look for a file called \"startscene.dscn\" and that is the scene that the player will start with upon launching the game. DTGE automatically saves to and opens from the correct file location, so all scenes you save from the  editor should be loaded.
+
+Once you're happy with your scene, save it (make sure to name it \"startscene.dscn\" if you want it to be the first scene). Pick one of the options that you want to create a new scene for, note its Target Scene Id, then you can use File->New to create a new scene. Enter that id, fill in your text, and add your options.
+
+You can repeat this to create as many scenes as you desire. It can be very helpful to have your own outline somewhere to track the flow of scene to scene. You can also use Game->Run to run a debug version of the game within the editor to see how your game is flowing. You can also launch your game via Game.exe in the same place you found Editor.exe (the game and editor automatically draw from the same file when editing/playing scenes).
+
+Once you want to package things up to give to players, you can copy the folder where you've been working to a new place. Then in that new location, you delete the three editor files. You can rename Game.exe if you'd like. That exe will now run your game, so this file can be compressed and shared as you'd like.
+
+Even with the best tools possible, making games is hard, but I hope DTGE helps make it easier for you.
+
+Good luck!"
+dialog_autowrap = true
+
+[node name="LicenseAcceptDialog" type="AcceptDialog" parent="."]
+title = "License"
+initial_position = 2
+dialog_text = "Copyright (c) 2023-2024 Ludaire
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+dialog_autowrap = true
+
+[connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
+[connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]
+[connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Help" to="." method="_on_popup_menu_index_pressed"]
+[connection signal="file_selected" from="OpenFileDialog" to="." method="_on_open_file_dialog_file_selected"]
+[connection signal="file_selected" from="SaveAsFileDialog" to="." method="_on_save_as_file_dialog_file_selected"]
+[connection signal="size_changed" from="GamePreviewAcceptDialog" to="." method="_on_game_preview_accept_dialog_size_changed"]

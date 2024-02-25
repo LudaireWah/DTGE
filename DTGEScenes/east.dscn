@@ -1,0 +1,1 @@
+{"Id":"east","SceneText":"You are now in the eastern test scene.","encodedSceneText":null,"optionList":[{"id":"west_from_east","targetSceneId":"center","displayName":"West","tooltip":null,"enabled":true},{"id":"","targetSceneId":"","displayName":"East","tooltip":null,"enabled":false},null,null,null,null,null,null,null,null,null,null,null,null,null]}
