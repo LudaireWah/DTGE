@@ -1,3 +1,6 @@
+# DTGE-specific ignores
+DTGEScenes/
+
 # Godot 4+ specific ignores
 .godot/
 
