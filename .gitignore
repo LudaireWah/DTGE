@@ -1,6 +1,10 @@
 # DTGE-specific ignores
 DTGEScenes/
 
+# User specific launch file
+launchSettings.json
+
+
 # Godot 4+ specific ignores
 .godot/
 
