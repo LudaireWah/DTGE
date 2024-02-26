@@ -98,6 +98,12 @@ public partial class Game : Control
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
         
         DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
+        if (sceneDirectory == null)
+        {
+            this.OnGameError("Error Code labyrinth: No scene directory found.");
+            return;
+        }
+
         string[] sceneFileNames = sceneDirectory.GetFiles();
         
         for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
