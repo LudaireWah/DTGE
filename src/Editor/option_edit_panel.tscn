@@ -56,7 +56,6 @@ text = "Display Name"
 vertical_alignment = 1
 
 [node name="EnabledLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
-visible = false
 layout_mode = 2
 text = "Enabled"
 
@@ -77,7 +76,6 @@ custom_minimum_size = Vector2(0, 31)
 layout_mode = 2
 
 [node name="OptionEnabledCheckButton" type="CheckButton" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
-visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 button_pressed = true

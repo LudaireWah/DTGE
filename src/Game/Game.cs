@@ -62,6 +62,7 @@ public partial class Game : Control
         if (this.currentDtgeScene != null)
         {
             this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
+            this.sceneTextDisplay.ScrollToLine(0);
             this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
         }
     }
