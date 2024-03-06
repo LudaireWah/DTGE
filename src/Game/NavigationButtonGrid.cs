@@ -3,30 +3,36 @@ using System;
 
 namespace DtgeGame;
 
+/**
+ * NavigationButtonGrid is a GridContainer that contains a set of navigation
+ * buttons used to present options to players. The NavigationButtonGrid is
+ * responsible for tracking all the buttons, binding them to the right option,
+ * and owns the layout as laid out in the Godot editor.
+ */
 public partial class NavigationButtonGrid : GridContainer
 {
 
-    NavigationButton button1;
-    NavigationButton button2;
-    NavigationButton button3;
-    NavigationButton button4;
-    NavigationButton button5;
-    NavigationButton button6;
-    NavigationButton button7;
-    NavigationButton button8;
-    NavigationButton button9;
-    NavigationButton button10;
-    NavigationButton button11;
-    NavigationButton button12;
-    NavigationButton button13;
-    NavigationButton button14;
-    NavigationButton button15;
-    #region compile_check
-    const uint DTGECORE_OPTION_MAX_OPTIONS_SHOULD_MATCH = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
+    private NavigationButton button1;
+    private NavigationButton button2;
+    private NavigationButton button3;
+    private NavigationButton button4;
+    private NavigationButton button5;
+    private NavigationButton button6;
+    private NavigationButton button7;
+    private NavigationButton button8;
+    private NavigationButton button9;
+    private NavigationButton button10;
+    private NavigationButton button11;
+    private NavigationButton button12;
+    private NavigationButton button13;
+    private NavigationButton button14;
+    private NavigationButton button15;
+    #region compile_assert
+    const uint DTGE_SCENE_MAX_OPTIONS_SHOULD_MATCH_BUTTON_COUNT = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
     #endregion
-    NavigationButton[] allButtons;
+    private NavigationButton[] allButtons;
 
-    int currentButtonToBind = 0;
+    private int currentButtonToBind = 0;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -46,7 +52,7 @@ public partial class NavigationButtonGrid : GridContainer
         this.button13 = GetNode<NavigationButton>("NavigationButton13");
         this.button14 = GetNode<NavigationButton>("NavigationButton14");
         this.button15 = GetNode<NavigationButton>("NavigationButton15");
-        #region compile_check
+        #region compile_assert
 #pragma warning disable CS0219 // Variable is assigned but its value is never used
         const uint DTGECORE_OPTION_MAX_OPTIONS_SHOULD_MATCH_2 = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
 #pragma warning restore CS0219 // Variable is assigned but its value is never used
@@ -68,31 +74,18 @@ public partial class NavigationButtonGrid : GridContainer
         this.allButtons[12] = this.button13;
         this.allButtons[13] = this.button14;
         this.allButtons[14] = this.button15;
-        #region compile_check
+        #region compile_assert
 #pragma warning disable CS0219 // Variable is assigned but its value is never used
         const uint DTGECORE_OPTION_MAX_OPTIONS_SHOULD_MATCH_3 = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
 #pragma warning restore CS0219 // Variable is assigned but its value is never used
         #endregion
 
-        this.ClearButtons();
-    }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
-    }
-
-    public void SetEditMode(bool editModeEnabled)
-    {
-        for (int buttonIndex = 0; buttonIndex < this.allButtons.Length; buttonIndex++)
-        {
-            this.allButtons[buttonIndex].SetEditMode(editModeEnabled);
-        }
+        this.clearButtons();
     }
 
     public void BindSceneOptionsToButtons(DtgeCore.Scene scene, Action<DtgeCore.Option> action)
     {
-        this.ClearButtons();
+        this.clearButtons();
 
         if (scene == null)
         {
@@ -108,7 +101,7 @@ public partial class NavigationButtonGrid : GridContainer
         }
     }
 
-    private void ClearButtons()
+    private void clearButtons()
     {
         for (int buttonIndex = 0; buttonIndex < DtgeCore.Scene.MAX_OPTION_NUMBER; buttonIndex++)
         {

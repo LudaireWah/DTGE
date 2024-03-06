@@ -4,19 +4,27 @@ using System.Text.Json;
 
 namespace DtgeGame;
 
+/**
+ * The root Control node for the DTGE game. It directly manages the following:
+ *  - Basic viewport stuff like window size changes
+ *  - Loading of DTGE scenes from .dscn files into a DTGECore.SceneManager
+ *  - Rendering scene text
+ *  - Displaying game errors
+ *  
+ *  It's also the parent for the NavigationButtonGrid.
+ */
 public partial class Game : Control
 {
-    MarginContainer marginContainer;
-    RichTextLabel sceneTextDisplay;
-    NavigationButtonGrid navigationButtonGrid;
-    AcceptDialog errorAcceptDialog;
+    private MarginContainer marginContainer;
+    private RichTextLabel sceneTextDisplay;
+    private NavigationButtonGrid navigationButtonGrid;
+    private AcceptDialog errorAcceptDialog;
 
-    DtgeCore.Scene currentDtgeScene;
+    private DtgeCore.Scene currentDtgeScene;
 
-    bool manualViewportSizeOverride;
-    Vector2 manualViewportSize;
+    private bool manualViewportSizeOverride;
+    private Vector2 manualViewportSize;
 
-    // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
         this.marginContainer = GetNode<MarginContainer>("MarginContainer");
@@ -27,37 +35,31 @@ public partial class Game : Control
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
 
         this.loadScenesFromFiles();
-        
-        this.UpdateUIFromScene();
+        this.updateUIFromScene();
 
         this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
         this.OnWindowSizeChanged();
         this.manualViewportSizeOverride = false;
     }
 
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
-    }
-
     public void HandleOptionChosen(DtgeCore.Option option)
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-        DtgeCore.Scene dtgeScene = sceneManager.getSceneById(option.targetSceneId);
+        DtgeCore.Scene dtgeScene = sceneManager.GetSceneById(option.TargetSceneId);
 
         if (dtgeScene == null)
         {
-            this.OnGameError("Error code bigfoot: Target scene not found.");
+            this.OnGameError("Error code DEAD_END: Target scene not found.");
         }
         else
         {
             this.currentDtgeScene = dtgeScene;
         }
 
-        this.UpdateUIFromScene();
+        this.updateUIFromScene();
     }
 
-    private void UpdateUIFromScene()
+    private void updateUIFromScene()
     {
         if (this.currentDtgeScene != null)
         {
@@ -101,7 +103,7 @@ public partial class Game : Control
         DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
         if (sceneDirectory == null)
         {
-            this.OnGameError("Error Code labyrinth: No scene directory found.");
+            this.OnGameError("Error Code LABYRINTH: No scene directory found.");
             return;
         }
 
@@ -119,7 +121,7 @@ public partial class Game : Control
                 DtgeCore.Scene newScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
                 if (newScene != null)
                 {
-                    sceneManager.addScene(newScene);
+                    sceneManager.AddScene(newScene);
 
                     if (sceneFileName == DtgeCore.Constants.DTGE_DEFAULT_START_SCENE_NAME && this.currentDtgeScene == null)
                     {
@@ -133,7 +135,7 @@ public partial class Game : Control
 
         if (this.currentDtgeScene == null)
         {
-            this.OnGameError("Eror code labyrinth: No start scene found.");
+            this.OnGameError("Eror code LABYRINTH: No start scene found.");
         }
     }
 }

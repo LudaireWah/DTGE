@@ -100,7 +100,7 @@ public partial class OptionEditList : VBoxContainer
 
     private void updateOptionEditPanelsFromScene()
     {
-        DtgeCore.Option[] updatedOptions = this.dtgeScene.optionList;
+        DtgeCore.Option[] updatedOptions = this.dtgeScene.OptionList;
 		int nonNullOptionCount = 0;
 
         for (int optionIndex = 0; optionIndex < updatedOptions.Length; optionIndex++)

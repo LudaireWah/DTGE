@@ -18,17 +18,9 @@ visible = false
 layout_mode = 2
 color = Color(0.28, 0.28, 0.28, 1)
 
-[node name="NavigationButton" type="Button" parent="."]
+[node name="MainButton" type="Button" parent="."]
 layout_mode = 2
 button_mask = 3
-
-[node name="RightClickMenuCapture" type="ColorRect" parent="NavigationButton"]
-visible = false
-self_modulate = Color(1, 1, 1, 0)
-layout_mode = 2
-offset_right = 255.0
-offset_bottom = 102.0
-mouse_filter = 1
 
 [node name="ShortcutContainer" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -40,5 +32,4 @@ layout_mode = 2
 size_flags_vertical = 1
 text = "[Shortcut]"
 
-[connection signal="pressed" from="NavigationButton" to="." method="_on_navigation_button_pressed"]
-[connection signal="gui_input" from="NavigationButton/RightClickMenuCapture" to="." method="_on_right_click_menu_capture_gui_input"]
+[connection signal="pressed" from="MainButton" to="." method="_on_navigation_button_pressed"]

@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 
 namespace DtgeCore;
-
+/**
+ * The SceneManager is a singleton class responsible for tracking all Scenes
+ * within the game based on their scene id.
+ */
 public class SceneManager
 {
     private static SceneManager instance;
-    private Dictionary<string, Scene> scenes;
-    private const int max_scene_number= 5;
+    private readonly Dictionary<string, Scene> scenes;
 
     private SceneManager()
     {
@@ -23,12 +25,12 @@ public class SceneManager
         return SceneManager.instance;
     }
 
-    public void addScene(Scene newScene)
+    public void AddScene(Scene newScene)
     {
         this.scenes[newScene.Id] = newScene;
     }
 
-    public Scene getSceneById(string id)
+    public Scene GetSceneById(string id)
     {
         Scene scene = null;
         
@@ -42,7 +44,7 @@ public class SceneManager
         return scene;
     }
 
-    public void clearScenes()
+    public void ClearScenes()
     {
         this.scenes.Clear();
     }

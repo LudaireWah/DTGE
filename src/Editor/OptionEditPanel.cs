@@ -69,10 +69,10 @@ public partial class OptionEditPanel : PanelContainer
             this.boundOption = new DtgeCore.Option();
 			newOptionAdded = true;
         }
-        this.boundOption.id = this.idLineEdit.Text;
-		this.boundOption.targetSceneId = this.targetSceneLineEdit.Text;
-		this.boundOption.displayName = this.displayNameLineEdit.Text;
-        this.boundOption.enabled = this.optionEnabledCheckButton.ButtonPressed;
+        this.boundOption.Id = this.idLineEdit.Text;
+		this.boundOption.TargetSceneId = this.targetSceneLineEdit.Text;
+		this.boundOption.DisplayName = this.displayNameLineEdit.Text;
+        this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
         this.OptionUpdatedAction(newOptionAdded);
 	}
 
@@ -87,10 +87,10 @@ public partial class OptionEditPanel : PanelContainer
         }
 		else
         {
-            this.idLineEdit.Text = this.boundOption.id;
-            this.targetSceneLineEdit.Text = this.boundOption.targetSceneId;
-            this.displayNameLineEdit.Text = this.boundOption.displayName;
-            this.optionEnabledCheckButton.ButtonPressed = this.boundOption.enabled;
+            this.idLineEdit.Text = this.boundOption.Id;
+            this.targetSceneLineEdit.Text = this.boundOption.TargetSceneId;
+            this.displayNameLineEdit.Text = this.boundOption.DisplayName;
+            this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
         }
     }
 
@@ -105,7 +105,7 @@ public partial class OptionEditPanel : PanelContainer
 		{
 			this.boundOption = new DtgeCore.Option();
 		}
-		this.boundOption.enabled = this.optionEnabledCheckButton.ButtonPressed;
+		this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
         this.OptionUpdatedAction(true);
 	}
 

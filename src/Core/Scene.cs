@@ -4,18 +4,25 @@ using System.Text.Json.Serialization;
 
 namespace DtgeCore;
 
+/**
+ * DTGE's Scene is the fundamental unit of the engine. Nearly everything displayed to the
+ * player is displayed via a scene. Thus, navigation through the game is navigating
+ * through a set of scenes, each presenting the player with a description of the player's
+ * situation and which options the player may choose to advance in the game.
+ */
 public class Scene
 {
+    public const int MAX_OPTION_NUMBER = 15;
+
     public string Id { get; set; }
-    private string sceneText;
     public string SceneText
     {
         get
         {
-            if (this.sceneText == null && this.encodedSceneText != null)
+            if (this.sceneText == null && this.EncodedSceneText != null)
             {
-                this.sceneText = System.Text.Encoding.Unicode.GetString(this.encodedSceneText);
-                this.encodedSceneText = null;
+                this.sceneText = System.Text.Encoding.Unicode.GetString(this.EncodedSceneText);
+                this.EncodedSceneText = null;
             }
             return sceneText;
         }
@@ -24,22 +31,22 @@ public class Scene
             this.sceneText = value;
         }
     }
-    public byte[] encodedSceneText { get; set; }
+    public byte[] EncodedSceneText { get; set; }
+    public Option[] OptionList {  get; set; }
 
-    public const int MAX_OPTION_NUMBER = 15;
-    public Option[] optionList {  get; set; }
+    private string sceneText;
 
     public Scene()
     {
         this.Id = "";
         this.sceneText = null;
-        this.optionList = new Option[MAX_OPTION_NUMBER];
+        this.OptionList = new Option[MAX_OPTION_NUMBER];
     }
     public Scene(string id)
     {
         this.Id= id;
         this.sceneText= null;
-        this.optionList = new Option[MAX_OPTION_NUMBER];
+        this.OptionList = new Option[MAX_OPTION_NUMBER];
     }
 
     public override string ToString()
@@ -50,9 +57,9 @@ public class Scene
             this.sceneText + "\n\n" +
             "Options:\n";
 
-        for (int optionIndex = 0; optionIndex < this.optionList.Count(); optionIndex++)
+        for (int optionIndex = 0; optionIndex < this.OptionList.Count(); optionIndex++)
         {
-            Option option = this.optionList[optionIndex];
+            Option option = this.OptionList[optionIndex];
             if (option != null)
             {
                 sceneString += option.ToString();
@@ -66,16 +73,11 @@ public class Scene
     {
         if (this.sceneText != null)
         {
-            this.encodedSceneText = System.Text.Encoding.Unicode.GetBytes(this.sceneText);
+            this.EncodedSceneText = System.Text.Encoding.Unicode.GetBytes(this.sceneText);
         }
         this.sceneText = null;
         string toReturn = JsonSerializer.Serialize(this);
         return toReturn;
-    }
-
-    public bool MatchesId(string id)
-    {
-        return this.Id == id;
     }
 
     public bool AddOption(Option option)
@@ -84,9 +86,9 @@ public class Scene
 
         for (int optionIndex = 0; optionIndex < MAX_OPTION_NUMBER && assignedOptionIndex == -1; optionIndex++)
         {
-            if (this.optionList[optionIndex] == null)
+            if (this.OptionList[optionIndex] == null)
             {
-                this.optionList[optionIndex] = option;
+                this.OptionList[optionIndex] = option;
                 assignedOptionIndex = optionIndex;
             }
         }
@@ -98,17 +100,17 @@ public class Scene
     {
         for (int optionIndex = 0; optionIndex < MAX_OPTION_NUMBER; optionIndex++)
         {
-            this.optionList[optionIndex] = null;
+            this.OptionList[optionIndex] = null;
         }
     }
 
     public int GetOptionCount()
     {
-        return optionList.Count();
+        return this.OptionList.Length;
     }
 
     public Option GetOption(int index)
     {
-        return optionList[index];
+        return this.OptionList[index];
     }
 }
