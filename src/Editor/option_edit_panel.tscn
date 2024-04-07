@@ -26,6 +26,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Option #"
 
+[node name="MoveUpButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
+layout_mode = 2
+text = "↑"
+
+[node name="MoveDownButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
+layout_mode = 2
+text = "↓"
+
 [node name="DeleteButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
 layout_mode = 2
 text = "X"
@@ -80,6 +88,8 @@ layout_mode = 2
 size_flags_horizontal = 0
 button_pressed = true
 
+[connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveUpButton" to="." method="_on_move_up_button_pressed"]
+[connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveDownButton" to="." method="_on_move_down_button_pressed"]
 [connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/DeleteButton" to="." method="_on_delete_button_pressed"]
 [connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_focus_exited"]
 [connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_submitted"]

@@ -19,5 +19,6 @@ public class GodotConstants
     public const Key KEY_CTRL_O = (Key)(KeyModifierMask.MaskCtrl) | Key.O;
     public const Key KEY_CTRL_S = (Key)(KeyModifierMask.MaskCtrl) | Key.S;
     public const Key KEY_CTRL_SHIFT_S = (Key)(KeyModifierMask.MaskCtrl) | (Key)(KeyModifierMask.MaskShift) | Key.S;
+    public const Key KEY_CTRL_F5 = (Key)(KeyModifierMask.MaskCtrl) | Key.F5;
 }
 

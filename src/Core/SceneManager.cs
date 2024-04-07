@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DtgeCore;
 /**
- * The SceneManager is a singleton class responsible for tracking all Scenes
+ * The SceneManager is a singleton class responsible for having all Scenes
  * within the game based on their scene id.
  */
 public class SceneManager

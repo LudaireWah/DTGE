@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 namespace DtgeEditor;
 
+/**
+ * The root node for the Godot scene that manages the set of
+ * OptionEditPanels used to author DTGE Options. It maintains
+ * the list and coordinates between the options for things like
+ * which navigation button the option will slot into.
+ */
 public partial class OptionEditList : VBoxContainer
 {
 	VBoxContainer optionEditListVBoxContainer;
@@ -79,9 +85,73 @@ public partial class OptionEditList : VBoxContainer
 
 			this.updateOptionLocationLabels();
         }
-	}
+    }
 
-	public void OnOptionDeleted(OptionEditPanel toRemove)
+    public void MoveOptionUp(OptionEditPanel targetOption)
+    {
+		OptionEditPanel currentOptionEditPanel = null;
+		OptionEditPanel aboveOptionEditPanel = null;
+
+		for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
+		{
+			currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
+			if (currentOptionEditPanel != null &&
+				aboveOptionEditPanel != null &&
+				currentOptionEditPanel == targetOption)
+            {
+                DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
+                aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
+                aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
+                currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
+				break;
+            }
+			aboveOptionEditPanel = currentOptionEditPanel;
+		}
+
+		if (currentOptionEditPanel != null)
+		{
+			currentOptionEditPanel.UpdateUIFromOption();
+		}
+		
+		if (aboveOptionEditPanel != null)
+		{
+			aboveOptionEditPanel.UpdateUIFromOption();
+		}
+    }
+
+    public void MoveOptionDown(OptionEditPanel targetOption)
+    {
+        OptionEditPanel currentOptionEditPanel = null;
+        OptionEditPanel belowOptionEditPanel = null;
+        for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
+        {
+            currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
+			belowOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex + 1);
+            if (currentOptionEditPanel != null &&
+                belowOptionEditPanel != null &&
+                currentOptionEditPanel == targetOption)
+            {
+				DtgeCore.Option belowOptionCopy = new DtgeCore.Option();
+                belowOptionCopy.CopyFrom(belowOptionEditPanel.BoundOption);
+                belowOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
+                currentOptionEditPanel.BoundOption.CopyFrom(belowOptionCopy);
+
+				break;
+            }
+        }
+
+        if (currentOptionEditPanel != null)
+        {
+            currentOptionEditPanel.UpdateUIFromOption();
+        }
+
+        if (belowOptionEditPanel != null)
+        {
+            belowOptionEditPanel.UpdateUIFromOption();
+        }
+    }
+
+    public void OnOptionDeleted(OptionEditPanel toRemove)
 	{
         this.optionEditListVBoxContainer.RemoveChild(toRemove);
 		this.OnOptionUpdate(true);
@@ -149,6 +219,8 @@ public partial class OptionEditList : VBoxContainer
             {
                 newOptionEditPanel.BoundOption = option;
                 newOptionEditPanel.OptionUpdatedAction = this.OnOptionUpdate;
+				newOptionEditPanel.OptionMovedUpAction = this.MoveOptionUp;
+				newOptionEditPanel.OptionMovedDownAction = this.MoveOptionDown;
                 newOptionEditPanel.OptionDeletedAction = this.OnOptionDeleted;
                 this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
             }

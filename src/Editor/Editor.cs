@@ -4,10 +4,16 @@ using System;
 
 namespace DtgeEditor;
 
+/**
+ * This is the root node for the entire DTGE editor. It's chiefly
+ * responsible for coordinating between instantiated Godot scenes
+ * that manage specific pieces of the engine. It also manages the
+ * top menu bar.
+ */
 public partial class Editor : Control
 {
     MarginContainer marginContainer;
-    DtgeSceneEditContainerV1 dtgeSceneEditContainer;
+    DtgeSceneEditContainer dtgeSceneEditContainer;
 
     PopupMenu filePopMenu;
     PopupMenu gamePopupMenu;
@@ -20,6 +26,7 @@ public partial class Editor : Control
         FileSave,
         FileSaveAs,
         GameRun,
+        GameRunCurrentScene,
         HelpAbout,
         HelpTutorial,
         HelpLicense,
@@ -36,14 +43,17 @@ public partial class Editor : Control
     AcceptDialog gamePreviewAcceptDialog;
     DtgeGame.Game gamePreviewScene;
 
+    const float SMALL_ACCEPT_DIALOG_SIZE_RATIO = 0.25f;
+    const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_X = 0.5f;
+    const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y = 0.75f;
     const int GAME_PREVIEW_CLOSE_BUTTON_HEIGHT = 50;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainerV1>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
         this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-
+        this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
+        
         this.filePopMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
         this.filePopMenu.AddItem("New", (int)PopupMenuIds.FileNew, GodotConstants.KEY_CTRL_N);
         this.filePopMenu.AddItem("Open...", (int)PopupMenuIds.FileOpen, GodotConstants.KEY_CTRL_O);
@@ -52,6 +62,7 @@ public partial class Editor : Control
 
         this.gamePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
         this.gamePopupMenu.AddItem("Run", (int)PopupMenuIds.GameRun, Key.F5);
+        this.gamePopupMenu.AddItem("Run", (int)PopupMenuIds.GameRunCurrentScene, GodotConstants.KEY_CTRL_F5);
 
         this.helpPopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
         this.helpPopupMenu.AddItem("About", (int)PopupMenuIds.HelpAbout);
@@ -85,10 +96,10 @@ public partial class Editor : Control
     {
         Rect2 newViewport = this.GetTree().Root.GetViewport().GetVisibleRect();
         this.marginContainer.SetSize(newViewport.Size);
-        this.aboutAndLicenseInitialSize.X = (int)(newViewport.Size.X * 0.25f);
-        this.aboutAndLicenseInitialSize.Y = (int)(newViewport.Size.Y * 0.25f);
-        this.tutorialInitialSize.X = (int)(newViewport.Size.X * 0.5f);
-        this.tutorialInitialSize.Y = (int)(newViewport.Size.Y * 0.75f);
+        this.aboutAndLicenseInitialSize.X = (int)(newViewport.Size.X * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+        this.aboutAndLicenseInitialSize.Y = (int)(newViewport.Size.Y * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+        this.tutorialInitialSize.X = (int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
+        this.tutorialInitialSize.Y = (int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
     }
 
     public void _on_popup_menu_index_pressed(int index)
@@ -136,12 +147,13 @@ public partial class Editor : Control
         }
         case PopupMenuIds.GameRun:
         {
-            this.gamePreviewAcceptDialog.RemoveChild(this.gamePreviewScene);
-            this.gamePreviewScene = ((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.GAME_SCENE_PATH)).Instantiate<DtgeGame.Game>();
-
-            this.gamePreviewAcceptDialog.AddChild(gamePreviewScene);
-            this.gamePreviewAcceptDialog.Popup();
-            this._on_game_preview_accept_dialog_size_changed();
+            this.runDebugGame();
+            break;
+        }
+        case PopupMenuIds.GameRunCurrentScene:
+        {
+            this.runDebugGame();
+            this.gamePreviewScene.LoadScene(this.dtgeSceneEditContainer.DtgeScene);
             break;
         }
         case PopupMenuIds.HelpAbout:
@@ -213,5 +225,15 @@ public partial class Editor : Control
             previewAcceptDialogSize.Y -= GAME_PREVIEW_CLOSE_BUTTON_HEIGHT;
             this.gamePreviewScene.SetManualViewportSize(previewAcceptDialogSize);
         }
+    }
+
+    private void runDebugGame()
+    {
+        this.gamePreviewAcceptDialog.RemoveChild(this.gamePreviewScene);
+        this.gamePreviewScene = ((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.GAME_SCENE_PATH)).Instantiate<DtgeGame.Game>();
+
+        this.gamePreviewAcceptDialog.AddChild(gamePreviewScene);
+        this.gamePreviewAcceptDialog.Popup();
+        this._on_game_preview_accept_dialog_size_changed();
     }
 }

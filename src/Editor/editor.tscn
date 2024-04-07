@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://jeisn4kmgonf"]
 
 [ext_resource type="Script" path="res://src/Editor/Editor.cs" id="1_ufwon"]
-[ext_resource type="PackedScene" uid="uid://cfepolkldqo55" path="res://src/Editor/dtge_scene_edit_containerv1.tscn" id="2_ap0h8"]
+[ext_resource type="PackedScene" uid="uid://cfepolkldqo55" path="res://src/Editor/dtge_scene_edit_container.tscn" id="2_ap0h8"]
 
 [node name="DtgeEditorRoot" type="Control"]
 layout_mode = 3

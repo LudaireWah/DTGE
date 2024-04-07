@@ -3,6 +3,10 @@ using System;
 
 namespace DtgeEditor;
 
+/**
+ * The root node for the Godot scene responsible for authoring
+ * DTGE Options.
+ */
 public partial class OptionEditPanel : PanelContainer
 {
 	Label optionLocationLabel;
@@ -28,6 +32,8 @@ public partial class OptionEditPanel : PanelContainer
 	}
     
     public Action<bool> OptionUpdatedAction;
+	public Action<OptionEditPanel> OptionMovedUpAction;
+	public Action<OptionEditPanel> OptionMovedDownAction;
 	public Action<OptionEditPanel> OptionDeletedAction;
 
 	// Called when the node enters the scene tree for the first time.
@@ -43,7 +49,7 @@ public partial class OptionEditPanel : PanelContainer
         {
             this.BoundOption = new DtgeCore.Option();
         }
-		this.updateUIFromOption();
+		this.UpdateUIFromOption();
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -51,7 +57,7 @@ public partial class OptionEditPanel : PanelContainer
 	{
 		if (this.uiNeedsUpdate)
 		{
-			this.updateUIFromOption();
+			this.UpdateUIFromOption();
 			this.uiNeedsUpdate = false;
 		}
 	}
@@ -76,22 +82,16 @@ public partial class OptionEditPanel : PanelContainer
         this.OptionUpdatedAction(newOptionAdded);
 	}
 
-	private void updateUIFromOption()
-	{
-		if (this.boundOption == null)
+	public void UpdateUIFromOption()
+    {
+        if (this.boundOption == null)
         {
-            this.idLineEdit.Text = "";
-            this.targetSceneLineEdit.Text = "";
-            this.displayNameLineEdit.Text = "";
-            this.optionEnabledCheckButton.ButtonPressed = false;
+            this.boundOption = new DtgeCore.Option();
         }
-		else
-        {
-            this.idLineEdit.Text = this.boundOption.Id;
-            this.targetSceneLineEdit.Text = this.boundOption.TargetSceneId;
-            this.displayNameLineEdit.Text = this.boundOption.DisplayName;
-            this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
-        }
+        this.idLineEdit.Text = this.boundOption.Id;
+        this.targetSceneLineEdit.Text = this.boundOption.TargetSceneId;
+        this.displayNameLineEdit.Text = this.boundOption.DisplayName;
+        this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
     }
 
 	public void UpdateOptionLocationLabel(string shortcutString)
@@ -137,6 +137,16 @@ public partial class OptionEditPanel : PanelContainer
 	public void _on_display_name_line_edit_focus_exited()
 	{
 		this.updateOptionFromUI();
+	}
+
+	public void _on_move_up_button_pressed()
+	{
+		this.OptionMovedUpAction(this);
+	}
+
+	public void _on_move_down_button_pressed()
+	{
+		this.OptionMovedDownAction(this);
 	}
 
     public void _on_delete_button_pressed()

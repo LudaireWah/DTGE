@@ -29,6 +29,14 @@ public class Option
         this.Enabled= enabled;
     }
 
+    public void CopyFrom(Option other)
+    {
+        this.Id = other.Id;
+        this.TargetSceneId = other.TargetSceneId;
+        this.DisplayName = other.DisplayName;
+        this.Enabled = other.Enabled;
+    }
+
     public override string ToString()
     {
         string optionString = 

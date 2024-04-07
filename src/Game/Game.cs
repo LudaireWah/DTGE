@@ -138,4 +138,10 @@ public partial class Game : Control
             this.OnGameError("Eror code LABYRINTH: No start scene found.");
         }
     }
+
+    public void LoadScene(DtgeCore.Scene scene)
+    {
+        this.currentDtgeScene = scene;
+        this.updateUIFromScene();
+    }
 }
