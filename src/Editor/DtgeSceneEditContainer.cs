@@ -28,7 +28,33 @@ public partial class DtgeSceneEditContainer : Control
         }
     }
 
-    public string CachedFilePath { get; set; }
+	private Action<string> tryOpenSceneAction;
+	public Action<string> TryOpenSceneAction
+	{
+		get
+		{
+			return this.tryOpenSceneAction;
+		}
+		set
+		{
+			this.tryOpenSceneAction = value;
+            this.optionEditList.TryOpenSceneAction = value;
+		}
+	}
+
+    private Action onSceneUpdated;
+    public Action OnSceneUpdated
+	{
+        get
+        {
+            return this.onSceneUpdated;
+        }
+        set
+        {
+            this.onSceneUpdated = value;
+            this.optionEditList.OnSceneUpdated = value;
+        }
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -84,10 +110,18 @@ public partial class DtgeSceneEditContainer : Control
     public void _on_scene_text_entry_text_edit_text_changed()
     {
         this.dtgeScene.SceneText = this.dtgeSceneTextEntry.Text;
+        if (this.OnSceneUpdated != null)
+        {
+            this.OnSceneUpdated();
+        }
     }
 
     public void _on_id_line_edit_text_changed(string new_text)
     {
         this.dtgeScene.Id = new_text;
+        if (this.OnSceneUpdated != null)
+        {
+            this.OnSceneUpdated();
+        }
     }
 }

@@ -35,6 +35,15 @@ layout_mode = 2
 
 [node name="Help" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DtgeScenesTabBar" type="TabBar" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+tab_close_display_policy = 1
+drag_to_rearrange_enabled = true
+
 [node name="DtgeSceneEditContainer" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_ap0h8")]
 layout_mode = 2
 size_flags_vertical = 3
@@ -120,6 +129,8 @@ cancel_button_text = "No"
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Help" to="." method="_on_popup_menu_index_pressed"]
+[connection signal="tab_close_pressed" from="MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_close_pressed"]
+[connection signal="tab_selected" from="MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_selected"]
 [connection signal="file_selected" from="OpenFileDialog" to="." method="_on_open_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsFileDialog" to="." method="_on_save_as_file_dialog_file_selected"]
 [connection signal="size_changed" from="GamePreviewAcceptDialog" to="." method="_on_game_preview_accept_dialog_size_changed"]

@@ -35,13 +35,14 @@ public partial class OptionEditPanel : PanelContainer
 	public Action<OptionEditPanel> OptionMovedUpAction;
 	public Action<OptionEditPanel> OptionMovedDownAction;
 	public Action<OptionEditPanel> OptionDeletedAction;
+	public Action<string> TryOpenSceneAction;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		this.optionLocationLabel = GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
 		this.idLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
-        this.targetSceneLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneLineEdit");
+        this.targetSceneLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
         this.displayNameLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
         this.optionEnabledCheckButton = GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
 
@@ -127,6 +128,11 @@ public partial class OptionEditPanel : PanelContainer
 	public void _on_target_scene_line_edit_focus_exited()
 	{
 		this.updateOptionFromUI();
+	}
+
+	public void _on_navigate_to_target_scene_button_pressed()
+	{
+		this.TryOpenSceneAction(this.targetSceneLineEdit.Text);
 	}
 
     public void _on_display_name_line_edit_text_submitted()

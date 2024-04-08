@@ -46,8 +46,24 @@ public partial class OptionEditList : VBoxContainer
 		"G"
 	};
 
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
+    private bool actionsAreStale;
+    private Action<string> tryOpenSceneAction;
+	public Action<string> TryOpenSceneAction
+	{
+		get
+		{
+			return this.tryOpenSceneAction;
+		}
+		set
+		{
+			this.tryOpenSceneAction = value;
+			this.actionsAreStale = true;
+		}
+    }
+	public Action OnSceneUpdated;
+
+    // Called when the node enters the scene tree for the first time.
+    public override void _Ready()
 	{
 		this.optionEditListVBoxContainer = this.GetNode<VBoxContainer>("OptionEditListScrollContainer/OptionEditListVBoxContainer");
 
@@ -62,6 +78,15 @@ public partial class OptionEditList : VBoxContainer
 			this.updateOptionEditPanelsFromScene();
 			this.uiNeedUpdate = false;
 		}
+
+		if (this.actionsAreStale)
+        {
+            for (int optionPanelIndex = 0; optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelIndex++)
+            {
+                this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex).TryOpenSceneAction = this.tryOpenSceneAction;
+            }
+            this.actionsAreStale = false;
+        }
 	}
 
 	public void FlushChangesForSave()
@@ -72,7 +97,7 @@ public partial class OptionEditList : VBoxContainer
         }
     }
 
-	public void OnOptionUpdate(bool countChanged)
+	public void OnOptionUpdated(bool countChanged)
 	{
 		if (countChanged)
 		{
@@ -84,6 +109,11 @@ public partial class OptionEditList : VBoxContainer
             }
 
 			this.updateOptionLocationLabels();
+        }
+
+		if (this.OnSceneUpdated != null)
+        {
+            this.OnSceneUpdated();
         }
     }
 
@@ -154,10 +184,18 @@ public partial class OptionEditList : VBoxContainer
     public void OnOptionDeleted(OptionEditPanel toRemove)
 	{
         this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.OnOptionUpdate(true);
-	}
+		this.OnOptionUpdated(true);
+    }
 
-	private void updateOptionLocationLabels()
+    public void _on_add_option_button_pressed()
+    {
+        DtgeCore.Option newOption = new DtgeCore.Option();
+        this.DtgeScene.AddOption(newOption);
+        this.addNewOptionEditPanel(newOption);
+        this.OnSceneUpdated();
+    }
+
+    private void updateOptionLocationLabels()
     {
         for (int optionPanelIndex = 0, optionlocationLabelIndex = 0;
 			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
@@ -218,21 +256,15 @@ public partial class OptionEditList : VBoxContainer
             if (newOptionEditPanel != null)
             {
                 newOptionEditPanel.BoundOption = option;
-                newOptionEditPanel.OptionUpdatedAction = this.OnOptionUpdate;
+                newOptionEditPanel.OptionUpdatedAction = this.OnOptionUpdated;
 				newOptionEditPanel.OptionMovedUpAction = this.MoveOptionUp;
 				newOptionEditPanel.OptionMovedDownAction = this.MoveOptionDown;
                 newOptionEditPanel.OptionDeletedAction = this.OnOptionDeleted;
+				newOptionEditPanel.TryOpenSceneAction = this.tryOpenSceneAction;
                 this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
             }
 
             this.updateOptionLocationLabels();
         }
     }
-
-    public void _on_add_option_button_pressed()
-	{
-		DtgeCore.Option newOption = new DtgeCore.Option();
-		this.DtgeScene.AddOption(newOption);
-		this.addNewOptionEditPanel(newOption);
-	}
 }
