@@ -49,7 +49,7 @@ public partial class Game : Control
 
         if (dtgeScene == null)
         {
-            this.OnGameError("Error code DEAD_END: Target scene not found.");
+            this.OnGameError("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + option.TargetSceneId + "], which was not found");
         }
         else
         {

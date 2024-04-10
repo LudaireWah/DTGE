@@ -1,0 +1,55 @@
+[gd_scene load_steps=2 format=3 uid="uid://3d6axeq5s121"]
+
+[ext_resource type="Script" path="res://src/GodotCommon/YesNoCancelDialog.cs" id="1_rbcug"]
+
+[node name="YesNoCancelDialog" type="Window"]
+position = Vector2i(100, 100)
+size = Vector2i(200, 200)
+script = ExtResource("1_rbcug")
+
+[node name="RootMarginContainer" type="MarginContainer" parent="."]
+offset_right = 200.0
+offset_bottom = 200.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RootMarginContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RootMarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Dialog Text" type="RichTextLabel" parent="RootMarginContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 6
+bbcode_enabled = true
+text = "[center]This is some example text for a short dialog.[/center]"
+fit_content = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="RootMarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="YesButton" type="Button" parent="RootMarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Yes"
+
+[node name="NoButton" type="Button" parent="RootMarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "No"
+
+[node name="CancelButton" type="Button" parent="RootMarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Cancel"
+
+[connection signal="pressed" from="RootMarginContainer/VBoxContainer/HBoxContainer/YesButton" to="." method="_on_yes_button_pressed"]
+[connection signal="pressed" from="RootMarginContainer/VBoxContainer/HBoxContainer/NoButton" to="." method="_on_no_button_pressed"]
+[connection signal="pressed" from="RootMarginContainer/VBoxContainer/HBoxContainer/CancelButton" to="." method="_on_cancel_button_pressed"]

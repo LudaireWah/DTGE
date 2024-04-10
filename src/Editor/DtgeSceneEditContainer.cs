@@ -91,11 +91,6 @@ public partial class DtgeSceneEditContainer : Control
         this.optionEditList.DtgeScene = this.dtgeScene;
     }
 
-    public string GetSerializedScene()
-    {
-        return this.dtgeScene.Serialize();
-    }
-
     public void RestoreFromSerializedScene(string serializedScene)
     {
         this.dtgeScene = JsonSerializer.Deserialize<DtgeCore.Scene>(serializedScene);

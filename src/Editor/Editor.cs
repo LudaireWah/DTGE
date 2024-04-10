@@ -18,6 +18,7 @@ public partial class Editor : Control
     List<DtgeSceneTabInfo> dtgeSceneTabInfoList;
     DtgeSceneEditContainer dtgeSceneEditContainer;
     Button addNewDtgeSceneButton;
+    YesNoCancelDialog saveYesNoCancelDialog;
 
     private struct DtgeSceneTabInfo
     {
@@ -45,11 +46,12 @@ public partial class Editor : Control
 
     FileDialog openFileDialog;
     FileDialog saveAsFileDialog;
+    FileDialog saveAsAndCloseFileDialog;
     AcceptDialog aboutAcceptDialog;
     AcceptDialog tutorialAcceptDialog;
     AcceptDialog licenseAcceptDialog;
-    Vector2I aboutAndLicenseInitialSize;
-    Vector2I tutorialInitialSize;
+    Vector2I smallDialogInitialSize;
+    Vector2I largeDialogInitialSize;
 
     AcceptDialog gamePreviewAcceptDialog;
     DtgeGame.Game gamePreviewScene;
@@ -59,9 +61,25 @@ public partial class Editor : Control
     const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y = 0.75f;
     const int GAME_PREVIEW_CLOSE_BUTTON_HEIGHT = 50;
 
+    private enum EditorState
+    {
+        Active,
+        Closing
+    }
+
+    private EditorState currentState;
+    private int tabToProcessBeforeClosing;
+
+    public Editor()
+    {
+
+    }
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
+        base._Ready();
+
         this.marginContainer = GetNode<MarginContainer>("MarginContainer");
         this.dtgeSceneTabBar = GetNode<TabBar>("MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar");
         this.addNewDtgeSceneButton = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/AddNewDtgeSceneButton");
@@ -71,10 +89,12 @@ public partial class Editor : Control
         this.helpPopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
         this.openFileDialog = GetNode<FileDialog>("OpenFileDialog");
         this.saveAsFileDialog = GetNode<FileDialog>("SaveAsFileDialog");
+        this.saveAsAndCloseFileDialog = GetNode<FileDialog>("SaveAsAndCloseFileDialog");
         this.aboutAcceptDialog = GetNode<AcceptDialog>("AboutAcceptDialog");
         this.tutorialAcceptDialog = GetNode<AcceptDialog>("TutorialAcceptDialog");
         this.licenseAcceptDialog = GetNode<AcceptDialog>("LicenseAcceptDialog");
         this.gamePreviewAcceptDialog = GetNode<AcceptDialog>("GamePreviewAcceptDialog");
+        this.saveYesNoCancelDialog = GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
 
         this.dtgeSceneTabInfoList = new List<DtgeSceneTabInfo>();
         //this.createNewSceneTab();
@@ -96,25 +116,90 @@ public partial class Editor : Control
         this.openFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
         this.saveAsFileDialog.AddFilter("*.dscn", "DTGE Scene");
         this.saveAsFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
+        this.saveAsFileDialog.Canceled += () =>
+        {
+            if (this.currentState == EditorState.Closing)
+            {
+                this.currentState = EditorState.Active;
+            }
+        };
+        this.saveAsAndCloseFileDialog.AddFilter("*.dscn", "DTGE Scene");
+        this.saveAsAndCloseFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
+        this.saveAsAndCloseFileDialog.Canceled += () =>
+        {
+            if (this.currentState == EditorState.Closing)
+            {
+                this.currentState = EditorState.Active;
+            }
+        };
+
 
         this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
         OnWindowSizeChanged();
+
+        this.currentState = EditorState.Active;
+        GetTree().AutoAcceptQuit = false;
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
     {
         base._Process(delta);
+
+        switch (this.currentState)
+        {
+        case EditorState.Active:
+        {
+            break;
+        }
+        case EditorState.Closing:
+        {
+            if (!this.saveAsFileDialog.Visible &&
+                !this.saveYesNoCancelDialog.Visible)
+            {
+                if (this.tabToProcessBeforeClosing == this.dtgeSceneTabBar.TabCount)
+                {
+                    this.GetTree().Quit();
+                }
+
+                for (; this.tabToProcessBeforeClosing < this.dtgeSceneTabBar.TabCount; this.tabToProcessBeforeClosing++)
+                {
+                    this.dtgeSceneTabBar.CurrentTab = this.tabToProcessBeforeClosing;
+                    DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
+
+                    if (!currentDtgeSceneTabInfo.saved)
+                    {
+                        this.popSaveYesNoCancelDialog(currentDtgeSceneTabInfo, this.tabToProcessBeforeClosing, false);
+                        this.tabToProcessBeforeClosing++;
+                        break;
+                    }
+                }
+
+            }
+            break;
+        }
+        }
+    }
+
+    public override void _Notification(int what)
+    {
+        base._Notification(what);
+
+        if (what == NotificationWMCloseRequest)
+        {
+            this.currentState = EditorState.Closing;
+            this.tabToProcessBeforeClosing = 0;
+        }
     }
 
     public void OnWindowSizeChanged()
     {
         Rect2 newViewport = this.GetTree().Root.GetViewport().GetVisibleRect();
         this.marginContainer.SetSize(newViewport.Size);
-        this.aboutAndLicenseInitialSize.X = (int)(newViewport.Size.X * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
-        this.aboutAndLicenseInitialSize.Y = (int)(newViewport.Size.Y * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
-        this.tutorialInitialSize.X = (int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
-        this.tutorialInitialSize.Y = (int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
+        this.smallDialogInitialSize.X = (int)(newViewport.Size.X * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+        this.smallDialogInitialSize.Y = (int)(newViewport.Size.Y * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+        this.largeDialogInitialSize.X = (int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
+        this.largeDialogInitialSize.Y = (int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
     }
 
     public void TryOpenScene(string sceneId)
@@ -200,19 +285,19 @@ public partial class Editor : Control
         }
         case PopupMenuIds.HelpAbout:
         {
-            this.aboutAcceptDialog.Size = this.aboutAndLicenseInitialSize;
+            this.aboutAcceptDialog.Size = this.smallDialogInitialSize;
             this.aboutAcceptDialog.Popup();
             break;
         }
         case PopupMenuIds.HelpTutorial:
         {
-            this.tutorialAcceptDialog.Size = this.tutorialInitialSize;
+            this.tutorialAcceptDialog.Size = this.largeDialogInitialSize;
             this.tutorialAcceptDialog.Popup();
             break;
         }
         case PopupMenuIds.HelpLicense:
         {
-            this.licenseAcceptDialog.Size = this.aboutAndLicenseInitialSize;
+            this.licenseAcceptDialog.Size = this.smallDialogInitialSize;
             this.licenseAcceptDialog.Popup();
             break;
         }
@@ -239,22 +324,13 @@ public partial class Editor : Control
 
     public void _on_save_as_file_dialog_file_selected(string path)
     {
-        FileAccess sceneFile= FileAccess.Open(path, FileAccess.ModeFlags.Write);
-        if (sceneFile == null)
-        {
-            return; // TODO
-        }
-        else
-        {
-            dtgeSceneEditContainer.FlushChangesForSave();
-            string serializedScene = this.dtgeSceneEditContainer.GetSerializedScene();
-            sceneFile.StoreString(serializedScene);
+        this.saveCurrentSceneToPath(path);
+    }
 
-            sceneFile.Close();
-
-            setCurrentSceneTabInfoPath(path);
-            this.updateCurrentTabTitle(true);
-        }
+    public void _on_save_as_and_close_file_dialog_file_selected(string path)
+    {
+        this.saveCurrentSceneToPath(path);
+        this.removeDtgeSceneTab(this.dtgeSceneTabBar.CurrentTab);
     }
 
     public void _on_game_preview_popup_popup_hide()
@@ -286,20 +362,32 @@ public partial class Editor : Control
 
     public void _on_dtge_scenes_tab_bar_tab_close_pressed(int tabIndex)
     {
-        this.dtgeSceneTabInfoList.RemoveAt(tabIndex);
-        this.dtgeSceneTabBar.RemoveTab(tabIndex);
-
-        if (this.dtgeSceneTabBar.TabCount > 0)
+        if (this.dtgeSceneTabBar.TabCount == 0)
         {
-            DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
-            this.dtgeSceneEditContainer.DtgeScene = currentDtgeSceneTabInfo.dtgeScene;
-            this.dtgeSceneEditContainer.UpdateUIFromScene();
+        }
+        else if (this.dtgeSceneTabBar.CurrentTab != tabIndex)
+        {
+            throw new Exception("The editor isn't supposed to support closing any tabs except the active one");
         }
         else
         {
-            this.dtgeSceneEditContainer.DtgeScene = new DtgeCore.Scene();
-            this.dtgeSceneEditContainer.UpdateUIFromScene();
+            DtgeSceneTabInfo targetDtgeSceneTabInfo = this.dtgeSceneTabInfoList[tabIndex];
+
+            if (targetDtgeSceneTabInfo.saved)
+            {
+                this.removeDtgeSceneTab(tabIndex);
+            }
+            else
+            {
+                this.popSaveYesNoCancelDialog(targetDtgeSceneTabInfo, tabIndex, true);
+            }
+
         }
+    }
+
+    public void _on_new_tab_button_pressed()
+    {
+        this.createNewSceneTab();
     }
 
     private void runDebugGame()
@@ -378,12 +466,106 @@ public partial class Editor : Control
 
         DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
 
-        string updatedTabTitle = currentDtgeSceneTabInfo.dtgeScene.Id;
+        string updatedTabTitle;
+
+        if (currentDtgeSceneTabInfo.dtgeScene.Id.Equals(""))
+        {
+            updatedTabTitle = "(empty id)";
+        }
+        else
+        {
+            updatedTabTitle = currentDtgeSceneTabInfo.dtgeScene.Id;
+        }
         if (!saved)
         {
             updatedTabTitle += " *";
         }
 
         this.dtgeSceneTabBar.SetTabTitle(this.dtgeSceneTabBar.CurrentTab, updatedTabTitle);
+    }
+
+    private void removeDtgeSceneTab(int tabIndex)
+    {
+        this.dtgeSceneTabInfoList.RemoveAt(tabIndex);
+        this.dtgeSceneTabBar.RemoveTab(tabIndex);
+
+        if (this.dtgeSceneTabBar.TabCount > 0)
+        {
+            DtgeSceneTabInfo newActiveDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
+            this.dtgeSceneEditContainer.DtgeScene = newActiveDtgeSceneTabInfo.dtgeScene;
+            this.dtgeSceneEditContainer.UpdateUIFromScene();
+        }
+        else
+        {
+            this.dtgeSceneEditContainer.DtgeScene = new DtgeCore.Scene();
+            this.dtgeSceneEditContainer.UpdateUIFromScene();
+        }
+    }
+
+    private void saveCurrentSceneToPath(string path)
+    {
+        this.dtgeSceneEditContainer.FlushChangesForSave();
+        Editor.saveSceneToPath(this.dtgeSceneEditContainer.DtgeScene, path);
+        setCurrentSceneTabInfoPath(path);
+        this.updateCurrentTabTitle(true);
+    }
+
+    private static void saveSceneToPath(DtgeCore.Scene scene, string path)
+    {
+        FileAccess sceneFile = FileAccess.Open(path, FileAccess.ModeFlags.Write);
+        if (sceneFile == null)
+        {
+            return; // TODO
+        }
+        else
+        {
+            string serializedScene = scene.Serialize();
+            sceneFile.StoreString(serializedScene);
+
+            sceneFile.Close();
+        }
+    }
+
+    private void popSaveYesNoCancelDialog(DtgeSceneTabInfo dtgeSceneTabInfo, int tabIndex, bool closeTab)
+    {
+        this.saveYesNoCancelDialog.Size = this.smallDialogInitialSize;
+        this.saveYesNoCancelDialog.SetDialogText("Would you like to save Scene [" + dtgeSceneTabInfo.dtgeScene.Id + "] before closing it?");
+        this.saveYesNoCancelDialog.OnYesSelected = () =>
+        {
+            if (dtgeSceneTabInfo.path != null)
+            {
+                Editor.saveSceneToPath(dtgeSceneTabInfo.dtgeScene, dtgeSceneTabInfo.path);
+                if (closeTab)
+                {
+                    this.removeDtgeSceneTab(tabIndex);
+                }
+            }
+            else
+            {
+                if (closeTab)
+                {
+                    this.saveAsAndCloseFileDialog.Popup();
+                }
+                else
+                {
+                    this.saveAsFileDialog.Popup();
+                }
+            }
+        };
+        this.saveYesNoCancelDialog.OnNoSelected = () =>
+        {
+            if (closeTab)
+            {
+                this.removeDtgeSceneTab(tabIndex);
+            }
+        };
+        this.saveYesNoCancelDialog.OnCancelSelected = () =>
+        {
+            if (this.currentState == EditorState.Closing)
+            {
+                this.currentState = EditorState.Active;
+            }
+        };
+        this.saveYesNoCancelDialog.Popup();
     }
 }
