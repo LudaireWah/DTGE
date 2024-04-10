@@ -36,15 +36,15 @@ layout_mode = 2
 
 [node name="Help" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="SceneTabsHBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="NewTabButton" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="NewTabButton" type="Button" parent="MarginContainer/VBoxContainer/SceneTabsHBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 0
 text = "+"
 
-[node name="DtgeScenesTabBar" type="TabBar" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="DtgeScenesTabBar" type="TabBar" parent="MarginContainer/VBoxContainer/SceneTabsHBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 tab_close_display_policy = 1
@@ -138,9 +138,10 @@ visible = false
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Help" to="." method="_on_popup_menu_index_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/HBoxContainer/NewTabButton" to="." method="_on_new_tab_button_pressed"]
-[connection signal="tab_close_pressed" from="MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_close_pressed"]
-[connection signal="tab_selected" from="MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_selected"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/NewTabButton" to="." method="_on_new_tab_button_pressed"]
+[connection signal="active_tab_rearranged" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_active_tab_rearranged"]
+[connection signal="tab_close_pressed" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_close_pressed"]
+[connection signal="tab_selected" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_tab_selected"]
 [connection signal="file_selected" from="OpenFileDialog" to="." method="_on_open_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsFileDialog" to="." method="_on_save_as_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsAndCloseFileDialog" to="." method="_on_save_as_and_close_file_dialog_file_selected"]

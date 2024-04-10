@@ -15,17 +15,9 @@ public partial class Editor : Control
 {
     MarginContainer marginContainer;
     TabBar dtgeSceneTabBar;
-    List<DtgeSceneTabInfo> dtgeSceneTabInfoList;
     DtgeSceneEditContainer dtgeSceneEditContainer;
     Button addNewDtgeSceneButton;
     YesNoCancelDialog saveYesNoCancelDialog;
-
-    private struct DtgeSceneTabInfo
-    {
-        public DtgeCore.Scene dtgeScene;
-        public string path;
-        public bool saved;
-    }
 
     PopupMenu filePopMenu;
     PopupMenu gamePopupMenu;
@@ -70,6 +62,18 @@ public partial class Editor : Control
     private EditorState currentState;
     private int tabToProcessBeforeClosing;
 
+    // A dictionary using creation order as a unique key, as we can't safely assume that scene ids are unique during
+    // authorship. This key will be stored with the tabs as metadata to associate them with the entry in the dictionary
+    Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary;
+    int nextKeyforOpenDtgeSceneDictionary;
+
+    private struct DtgeSceneTabInfo
+    {
+        public DtgeCore.Scene dtgeScene;
+        public string path;
+        public bool saved;
+    }
+
     public Editor()
     {
 
@@ -81,8 +85,8 @@ public partial class Editor : Control
         base._Ready();
 
         this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-        this.dtgeSceneTabBar = GetNode<TabBar>("MarginContainer/VBoxContainer/HBoxContainer/DtgeScenesTabBar");
-        this.addNewDtgeSceneButton = GetNode<Button>("MarginContainer/VBoxContainer/HBoxContainer/AddNewDtgeSceneButton");
+        this.dtgeSceneTabBar = GetNode<TabBar>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar");
+        this.addNewDtgeSceneButton = GetNode<Button>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton");
         this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
         this.filePopMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
         this.gamePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
@@ -96,8 +100,8 @@ public partial class Editor : Control
         this.gamePreviewAcceptDialog = GetNode<AcceptDialog>("GamePreviewAcceptDialog");
         this.saveYesNoCancelDialog = GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
 
-        this.dtgeSceneTabInfoList = new List<DtgeSceneTabInfo>();
-        //this.createNewSceneTab();
+        this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
+        this.nextKeyforOpenDtgeSceneDictionary = 0;
 
         this.dtgeSceneEditContainer.TryOpenSceneAction = this.TryOpenScene;
         this.dtgeSceneEditContainer.OnSceneUpdated = this.OnSceneUpdated;
@@ -205,12 +209,13 @@ public partial class Editor : Control
     public void TryOpenScene(string sceneId)
     {
         bool sceneFoundInTabs = false;
-        for (int dtgeSceneTabInfoIndex = 0; dtgeSceneTabInfoIndex < this.dtgeSceneTabInfoList.Count; dtgeSceneTabInfoIndex++)
+        for (int dtgeSceneTabIndex = 0; dtgeSceneTabIndex < this.dtgeSceneTabBar.TabCount; dtgeSceneTabIndex++)
         {
-            if (this.dtgeSceneTabInfoList[dtgeSceneTabInfoIndex].dtgeScene.Id.Equals(sceneId))
+            DtgeSceneTabInfo dtgeSceneTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(dtgeSceneTabIndex)];
+            if (dtgeSceneTabInfo.dtgeScene.Id == sceneId)
             {
-                this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabInfoIndex;
-                this._on_dtge_scenes_tab_bar_tab_selected(dtgeSceneTabInfoIndex);
+                this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabIndex;
+                this._on_dtge_scenes_tab_bar_tab_selected(dtgeSceneTabIndex);
                 sceneFoundInTabs = true;
                 break;
             }
@@ -245,24 +250,15 @@ public partial class Editor : Control
         }
         case PopupMenuIds.FileSave:
         {
-            // TODO: Is there anything to handle here or should we just crash with the index out of bounds? I feel like this would
-            //    be an assert if we had them.
-            //if (index >= this.dtgeSceneTabInfoList.Count)
-            //{
-            //}
-            //else
+            DtgeSceneTabInfo currentDtgeSceneTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab);
+            if (currentDtgeSceneTabInfo.path != null)
             {
-                DtgeSceneTabInfo currentDtgeSceneTabInfo = this.dtgeSceneTabInfoList[this.dtgeSceneTabBar.CurrentTab];
-
-                if (currentDtgeSceneTabInfo.path != null)
-                {
-                    this._on_save_as_file_dialog_file_selected(currentDtgeSceneTabInfo.path);
-                }
-                else
-                {
-                    this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
-                    this.saveAsFileDialog.Popup();
-                }
+                this._on_save_as_file_dialog_file_selected(currentDtgeSceneTabInfo.path);
+            }
+            else
+            {
+                this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
+                this.saveAsFileDialog.Popup();
             }
             break;
         }
@@ -355,7 +351,7 @@ public partial class Editor : Control
 
     public void _on_dtge_scenes_tab_bar_tab_selected(int tabIndex)
     {
-        DtgeSceneTabInfo selectedTabInfo = this.dtgeSceneTabInfoList[tabIndex];
+        DtgeSceneTabInfo selectedTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
         this.dtgeSceneEditContainer.DtgeScene = selectedTabInfo.dtgeScene;
         this.dtgeSceneEditContainer.UpdateUIFromScene();
     }
@@ -371,8 +367,7 @@ public partial class Editor : Control
         }
         else
         {
-            DtgeSceneTabInfo targetDtgeSceneTabInfo = this.dtgeSceneTabInfoList[tabIndex];
-
+            DtgeSceneTabInfo targetDtgeSceneTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
             if (targetDtgeSceneTabInfo.saved)
             {
                 this.removeDtgeSceneTab(tabIndex);
@@ -381,13 +376,17 @@ public partial class Editor : Control
             {
                 this.popSaveYesNoCancelDialog(targetDtgeSceneTabInfo, tabIndex, true);
             }
-
         }
     }
 
     public void _on_new_tab_button_pressed()
     {
         this.createNewSceneTab();
+    }
+
+    public void _on_dtge_scenes_tab_bar_active_tab_rearranged(int indexTo)
+    {
+        return;
     }
 
     private void runDebugGame()
@@ -402,57 +401,65 @@ public partial class Editor : Control
 
     private void createNewSceneTab()
     {
-        this.dtgeSceneTabBar.AddTab("(new scene)*");
-        this.dtgeSceneTabBar.CurrentTab = this.dtgeSceneTabBar.TabCount - 1;
-
         DtgeCore.Scene newDtgeScene = new DtgeCore.Scene();
         DtgeSceneTabInfo newDtgeSceneTabInfo;
         newDtgeSceneTabInfo.dtgeScene = newDtgeScene;
         newDtgeSceneTabInfo.path = null;
         newDtgeSceneTabInfo.saved = false;
 
-        this.dtgeSceneTabInfoList.Add(newDtgeSceneTabInfo);
+        this.dtgeSceneTabBar.AddTab("(new scene)*");
+        this.dtgeSceneTabBar.CurrentTab = this.dtgeSceneTabBar.TabCount - 1;
+
+        this.dtgeSceneTabBar.SetTabMetadata(this.dtgeSceneTabBar.CurrentTab, this.nextKeyforOpenDtgeSceneDictionary);
+        this.openDtgeSceneDictionary.Add(this.nextKeyforOpenDtgeSceneDictionary, newDtgeSceneTabInfo);
+        this.nextKeyforOpenDtgeSceneDictionary++;
+
         this.dtgeSceneEditContainer.DtgeScene = newDtgeSceneTabInfo.dtgeScene;
         this.dtgeSceneEditContainer.UpdateUIFromScene();
     }
 
     private void createOpenedSceneTab(DtgeCore.Scene scene, string path)
     {
-        DtgeSceneTabInfo openedSceneTabInfo;
-        openedSceneTabInfo.dtgeScene = scene;
-        openedSceneTabInfo.path = path;
-        openedSceneTabInfo.saved = true;
+        DtgeSceneTabInfo openedDtgeSceneTabInfo;
+        openedDtgeSceneTabInfo.dtgeScene = scene;
+        openedDtgeSceneTabInfo.path = path;
+        openedDtgeSceneTabInfo.saved = true;
 
         this.dtgeSceneTabBar.AddTab(scene.Id);
         this.dtgeSceneTabBar.CurrentTab = this.dtgeSceneTabBar.TabCount - 1;
 
-        this.dtgeSceneTabInfoList.Add(openedSceneTabInfo);
+        this.dtgeSceneTabBar.SetTabMetadata(this.dtgeSceneTabBar.CurrentTab, this.nextKeyforOpenDtgeSceneDictionary);
+        this.openDtgeSceneDictionary.Add(this.nextKeyforOpenDtgeSceneDictionary, openedDtgeSceneTabInfo);
+        this.nextKeyforOpenDtgeSceneDictionary++;
+
+        this.dtgeSceneEditContainer.DtgeScene = openedDtgeSceneTabInfo.dtgeScene;
+        this.dtgeSceneEditContainer.UpdateUIFromScene();
     }
 
     private DtgeSceneTabInfo getCurrentDtgeSceneTabInfo()
     {
-        return this.dtgeSceneTabInfoList[this.dtgeSceneTabBar.CurrentTab];
+        return this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)];
     }
 
     private void setCurrentSceneTabInfoScene(DtgeCore.Scene scene)
     {
         DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
         currentDtgeSceneTabInfo.dtgeScene = scene;
-        this.dtgeSceneTabInfoList[this.dtgeSceneTabBar.CurrentTab] = currentDtgeSceneTabInfo;
+        this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)] = currentDtgeSceneTabInfo;
     }
 
     private void setCurrentSceneTabInfoPath(string path)
     {
         DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
         currentDtgeSceneTabInfo.path = path;
-        this.dtgeSceneTabInfoList[this.dtgeSceneTabBar.CurrentTab] = currentDtgeSceneTabInfo;
+        this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)] = currentDtgeSceneTabInfo;
     }
 
     private void setCurrentSceneTabInfoSaved(bool saved)
     {
         DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
         currentDtgeSceneTabInfo.saved = saved;
-        this.dtgeSceneTabInfoList[this.dtgeSceneTabBar.CurrentTab] = currentDtgeSceneTabInfo;
+        this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)] = currentDtgeSceneTabInfo;
     }
 
     private void updateCurrentTabTitle(bool saved)
@@ -486,7 +493,7 @@ public partial class Editor : Control
 
     private void removeDtgeSceneTab(int tabIndex)
     {
-        this.dtgeSceneTabInfoList.RemoveAt(tabIndex);
+        this.openDtgeSceneDictionary.Remove(this.getKeyFromTabIndex(tabIndex));
         this.dtgeSceneTabBar.RemoveTab(tabIndex);
 
         if (this.dtgeSceneTabBar.TabCount > 0)
@@ -567,5 +574,10 @@ public partial class Editor : Control
             }
         };
         this.saveYesNoCancelDialog.Popup();
+    }
+
+    private int getKeyFromTabIndex(int tabIndex)
+    {
+        return (int)this.dtgeSceneTabBar.GetTabMetadata(tabIndex);
     }
 }
