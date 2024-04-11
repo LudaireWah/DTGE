@@ -20,6 +20,18 @@ public partial class Game : Control
     private NavigationButtonGrid navigationButtonGrid;
     private AcceptDialog errorAcceptDialog;
 
+    private PopupMenu filePopupMenu;
+
+    private enum PopupMenuIds
+    {
+        FileSettings
+    }
+
+    private GameSettingsWindow gameSettingsWindow;
+
+    private GameSettings gameSettings;
+    private const string SETTINGS_PATH = "dtge.config";
+
     private DtgeCore.Scene currentDtgeScene;
 
     private bool manualViewportSizeOverride;
@@ -31,8 +43,20 @@ public partial class Game : Control
         this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneTextDisplay");
         this.navigationButtonGrid = GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
         this.errorAcceptDialog = GetNode<AcceptDialog>("ErrorAcceptDialog");
+        this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
+        this.gameSettingsWindow = GetNode<GameSettingsWindow>("GameSettingsWindow");
 
-        DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
+        this.filePopupMenu.AddItem("Settings", (int)PopupMenuIds.FileSettings);
+
+        this.gameSettingsWindow.OnSaveSettingsAction = this.onSaveSettings;
+        bool settingsLoadingSuccessful = this.tryLoadSettingsFromFile(SETTINGS_PATH);
+        if (!settingsLoadingSuccessful)
+        {
+            this.gameSettings = new GameSettings();
+            this.saveSettingsToFile(SETTINGS_PATH);
+        }
+
+        this.updateUIFromSettings();
 
         this.loadScenesFromFiles();
         this.updateUIFromScene();
@@ -96,6 +120,17 @@ public partial class Game : Control
         this.errorAcceptDialog.Popup();
     }
 
+    public void _on_popup_menu_index_pressed(int index)
+    {
+        switch ((PopupMenuIds)index)
+        {
+        case PopupMenuIds.FileSettings:
+            this.gameSettingsWindow.GameSettings = new GameSettings(this.gameSettings);
+            this.gameSettingsWindow.Popup();
+            break;
+        }
+    }
+
     private void loadScenesFromFiles()
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
@@ -143,5 +178,51 @@ public partial class Game : Control
     {
         this.currentDtgeScene = scene;
         this.updateUIFromScene();
+    }
+
+    private void onSaveSettings(GameSettings settings)
+    {
+        this.gameSettings = settings;
+        this.updateUIFromSettings();
+        this.saveSettingsToFile(SETTINGS_PATH);
+    }
+
+    private void updateUIFromSettings()
+    {
+        this.sceneTextDisplay.AddThemeFontSizeOverride("normal_font_size", this.gameSettings.SceneTextSize);
+    }
+
+    private bool tryLoadSettingsFromFile(string filePath)
+    {
+        bool success = false;
+        FileAccess settingsFile = FileAccess.Open(filePath, FileAccess.ModeFlags.Read);
+
+        if (settingsFile != null)
+        {
+            string settingsJson = settingsFile.GetAsText();
+            GameSettings loadedGameSettings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
+            if (loadedGameSettings != null)
+            {
+                this.gameSettings = loadedGameSettings;
+            }
+
+            settingsFile.Close();
+            success = true;
+        }
+
+        return success;
+    }
+
+    private void saveSettingsToFile(string filePath)
+    {
+        FileAccess settingsFile = FileAccess.Open(filePath, FileAccess.ModeFlags.Write);
+
+        if (settingsFile != null)
+        {
+            string settingsJson = JsonSerializer.Serialize(this.gameSettings);
+            settingsFile.StoreString(settingsJson);
+
+            settingsFile.Close();
+        }
     }
 }
