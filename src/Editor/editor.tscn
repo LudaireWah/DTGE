@@ -72,12 +72,6 @@ initial_position = 2
 size = Vector2i(600, 350)
 access = 2
 
-[node name="GamePreviewAcceptDialog" type="AcceptDialog" parent="."]
-title = "Debug Game"
-initial_position = 2
-size = Vector2i(1280, 720)
-ok_button_text = "Close"
-
 [node name="AboutAcceptDialog" type="AcceptDialog" parent="."]
 title = "About"
 initial_position = 2
@@ -134,6 +128,17 @@ dialog_autowrap = true
 
 [node name="SaveYesNoCancelDialog" parent="." instance=ExtResource("3_0d7xp")]
 visible = false
+
+[node name="CreateNewSceneFromOptionConfirmationDialog" type="ConfirmationDialog" parent="."]
+title = "No scene found"
+ok_button_text = "Yes"
+cancel_button_text = "No"
+
+[node name="GamePreviewAcceptDialog" type="AcceptDialog" parent="."]
+title = "Debug Game"
+initial_position = 2
+size = Vector2i(1280, 720)
+ok_button_text = "Close"
 
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]

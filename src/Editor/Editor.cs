@@ -2,6 +2,7 @@ using Godot;
 using DtgeGodotCommon;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace DtgeEditor;
 
@@ -17,7 +18,6 @@ public partial class Editor : Control
     TabBar dtgeSceneTabBar;
     DtgeSceneEditContainer dtgeSceneEditContainer;
     Button addNewDtgeSceneButton;
-    YesNoCancelDialog saveYesNoCancelDialog;
 
     PopupMenu filePopupMenu;
     PopupMenu gamePopupMenu;
@@ -43,12 +43,13 @@ public partial class Editor : Control
     AcceptDialog aboutAcceptDialog;
     AcceptDialog tutorialAcceptDialog;
     AcceptDialog licenseAcceptDialog;
-    Vector2I smallDialogInitialSize;
-    Vector2I largeDialogInitialSize;
-
+    YesNoCancelDialog saveYesNoCancelDialog;
+    ConfirmationDialog createNewSceneFromOptionConfirmationDialog;
     AcceptDialog gamePreviewAcceptDialog;
     DtgeGame.Game gamePreviewScene;
 
+    Vector2I smallDialogInitialSize;
+    Vector2I largeDialogInitialSize;
     const float SMALL_ACCEPT_DIALOG_SIZE_RATIO = 0.25f;
     const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_X = 0.5f;
     const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y = 0.75f;
@@ -100,6 +101,7 @@ public partial class Editor : Control
         this.licenseAcceptDialog = GetNode<AcceptDialog>("LicenseAcceptDialog");
         this.gamePreviewAcceptDialog = GetNode<AcceptDialog>("GamePreviewAcceptDialog");
         this.saveYesNoCancelDialog = GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
+        this.createNewSceneFromOptionConfirmationDialog = GetNode<ConfirmationDialog>("CreateNewSceneFromOptionConfirmationDialog");
 
         this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
         this.nextKeyforOpenDtgeSceneDictionary = 0;
@@ -138,7 +140,6 @@ public partial class Editor : Control
                 this.currentState = EditorState.Active;
             }
         };
-
 
         this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
         OnWindowSizeChanged();
@@ -223,12 +224,54 @@ public partial class Editor : Control
             }
         }
 
+        bool sceneFoundinFiles = false;
         if (!sceneFoundInTabs)
         {
-            this.createNewSceneTab();
-            this.dtgeSceneEditContainer.DtgeScene.Id = sceneId;
-            this.setCurrentSceneTabInfoSaved(false);
-            this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
+            DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
+            if (sceneDirectory == null)
+            {
+                return;
+            }
+
+            string[] sceneFileNames = sceneDirectory.GetFiles();
+            string targetSceneFileName = sceneId + ".dscn";
+
+            for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
+            {
+                string sceneFileName = sceneFileNames[sceneFileIndex];
+
+                if (sceneFileName == targetSceneFileName)
+                {
+                    string sceneFilePath = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH + "/" + sceneFileName;
+                    FileAccess sceneFile = FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
+
+                    if (sceneFile != null)
+                    {
+                        string sceneJson = sceneFile.GetAsText();
+                        DtgeCore.Scene newScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
+                        if (newScene != null)
+                        {
+                            this.createOpenedSceneTab(newScene, sceneFilePath);
+                            sceneFoundInTabs = true;
+                        }
+
+                        sceneFile.Close();
+                    }
+                }
+            }
+        }
+
+        if (!sceneFoundInTabs)
+        {
+            this.createNewSceneFromOptionConfirmationDialog.DialogText = "No scene [" + sceneId + "] was found. Do you want to create one?";
+            this.createNewSceneFromOptionConfirmationDialog.Confirmed += () =>
+            {
+                this.createNewSceneTab();
+                this.dtgeSceneEditContainer.DtgeScene.Id = sceneId;
+                this.setCurrentSceneTabInfoSaved(false);
+                this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
+            };
+            this.createNewSceneFromOptionConfirmationDialog.Popup();
         }
     }
 
@@ -409,6 +452,11 @@ public partial class Editor : Control
     public void _on_dtge_scenes_tab_bar_active_tab_rearranged(int indexTo)
     {
         return;
+    }
+
+    public void _on_create_new_scene_from_option_confirmation_dialog_confirmed()
+    {
+        
     }
 
     private void runDebugGame()
