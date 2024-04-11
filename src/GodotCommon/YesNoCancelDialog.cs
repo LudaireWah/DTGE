@@ -35,6 +35,11 @@ public partial class YesNoCancelDialog : Window
         this.dialogText.Text = "[center]" + text + "[/center]";
     }
 
+    public void _on_close_requested()
+    {
+        this._on_cancel_button_pressed();
+    }
+
     public void _on_yes_button_pressed()
     {
         if (this.OnYesSelected != null)
