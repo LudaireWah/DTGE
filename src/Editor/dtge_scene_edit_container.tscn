@@ -46,9 +46,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneTextEntryLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
+[node name="SceneTextEntryHeader" type="HBoxContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
+layout_mode = 2
+
+[node name="SceneTextEntryLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
 text = "Scene Text"
+
+[node name="SceneTextCopyAllButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+layout_mode = 2
+text = "Copy All"
+
+[node name="SceneTextPasteAllButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+layout_mode = 2
+text = "Paste All"
 
 [node name="SceneTextEntryTextEdit" type="TextEdit" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
 layout_mode = 2
@@ -72,4 +83,6 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton" to="." method="_on_scene_text_copy_all_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton" to="." method="_on_scene_text_paste_all_button_pressed"]
 [connection signal="text_changed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryTextEdit" to="." method="_on_scene_text_entry_text_edit_text_changed"]

@@ -11,9 +11,11 @@ namespace DtgeEditor;
  */
 public partial class DtgeSceneEditContainer : Control
 {
-    TextEdit dtgeSceneTextEntry;
-    LineEdit dtgeSceneIdEntry;
     OptionEditList optionEditList;
+    LineEdit dtgeSceneIdEntry;
+    Button dtgeSceneTextCopyAllButton;
+    Button dtgeSceneTextPasteAllButton;
+    TextEdit dtgeSceneTextEntry;
 
     private bool uiNeedUpdate;
 
@@ -59,9 +61,11 @@ public partial class DtgeSceneEditContainer : Control
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-        this.dtgeSceneTextEntry = GetNode<TextEdit>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryTextEdit");
-        this.dtgeSceneIdEntry = GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit");
         this.optionEditList = GetNode<OptionEditList>("OptionEditList");
+        this.dtgeSceneIdEntry = GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit");
+        this.dtgeSceneTextCopyAllButton = GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton");
+        this.dtgeSceneTextPasteAllButton = GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton");
+        this.dtgeSceneTextEntry = GetNode<TextEdit>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryTextEdit");
 
         this.dtgeScene = new DtgeCore.Scene();
         this.optionEditList.DtgeScene = this.dtgeScene;
@@ -117,6 +121,20 @@ public partial class DtgeSceneEditContainer : Control
         if (this.OnSceneUpdated != null)
         {
             this.OnSceneUpdated();
+        }
+    }
+
+    public void _on_scene_text_copy_all_button_pressed()
+    {
+        DisplayServer.ClipboardSet(this.dtgeScene.SceneText);
+    }
+
+    public void _on_scene_text_paste_all_button_pressed()
+    {
+        if (DisplayServer.ClipboardHas())
+        {
+            this.dtgeScene.SceneText = DisplayServer.ClipboardGet();
+            this.UpdateUIFromScene();
         }
     }
 }
