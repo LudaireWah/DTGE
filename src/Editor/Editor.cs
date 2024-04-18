@@ -69,6 +69,8 @@ public partial class Editor : Control
     Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary;
     int nextKeyforOpenDtgeSceneDictionary;
 
+    private string pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog;
+
     private struct DtgeSceneTabInfo
     {
         public DtgeCore.Scene dtgeScene;
@@ -114,8 +116,8 @@ public partial class Editor : Control
         this.filePopupMenu.AddItem("Save", (int)PopupMenuIds.FileSave, GodotConstants.KEY_CTRL_S);
         this.filePopupMenu.AddItem("Save As...", (int)PopupMenuIds.FileSaveAs, GodotConstants.KEY_CTRL_SHIFT_S);
         this.filePopupMenu.AddItem("Save All", (int)PopupMenuIds.FileSaveAll, GodotConstants.KEY_CTRL_SHIFT_ALT_S);
-        this.gamePopupMenu.AddItem("Run", (int)PopupMenuIds.GameRun, Key.F5);
-        this.gamePopupMenu.AddItem("Run", (int)PopupMenuIds.GameRunCurrentScene, GodotConstants.KEY_CTRL_F5);
+        this.gamePopupMenu.AddItem("Run Game", (int)PopupMenuIds.GameRun, Key.F5);
+        this.gamePopupMenu.AddItem("Run Current Scene", (int)PopupMenuIds.GameRunCurrentScene, GodotConstants.KEY_CTRL_F5);
         this.helpPopupMenu.AddItem("About", (int)PopupMenuIds.HelpAbout);
         this.helpPopupMenu.AddItem("Tutorial", (int)PopupMenuIds.HelpTutorial, Key.F1);
         this.helpPopupMenu.AddItem("License", (int)PopupMenuIds.HelpLicense);
@@ -224,7 +226,7 @@ public partial class Editor : Control
             }
         }
 
-        bool sceneFoundinFiles = false;
+        bool sceneFoundInFiles = false;
         if (!sceneFoundInTabs)
         {
             DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
@@ -252,7 +254,7 @@ public partial class Editor : Control
                         if (newScene != null)
                         {
                             this.createOpenedSceneTab(newScene, sceneFilePath);
-                            sceneFoundInTabs = true;
+                            sceneFoundInFiles = true;
                         }
 
                         sceneFile.Close();
@@ -261,17 +263,11 @@ public partial class Editor : Control
             }
         }
 
-        if (!sceneFoundInTabs)
+        if (!sceneFoundInTabs && !sceneFoundInFiles)
         {
             this.createNewSceneFromOptionConfirmationDialog.DialogText = "No scene [" + sceneId + "] was found. Do you want to create one?";
-            this.createNewSceneFromOptionConfirmationDialog.Confirmed += () =>
-            {
-                this.createNewSceneTab();
-                this.dtgeSceneEditContainer.DtgeScene.Id = sceneId;
-                this.setCurrentSceneTabInfoSaved(false);
-                this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
-            };
             this.createNewSceneFromOptionConfirmationDialog.Popup();
+            this.pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog = sceneId;
         }
     }
 
@@ -456,7 +452,12 @@ public partial class Editor : Control
 
     public void _on_create_new_scene_from_option_confirmation_dialog_confirmed()
     {
-        
+        this.createNewSceneTab();
+        this.dtgeSceneEditContainer.DtgeScene.Id = this.pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog;
+        this.setCurrentSceneTabInfoSaved(false);
+        this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
+
+        this.pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog = null;
     }
 
     private void runDebugGame()

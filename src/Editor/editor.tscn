@@ -150,4 +150,5 @@ ok_button_text = "Close"
 [connection signal="file_selected" from="OpenFileDialog" to="." method="_on_open_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsFileDialog" to="." method="_on_save_as_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsAndCloseFileDialog" to="." method="_on_save_as_and_close_file_dialog_file_selected"]
+[connection signal="confirmed" from="CreateNewSceneFromOptionConfirmationDialog" to="." method="_on_create_new_scene_from_option_confirmation_dialog_confirmed"]
 [connection signal="size_changed" from="GamePreviewAcceptDialog" to="." method="_on_game_preview_accept_dialog_size_changed"]
