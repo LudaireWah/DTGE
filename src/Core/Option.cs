@@ -2,44 +2,49 @@ using System.Text.Json;
 
 namespace DtgeCore;
 
+/**
+ * Options are how players move from scene to scene, providing the main form of
+ * interactivity for the engine.
+ */
 public class Option
 {
-    public string id { get; set; }
-    public string targetSceneId { get; set; }
-    public string displayName { get; set; }
-    public string tooltip { get; set; }
-    public bool enabled { get; set; }
+    public string Id { get; set; }
+    public string TargetSceneId { get; set; }
+    public string DisplayName { get; set; }
+    public string Tooltip { get; set; }
+    public bool Enabled { get; set; }
+
     public Option()
     {
-        this.id = "";
-        this.targetSceneId = "";
-        this.displayName = "";
-        this.enabled = true;
+        this.Id = "";
+        this.TargetSceneId = "";
+        this.DisplayName = "";
+        this.Enabled = true;
     }
     public Option(string id, string targetSceneId, string displayName, bool enabled= true)
     {
-        this.id= id;
-        this.targetSceneId= targetSceneId;
-        this.displayName= displayName;
-        this.enabled= enabled;
+        this.Id= id;
+        this.TargetSceneId= targetSceneId;
+        this.DisplayName= displayName;
+        this.Enabled= enabled;
+    }
+
+    public void CopyFrom(Option other)
+    {
+        this.Id = other.Id;
+        this.TargetSceneId = other.TargetSceneId;
+        this.DisplayName = other.DisplayName;
+        this.Enabled = other.Enabled;
     }
 
     public override string ToString()
     {
-        string optionString;
-
-        if (this.enabled)
-        {
-            optionString = 
-                "Option:\n" +
-                "  Id: " + this.id + "\n" +
-                "  Target Scene: " + this.targetSceneId + "\n" +
-                "  Display Name: " + this.displayName + "\n";
-        }
-        else
-        {
-            optionString = "Option:\n" + "  Disabled\n";
-        }
+        string optionString = 
+            "Option:\n" +
+            "  Id: " + this.Id + "\n" +
+            "  Target Scene: " + this.TargetSceneId + "\n" +
+            "  Display Name: " + this.DisplayName + "\n" +
+            "  Enabled: " + this.Enabled +"\n";
         return optionString;
     }
 

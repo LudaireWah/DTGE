@@ -1,0 +1,60 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0oq6n6cd8o6w"]
+
+[ext_resource type="Script" path="res://src/Game/GameSettingsWindow.cs" id="1_wa765"]
+
+[node name="GameSettingsWindow" type="Window"]
+size = Vector2i(500, 500)
+script = ExtResource("1_wa765")
+
+[node name="RootMarginContainer" type="MarginContainer" parent="."]
+offset_right = 500.0
+offset_bottom = 500.0
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="RootVBoxContainer" type="VBoxContainer" parent="RootMarginContainer"]
+layout_mode = 2
+
+[node name="SettingsHBoxContainer" type="HBoxContainer" parent="RootMarginContainer/RootVBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SettingNames" type="VBoxContainer" parent="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer"]
+layout_mode = 2
+
+[node name="SceneTextSizeLabel" type="Label" parent="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingNames"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Scene Text Size"
+vertical_alignment = 1
+justification_flags = 162
+
+[node name="SettingValues" type="VBoxContainer" parent="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SceneTextSizeLineEdit" type="LineEdit" parent="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "24"
+
+[node name="SaveCancelVBoxContainer" type="HBoxContainer" parent="RootMarginContainer/RootVBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="SaveButton" type="Button" parent="RootMarginContainer/RootVBoxContainer/SaveCancelVBoxContainer"]
+layout_mode = 2
+text = "Save"
+
+[node name="CancelButton" type="Button" parent="RootMarginContainer/RootVBoxContainer/SaveCancelVBoxContainer"]
+layout_mode = 2
+text = "Cancel"
+
+[connection signal="about_to_popup" from="." to="." method="_on_about_to_popup"]
+[connection signal="close_requested" from="." to="." method="_on_close_requested"]
+[connection signal="focus_exited" from="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit" to="." method="_on_scene_text_size_line_edit_text_submitted"]
+[connection signal="text_submitted" from="RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit" to="." method="_on_scene_text_size_line_edit_text_submitted"]
+[connection signal="pressed" from="RootMarginContainer/RootVBoxContainer/SaveCancelVBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="RootMarginContainer/RootVBoxContainer/SaveCancelVBoxContainer/CancelButton" to="." method="_on_cancel_button_pressed"]

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bwr4datds52sk"]
+[gd_scene load_steps=4 format=3 uid="uid://bwr4datds52sk"]
 
 [ext_resource type="Script" path="res://src/Game/Game.cs" id="1_xkaer"]
 [ext_resource type="PackedScene" uid="uid://w1m3fd66hri1" path="res://src/Game/navigation_button_grid.tscn" id="2_1mosd"]
+[ext_resource type="PackedScene" uid="uid://b0oq6n6cd8o6w" path="res://src/Game/game_settings_window.tscn" id="3_24o50"]
 
 [node name="DtgeGameRoot" type="Control"]
 layout_mode = 3
@@ -21,6 +22,11 @@ theme_override_constants/margin_bottom = 10
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
+
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="File" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
 [node name="SceneTextDisplay" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -43,3 +49,9 @@ size_flags_stretch_ratio = 0.3
 title = "Oops!"
 initial_position = 1
 always_on_top = true
+
+[node name="GameSettingsWindow" parent="." instance=ExtResource("3_24o50")]
+initial_position = 1
+visible = false
+
+[connection signal="index_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]

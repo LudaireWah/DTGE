@@ -3,6 +3,10 @@ using System;
 
 namespace DtgeEditor;
 
+/**
+ * The root node for the Godot scene responsible for authoring
+ * DTGE Options.
+ */
 public partial class OptionEditPanel : PanelContainer
 {
 	Label optionLocationLabel;
@@ -28,14 +32,17 @@ public partial class OptionEditPanel : PanelContainer
 	}
     
     public Action<bool> OptionUpdatedAction;
+	public Action<OptionEditPanel> OptionMovedUpAction;
+	public Action<OptionEditPanel> OptionMovedDownAction;
 	public Action<OptionEditPanel> OptionDeletedAction;
+	public Action<string> TryOpenSceneAction;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		this.optionLocationLabel = GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
 		this.idLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
-        this.targetSceneLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneLineEdit");
+        this.targetSceneLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
         this.displayNameLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
         this.optionEnabledCheckButton = GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
 
@@ -43,7 +50,7 @@ public partial class OptionEditPanel : PanelContainer
         {
             this.BoundOption = new DtgeCore.Option();
         }
-		this.updateUIFromOption();
+		this.UpdateUIFromOption();
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -51,7 +58,7 @@ public partial class OptionEditPanel : PanelContainer
 	{
 		if (this.uiNeedsUpdate)
 		{
-			this.updateUIFromOption();
+			this.UpdateUIFromOption();
 			this.uiNeedsUpdate = false;
 		}
 	}
@@ -69,29 +76,23 @@ public partial class OptionEditPanel : PanelContainer
             this.boundOption = new DtgeCore.Option();
 			newOptionAdded = true;
         }
-        this.boundOption.id = this.idLineEdit.Text;
-		this.boundOption.targetSceneId = this.targetSceneLineEdit.Text;
-		this.boundOption.displayName = this.displayNameLineEdit.Text;
-        this.boundOption.enabled = this.optionEnabledCheckButton.ButtonPressed;
+        this.boundOption.Id = this.idLineEdit.Text;
+		this.boundOption.TargetSceneId = this.targetSceneLineEdit.Text;
+		this.boundOption.DisplayName = this.displayNameLineEdit.Text;
+        this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
         this.OptionUpdatedAction(newOptionAdded);
 	}
 
-	private void updateUIFromOption()
-	{
-		if (this.boundOption == null)
+	public void UpdateUIFromOption()
+    {
+        if (this.boundOption == null)
         {
-            this.idLineEdit.Text = "";
-            this.targetSceneLineEdit.Text = "";
-            this.displayNameLineEdit.Text = "";
-            this.optionEnabledCheckButton.ButtonPressed = false;
+            this.boundOption = new DtgeCore.Option();
         }
-		else
-        {
-            this.idLineEdit.Text = this.boundOption.id;
-            this.targetSceneLineEdit.Text = this.boundOption.targetSceneId;
-            this.displayNameLineEdit.Text = this.boundOption.displayName;
-            this.optionEnabledCheckButton.ButtonPressed = this.boundOption.enabled;
-        }
+        this.idLineEdit.Text = this.boundOption.Id;
+        this.targetSceneLineEdit.Text = this.boundOption.TargetSceneId;
+        this.displayNameLineEdit.Text = this.boundOption.DisplayName;
+        this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
     }
 
 	public void UpdateOptionLocationLabel(string shortcutString)
@@ -105,7 +106,7 @@ public partial class OptionEditPanel : PanelContainer
 		{
 			this.boundOption = new DtgeCore.Option();
 		}
-		this.boundOption.enabled = this.optionEnabledCheckButton.ButtonPressed;
+		this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
         this.OptionUpdatedAction(true);
 	}
 
@@ -129,6 +130,11 @@ public partial class OptionEditPanel : PanelContainer
 		this.updateOptionFromUI();
 	}
 
+	public void _on_navigate_to_target_scene_button_pressed()
+	{
+		this.TryOpenSceneAction(this.targetSceneLineEdit.Text);
+	}
+
     public void _on_display_name_line_edit_text_submitted()
 	{
 		this.updateOptionFromUI();
@@ -137,6 +143,16 @@ public partial class OptionEditPanel : PanelContainer
 	public void _on_display_name_line_edit_focus_exited()
 	{
 		this.updateOptionFromUI();
+	}
+
+	public void _on_move_up_button_pressed()
+	{
+		this.OptionMovedUpAction(this);
+	}
+
+	public void _on_move_down_button_pressed()
+	{
+		this.OptionMovedDownAction(this);
 	}
 
     public void _on_delete_button_pressed()

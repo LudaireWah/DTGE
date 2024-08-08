@@ -3,125 +3,125 @@
 [ext_resource type="Script" path="res://src/Game/NavigationButtonGrid.cs" id="1_04kqi"]
 [ext_resource type="PackedScene" uid="uid://b117vdesg5652" path="res://src/Game/navigation_button.tscn" id="2_qvt2t"]
 
-[sub_resource type="InputEventKey" id="InputEventKey_v6228"]
+[sub_resource type="InputEventKey" id="InputEventKey_tar0j"]
 device = -1
 keycode = 49
 unicode = 49
 
-[sub_resource type="Shortcut" id="Shortcut_jrvlj"]
-events = [SubResource("InputEventKey_v6228")]
+[sub_resource type="Shortcut" id="Shortcut_y5013"]
+events = [SubResource("InputEventKey_tar0j")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_q82v4"]
+[sub_resource type="InputEventKey" id="InputEventKey_8muxc"]
 device = -1
 keycode = 50
 unicode = 50
 
-[sub_resource type="Shortcut" id="Shortcut_5qgja"]
-events = [SubResource("InputEventKey_q82v4")]
+[sub_resource type="Shortcut" id="Shortcut_t6tqv"]
+events = [SubResource("InputEventKey_8muxc")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_t550w"]
+[sub_resource type="InputEventKey" id="InputEventKey_3e3on"]
 device = -1
 keycode = 51
 unicode = 51
 
-[sub_resource type="Shortcut" id="Shortcut_aq177"]
-events = [SubResource("InputEventKey_t550w")]
+[sub_resource type="Shortcut" id="Shortcut_nx5qv"]
+events = [SubResource("InputEventKey_3e3on")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_lpo4m"]
+[sub_resource type="InputEventKey" id="InputEventKey_ia7an"]
 device = -1
 keycode = 52
 unicode = 52
 
-[sub_resource type="Shortcut" id="Shortcut_n8ypg"]
-events = [SubResource("InputEventKey_lpo4m")]
+[sub_resource type="Shortcut" id="Shortcut_e40in"]
+events = [SubResource("InputEventKey_ia7an")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_8vknt"]
+[sub_resource type="InputEventKey" id="InputEventKey_4q3gd"]
 device = -1
 keycode = 53
 unicode = 53
 
-[sub_resource type="Shortcut" id="Shortcut_rjuop"]
-events = [SubResource("InputEventKey_8vknt")]
+[sub_resource type="Shortcut" id="Shortcut_7m0f3"]
+events = [SubResource("InputEventKey_4q3gd")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_sh17g"]
+[sub_resource type="InputEventKey" id="InputEventKey_puwel"]
 device = -1
 keycode = 81
 unicode = 113
 
-[sub_resource type="Shortcut" id="Shortcut_2v3v1"]
-events = [SubResource("InputEventKey_sh17g")]
+[sub_resource type="Shortcut" id="Shortcut_1fq48"]
+events = [SubResource("InputEventKey_puwel")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_jbktd"]
+[sub_resource type="InputEventKey" id="InputEventKey_s21bo"]
 device = -1
 keycode = 87
 unicode = 119
 
-[sub_resource type="Shortcut" id="Shortcut_bwfcf"]
-events = [SubResource("InputEventKey_jbktd")]
+[sub_resource type="Shortcut" id="Shortcut_ge0we"]
+events = [SubResource("InputEventKey_s21bo")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_bpo7g"]
+[sub_resource type="InputEventKey" id="InputEventKey_5xfuj"]
 device = -1
 keycode = 69
 unicode = 101
 
-[sub_resource type="Shortcut" id="Shortcut_1qa3k"]
-events = [SubResource("InputEventKey_bpo7g")]
+[sub_resource type="Shortcut" id="Shortcut_rynnd"]
+events = [SubResource("InputEventKey_5xfuj")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_ld88w"]
+[sub_resource type="InputEventKey" id="InputEventKey_g6ss6"]
 device = -1
 keycode = 82
 unicode = 114
 
-[sub_resource type="Shortcut" id="Shortcut_om2nq"]
-events = [SubResource("InputEventKey_ld88w")]
+[sub_resource type="Shortcut" id="Shortcut_vihlb"]
+events = [SubResource("InputEventKey_g6ss6")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_b6f25"]
+[sub_resource type="InputEventKey" id="InputEventKey_bs8ok"]
 device = -1
 keycode = 84
 unicode = 116
 
-[sub_resource type="Shortcut" id="Shortcut_inxcr"]
-events = [SubResource("InputEventKey_b6f25")]
+[sub_resource type="Shortcut" id="Shortcut_wjcpm"]
+events = [SubResource("InputEventKey_bs8ok")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_lqud6"]
+[sub_resource type="InputEventKey" id="InputEventKey_qxcg1"]
 device = -1
 keycode = 65
 unicode = 97
 
-[sub_resource type="Shortcut" id="Shortcut_x0rjk"]
-events = [SubResource("InputEventKey_lqud6")]
+[sub_resource type="Shortcut" id="Shortcut_j4hal"]
+events = [SubResource("InputEventKey_qxcg1")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_1nxn7"]
+[sub_resource type="InputEventKey" id="InputEventKey_21dvr"]
 device = -1
 keycode = 83
 unicode = 115
 
-[sub_resource type="Shortcut" id="Shortcut_c33wp"]
-events = [SubResource("InputEventKey_1nxn7")]
+[sub_resource type="Shortcut" id="Shortcut_35500"]
+events = [SubResource("InputEventKey_21dvr")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_bhdcd"]
+[sub_resource type="InputEventKey" id="InputEventKey_vk0e6"]
 device = -1
 keycode = 68
 unicode = 100
 
-[sub_resource type="Shortcut" id="Shortcut_erkh6"]
-events = [SubResource("InputEventKey_bhdcd")]
+[sub_resource type="Shortcut" id="Shortcut_u5c71"]
+events = [SubResource("InputEventKey_vk0e6")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_x7vh5"]
+[sub_resource type="InputEventKey" id="InputEventKey_itqgs"]
 device = -1
 keycode = 70
 unicode = 102
 
-[sub_resource type="Shortcut" id="Shortcut_dyoan"]
-events = [SubResource("InputEventKey_x7vh5")]
+[sub_resource type="Shortcut" id="Shortcut_oa586"]
+events = [SubResource("InputEventKey_itqgs")]
 
-[sub_resource type="InputEventKey" id="InputEventKey_qgskm"]
+[sub_resource type="InputEventKey" id="InputEventKey_ukt2u"]
 device = -1
 keycode = 71
 unicode = 103
 
-[sub_resource type="Shortcut" id="Shortcut_px2el"]
-events = [SubResource("InputEventKey_qgskm")]
+[sub_resource type="Shortcut" id="Shortcut_lo12i"]
+events = [SubResource("InputEventKey_ukt2u")]
 
 [node name="NavigationButtonGridContainer" type="GridContainer"]
 offset_left = 4.0
@@ -134,8 +134,8 @@ script = ExtResource("1_04kqi")
 [node name="NavigationButton1" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton1" index="1"]
-shortcut = SubResource("Shortcut_jrvlj")
+[node name="MainButton" parent="NavigationButton1" index="1"]
+shortcut = SubResource("Shortcut_y5013")
 
 [node name="ShortcutLabel" parent="NavigationButton1/ShortcutContainer" index="0"]
 text = "1"
@@ -143,8 +143,8 @@ text = "1"
 [node name="NavigationButton2" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton2" index="1"]
-shortcut = SubResource("Shortcut_5qgja")
+[node name="MainButton" parent="NavigationButton2" index="1"]
+shortcut = SubResource("Shortcut_t6tqv")
 
 [node name="ShortcutLabel" parent="NavigationButton2/ShortcutContainer" index="0"]
 text = "2"
@@ -152,8 +152,8 @@ text = "2"
 [node name="NavigationButton3" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton3" index="1"]
-shortcut = SubResource("Shortcut_aq177")
+[node name="MainButton" parent="NavigationButton3" index="1"]
+shortcut = SubResource("Shortcut_nx5qv")
 
 [node name="ShortcutLabel" parent="NavigationButton3/ShortcutContainer" index="0"]
 text = "3"
@@ -161,8 +161,8 @@ text = "3"
 [node name="NavigationButton4" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton4" index="1"]
-shortcut = SubResource("Shortcut_n8ypg")
+[node name="MainButton" parent="NavigationButton4" index="1"]
+shortcut = SubResource("Shortcut_e40in")
 
 [node name="ShortcutLabel" parent="NavigationButton4/ShortcutContainer" index="0"]
 text = "4"
@@ -170,8 +170,8 @@ text = "4"
 [node name="NavigationButton5" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton5" index="1"]
-shortcut = SubResource("Shortcut_rjuop")
+[node name="MainButton" parent="NavigationButton5" index="1"]
+shortcut = SubResource("Shortcut_7m0f3")
 
 [node name="ShortcutLabel" parent="NavigationButton5/ShortcutContainer" index="0"]
 text = "5"
@@ -179,8 +179,8 @@ text = "5"
 [node name="NavigationButton6" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton6" index="1"]
-shortcut = SubResource("Shortcut_2v3v1")
+[node name="MainButton" parent="NavigationButton6" index="1"]
+shortcut = SubResource("Shortcut_1fq48")
 
 [node name="ShortcutLabel" parent="NavigationButton6/ShortcutContainer" index="0"]
 text = "Q"
@@ -188,8 +188,8 @@ text = "Q"
 [node name="NavigationButton7" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton7" index="1"]
-shortcut = SubResource("Shortcut_bwfcf")
+[node name="MainButton" parent="NavigationButton7" index="1"]
+shortcut = SubResource("Shortcut_ge0we")
 
 [node name="ShortcutLabel" parent="NavigationButton7/ShortcutContainer" index="0"]
 text = "W"
@@ -197,8 +197,8 @@ text = "W"
 [node name="NavigationButton8" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton8" index="1"]
-shortcut = SubResource("Shortcut_1qa3k")
+[node name="MainButton" parent="NavigationButton8" index="1"]
+shortcut = SubResource("Shortcut_rynnd")
 
 [node name="ShortcutLabel" parent="NavigationButton8/ShortcutContainer" index="0"]
 text = "E"
@@ -206,8 +206,8 @@ text = "E"
 [node name="NavigationButton9" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton9" index="1"]
-shortcut = SubResource("Shortcut_om2nq")
+[node name="MainButton" parent="NavigationButton9" index="1"]
+shortcut = SubResource("Shortcut_vihlb")
 
 [node name="ShortcutLabel" parent="NavigationButton9/ShortcutContainer" index="0"]
 text = "R"
@@ -215,8 +215,8 @@ text = "R"
 [node name="NavigationButton10" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton10" index="1"]
-shortcut = SubResource("Shortcut_inxcr")
+[node name="MainButton" parent="NavigationButton10" index="1"]
+shortcut = SubResource("Shortcut_wjcpm")
 
 [node name="ShortcutLabel" parent="NavigationButton10/ShortcutContainer" index="0"]
 text = "T"
@@ -224,8 +224,8 @@ text = "T"
 [node name="NavigationButton11" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton11" index="1"]
-shortcut = SubResource("Shortcut_x0rjk")
+[node name="MainButton" parent="NavigationButton11" index="1"]
+shortcut = SubResource("Shortcut_j4hal")
 
 [node name="ShortcutLabel" parent="NavigationButton11/ShortcutContainer" index="0"]
 text = "A"
@@ -233,8 +233,8 @@ text = "A"
 [node name="NavigationButton12" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton12" index="1"]
-shortcut = SubResource("Shortcut_c33wp")
+[node name="MainButton" parent="NavigationButton12" index="1"]
+shortcut = SubResource("Shortcut_35500")
 
 [node name="ShortcutLabel" parent="NavigationButton12/ShortcutContainer" index="0"]
 text = "S"
@@ -242,8 +242,8 @@ text = "S"
 [node name="NavigationButton13" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton13" index="1"]
-shortcut = SubResource("Shortcut_erkh6")
+[node name="MainButton" parent="NavigationButton13" index="1"]
+shortcut = SubResource("Shortcut_u5c71")
 
 [node name="ShortcutLabel" parent="NavigationButton13/ShortcutContainer" index="0"]
 text = "D"
@@ -251,8 +251,8 @@ text = "D"
 [node name="NavigationButton14" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton14" index="1"]
-shortcut = SubResource("Shortcut_dyoan")
+[node name="MainButton" parent="NavigationButton14" index="1"]
+shortcut = SubResource("Shortcut_oa586")
 
 [node name="ShortcutLabel" parent="NavigationButton14/ShortcutContainer" index="0"]
 text = "F"
@@ -260,8 +260,8 @@ text = "F"
 [node name="NavigationButton15" parent="." instance=ExtResource("2_qvt2t")]
 layout_mode = 2
 
-[node name="NavigationButton" parent="NavigationButton15" index="1"]
-shortcut = SubResource("Shortcut_px2el")
+[node name="MainButton" parent="NavigationButton15" index="1"]
+shortcut = SubResource("Shortcut_lo12i")
 
 [node name="ShortcutLabel" parent="NavigationButton15/ShortcutContainer" index="0"]
 text = "G"

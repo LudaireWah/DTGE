@@ -4,60 +4,86 @@ using System.Text.Json;
 
 namespace DtgeGame;
 
+/**
+ * The root Control node for the DTGE game. It directly manages the following:
+ *  - Basic viewport stuff like window size changes
+ *  - Loading of DTGE scenes from .dscn files into a DTGECore.SceneManager
+ *  - Rendering scene text
+ *  - Displaying game errors
+ *  
+ *  It's also the parent for the NavigationButtonGrid.
+ */
 public partial class Game : Control
 {
-    MarginContainer marginContainer;
-    RichTextLabel sceneTextDisplay;
-    NavigationButtonGrid navigationButtonGrid;
-    AcceptDialog errorAcceptDialog;
+    private MarginContainer marginContainer;
+    private RichTextLabel sceneTextDisplay;
+    private NavigationButtonGrid navigationButtonGrid;
+    private AcceptDialog errorAcceptDialog;
 
-    DtgeCore.Scene currentDtgeScene;
+    private PopupMenu filePopupMenu;
 
-    bool manualViewportSizeOverride;
-    Vector2 manualViewportSize;
+    private enum PopupMenuIds
+    {
+        FileSettings
+    }
 
-    // Called when the node enters the scene tree for the first time.
+    private GameSettingsWindow gameSettingsWindow;
+
+    private GameSettings gameSettings;
+    private const string SETTINGS_PATH = "dtge.config";
+
+    private DtgeCore.Scene currentDtgeScene;
+
+    private bool manualViewportSizeOverride;
+    private Vector2 manualViewportSize;
+
     public override void _Ready()
     {
         this.marginContainer = GetNode<MarginContainer>("MarginContainer");
         this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneTextDisplay");
         this.navigationButtonGrid = GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
         this.errorAcceptDialog = GetNode<AcceptDialog>("ErrorAcceptDialog");
+        this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
+        this.gameSettingsWindow = GetNode<GameSettingsWindow>("GameSettingsWindow");
 
-        DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
+        this.filePopupMenu.AddItem("Settings", (int)PopupMenuIds.FileSettings);
+
+        this.gameSettingsWindow.OnSaveSettingsAction = this.onSaveSettings;
+        bool settingsLoadingSuccessful = this.tryLoadSettingsFromFile(SETTINGS_PATH);
+        if (!settingsLoadingSuccessful)
+        {
+            this.gameSettings = new GameSettings();
+            this.saveSettingsToFile(SETTINGS_PATH);
+        }
+
+        this.updateUIFromSettings();
 
         this.loadScenesFromFiles();
-        
-        this.UpdateUIFromScene();
+        this.updateUIFromScene();
 
         this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
         this.OnWindowSizeChanged();
         this.manualViewportSizeOverride = false;
     }
 
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-    {
-    }
-
     public void HandleOptionChosen(DtgeCore.Option option)
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-        DtgeCore.Scene dtgeScene = sceneManager.getSceneById(option.targetSceneId);
+        DtgeCore.Scene dtgeScene = sceneManager.GetSceneById(option.TargetSceneId);
 
         if (dtgeScene == null)
         {
-            this.OnGameError("Error code bigfoot: Target scene not found.");
+            this.OnGameError("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + option.TargetSceneId + "], which was not found");
         }
         else
         {
             this.currentDtgeScene = dtgeScene;
         }
 
-        this.UpdateUIFromScene();
+        this.updateUIFromScene();
     }
 
-    private void UpdateUIFromScene()
+    private void updateUIFromScene()
     {
         if (this.currentDtgeScene != null)
         {
@@ -94,6 +120,17 @@ public partial class Game : Control
         this.errorAcceptDialog.Popup();
     }
 
+    public void _on_popup_menu_index_pressed(int index)
+    {
+        switch ((PopupMenuIds)index)
+        {
+        case PopupMenuIds.FileSettings:
+            this.gameSettingsWindow.GameSettings = new GameSettings(this.gameSettings);
+            this.gameSettingsWindow.Popup();
+            break;
+        }
+    }
+
     private void loadScenesFromFiles()
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
@@ -101,7 +138,7 @@ public partial class Game : Control
         DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
         if (sceneDirectory == null)
         {
-            this.OnGameError("Error Code labyrinth: No scene directory found.");
+            this.OnGameError("Error Code LABYRINTH: No scene directory found.");
             return;
         }
 
@@ -119,7 +156,7 @@ public partial class Game : Control
                 DtgeCore.Scene newScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
                 if (newScene != null)
                 {
-                    sceneManager.addScene(newScene);
+                    sceneManager.AddScene(newScene);
 
                     if (sceneFileName == DtgeCore.Constants.DTGE_DEFAULT_START_SCENE_NAME && this.currentDtgeScene == null)
                     {
@@ -133,7 +170,59 @@ public partial class Game : Control
 
         if (this.currentDtgeScene == null)
         {
-            this.OnGameError("Eror code labyrinth: No start scene found.");
+            this.OnGameError("Eror code LABYRINTH: No start scene found.");
+        }
+    }
+
+    public void LoadScene(DtgeCore.Scene scene)
+    {
+        this.currentDtgeScene = scene;
+        this.updateUIFromScene();
+    }
+
+    private void onSaveSettings(GameSettings settings)
+    {
+        this.gameSettings = settings;
+        this.updateUIFromSettings();
+        this.saveSettingsToFile(SETTINGS_PATH);
+    }
+
+    private void updateUIFromSettings()
+    {
+        this.sceneTextDisplay.AddThemeFontSizeOverride("normal_font_size", this.gameSettings.SceneTextSize);
+    }
+
+    private bool tryLoadSettingsFromFile(string filePath)
+    {
+        bool success = false;
+        FileAccess settingsFile = FileAccess.Open(filePath, FileAccess.ModeFlags.Read);
+
+        if (settingsFile != null)
+        {
+            string settingsJson = settingsFile.GetAsText();
+            GameSettings loadedGameSettings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
+            if (loadedGameSettings != null)
+            {
+                this.gameSettings = loadedGameSettings;
+            }
+
+            settingsFile.Close();
+            success = true;
+        }
+
+        return success;
+    }
+
+    private void saveSettingsToFile(string filePath)
+    {
+        FileAccess settingsFile = FileAccess.Open(filePath, FileAccess.ModeFlags.Write);
+
+        if (settingsFile != null)
+        {
+            string settingsJson = JsonSerializer.Serialize(this.gameSettings);
+            settingsFile.StoreString(settingsJson);
+
+            settingsFile.Close();
         }
     }
 }
