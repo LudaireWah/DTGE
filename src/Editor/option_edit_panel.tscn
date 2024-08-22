@@ -51,16 +51,16 @@ layout_mode = 2
 text = "Id"
 vertical_alignment = 1
 
-[node name="TargetSceneLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
-custom_minimum_size = Vector2(0, 31)
-layout_mode = 2
-text = "Target Scene"
-vertical_alignment = 1
-
 [node name="DisplayNameLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
 custom_minimum_size = Vector2(0, 31)
 layout_mode = 2
 text = "Display Name"
+vertical_alignment = 1
+
+[node name="TargetSceneLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Target Scene"
 vertical_alignment = 1
 
 [node name="EnabledLabel" type="Label" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesLabelContainer"]
@@ -72,6 +72,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="IdLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+
+[node name="DisplayNameLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
 custom_minimum_size = Vector2(0, 31)
 layout_mode = 2
 
@@ -87,10 +91,6 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "→"
 
-[node name="DisplayNameLineEdit" type="LineEdit" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
-custom_minimum_size = Vector2(0, 31)
-layout_mode = 2
-
 [node name="OptionEnabledCheckButton" type="CheckButton" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer"]
 layout_mode = 2
 size_flags_horizontal = 0
@@ -101,9 +101,9 @@ button_pressed = true
 [connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/DeleteButton" to="." method="_on_delete_button_pressed"]
 [connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_focus_exited"]
 [connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_submitted"]
+[connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_focus_exited"]
+[connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_text_submitted"]
 [connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit" to="." method="_on_target_scene_line_edit_focus_exited"]
 [connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit" to="." method="_on_target_scene_line_edit_text_submitted"]
 [connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/NavigateToTargetSceneButton" to="." method="_on_navigate_to_target_scene_button_pressed"]
-[connection signal="focus_exited" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_focus_exited"]
-[connection signal="text_submitted" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit" to="." method="_on_display_name_line_edit_text_submitted"]
 [connection signal="pressed" from="OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton" to="." method="_on_option_enabled_check_button_pressed"]
