@@ -143,6 +143,8 @@ public partial class Editor : Control
             }
         };
 
+        this.createNewSceneTab();
+
         this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
         OnWindowSizeChanged();
 
@@ -250,7 +252,7 @@ public partial class Editor : Control
                     if (sceneFile != null)
                     {
                         string sceneJson = sceneFile.GetAsText();
-                        DtgeCore.Scene newScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
+                        DtgeCore.Scene newScene = DtgeCore.Scene.Deserialize(sceneJson);
                         if (newScene != null)
                         {
                             this.createOpenedSceneTab(newScene, sceneFilePath);
@@ -412,9 +414,12 @@ public partial class Editor : Control
 
     public void _on_dtge_scenes_tab_bar_tab_selected(int tabIndex)
     {
-        DtgeSceneTabInfo selectedTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
-        this.dtgeSceneEditContainer.DtgeScene = selectedTabInfo.dtgeScene;
-        this.dtgeSceneEditContainer.UpdateUIFromScene();
+        if (this.openDtgeSceneDictionary.Count > 0)
+        {
+            DtgeSceneTabInfo selectedTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
+            this.dtgeSceneEditContainer.DtgeScene = selectedTabInfo.dtgeScene;
+            this.dtgeSceneEditContainer.UpdateUIFromScene();
+        }
     }
 
     public void _on_dtge_scenes_tab_bar_tab_close_pressed(int tabIndex)
@@ -509,7 +514,8 @@ public partial class Editor : Control
 
     private DtgeSceneTabInfo getCurrentDtgeSceneTabInfo()
     {
-        return this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)];
+        int tabKey = this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab);
+        return this.openDtgeSceneDictionary[tabKey];
     }
 
     private void setCurrentSceneTabInfoScene(DtgeCore.Scene scene)

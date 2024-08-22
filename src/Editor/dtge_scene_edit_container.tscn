@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cfepolkldqo55"]
+[gd_scene load_steps=4 format=3 uid="uid://cfepolkldqo55"]
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
 [ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
+[ext_resource type="PackedScene" uid="uid://bxadunm0l6bjj" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
 offset_right = 1152.0
@@ -51,7 +52,7 @@ layout_mode = 2
 
 [node name="SceneTextEntryLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
-text = "Scene Text"
+text = "Snippets"
 
 [node name="SceneTextCopyAllButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
@@ -61,22 +62,35 @@ text = "Copy All"
 layout_mode = 2
 text = "Paste All"
 
-[node name="SceneTextEntryTextEdit" type="TextEdit" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
+[node name="Whitespace" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 24
-placeholder_text = "Write your scene here."
-wrap_mode = 1
+size_flags_horizontal = 3
+horizontal_alignment = 2
+
+[node name="ShowPreviewCheckButton" type="CheckButton" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+layout_mode = 2
+button_pressed = true
+text = "Show Preview"
+
+[node name="SnippetListContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer" instance=ExtResource("3_q0oq0")]
+layout_mode = 2
 
 [node name="SceneTextPreviewContainer" type="VBoxContainer" parent="VBoxContainer/SceneTextEditContainer"]
-visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneTextPreviewLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer"]
 layout_mode = 2
+
+[node name="SceneTextPreviewLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Scene Text Preview"
+
+[node name="SceneTextPreviewRandomizeButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
+layout_mode = 2
+text = "Randomize"
 
 [node name="SceneTextPreviewRichTextLabel" type="RichTextLabel" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer"]
 layout_mode = 2
@@ -85,4 +99,5 @@ size_flags_vertical = 3
 [connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton" to="." method="_on_scene_text_copy_all_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton" to="." method="_on_scene_text_paste_all_button_pressed"]
-[connection signal="text_changed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryTextEdit" to="." method="_on_scene_text_entry_text_edit_text_changed"]
+[connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
+[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton" to="." method="_on_scene_text_preview_randomize_button_pressed"]

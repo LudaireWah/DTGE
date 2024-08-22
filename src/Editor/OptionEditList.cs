@@ -60,7 +60,7 @@ public partial class OptionEditList : VBoxContainer
 			this.actionsAreStale = true;
 		}
     }
-	public Action OnSceneUpdated;
+	public Action OnOptionListUpdated;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -111,9 +111,9 @@ public partial class OptionEditList : VBoxContainer
 			this.updateOptionLocationLabels();
         }
 
-		if (this.OnSceneUpdated != null)
+		if (this.OnOptionListUpdated != null)
         {
-            this.OnSceneUpdated();
+            this.OnOptionListUpdated();
         }
     }
 
@@ -192,7 +192,7 @@ public partial class OptionEditList : VBoxContainer
         DtgeCore.Option newOption = new DtgeCore.Option();
         this.DtgeScene.AddOption(newOption);
         this.addNewOptionEditPanel(newOption);
-        this.OnSceneUpdated();
+        this.OnOptionListUpdated();
     }
 
     private void updateOptionLocationLabels()

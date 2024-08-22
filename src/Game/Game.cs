@@ -87,7 +87,7 @@ public partial class Game : Control
     {
         if (this.currentDtgeScene != null)
         {
-            this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
+            //this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
             this.sceneTextDisplay.ScrollToLine(0);
             this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
         }
@@ -153,7 +153,7 @@ public partial class Game : Control
             if (sceneFile != null)
             {
                 string sceneJson = sceneFile.GetAsText();
-                DtgeCore.Scene newScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
+                DtgeCore.Scene newScene = DtgeCore.Scene.Deserialize(sceneJson);
                 if (newScene != null)
                 {
                     sceneManager.AddScene(newScene);

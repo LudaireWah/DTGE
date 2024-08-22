@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,38 +16,26 @@ public class Scene
     public const int MAX_OPTION_NUMBER = 15;
 
     public string Id { get; set; }
-    public string SceneText
-    {
-        get
-        {
-            if (this.sceneText == null && this.EncodedSceneText != null)
-            {
-                this.sceneText = System.Text.Encoding.Unicode.GetString(this.EncodedSceneText);
-                this.EncodedSceneText = null;
-            }
-            return sceneText;
-        }
-        set
-        {
-            this.sceneText = value;
-        }
-    }
-    public byte[] EncodedSceneText { get; set; }
-    public Option[] OptionList {  get; set; }
-
-    private string sceneText;
+    public Option[] OptionList { get; set; }
+    public List<Snippet> SnippetList { get; set; }
+    public string SceneText { get; set; }
 
     public Scene()
     {
         this.Id = "";
-        this.sceneText = null;
         this.OptionList = new Option[MAX_OPTION_NUMBER];
+        this.SnippetList = new List<Snippet>();
+        this.AddOption(new Option());
+        this.AddSnippet(new Snippet());
     }
+
     public Scene(string id)
     {
         this.Id= id;
-        this.sceneText= null;
         this.OptionList = new Option[MAX_OPTION_NUMBER];
+        this.SnippetList = new List<Snippet>();
+        this.AddOption(new Option());
+        this.AddSnippet(new Snippet());
     }
 
     public override string ToString()
@@ -54,7 +43,7 @@ public class Scene
         string sceneString =
             "Id: " + this.Id + "\n" +
             "Scene Text: \n" +
-            this.sceneText + "\n\n" +
+            this.CalculateSceneText(true) + "\n\n" +
             "Options:\n";
 
         for (int optionIndex = 0; optionIndex < this.OptionList.Count(); optionIndex++)
@@ -70,14 +59,23 @@ public class Scene
     }
 
     public string Serialize()
-    {
-        if (this.sceneText != null)
-        {
-            this.EncodedSceneText = System.Text.Encoding.Unicode.GetBytes(this.sceneText);
-        }
-        this.sceneText = null;
+    {   
         string toReturn = JsonSerializer.Serialize(this);
         return toReturn;
+    }
+
+    public static Scene Deserialize(string sceneJson)
+    {
+        Scene deserializedScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
+        if (deserializedScene.SceneText != null && deserializedScene.SceneText.Length != 0)
+        {
+            Snippet snippetFromSceneText = new Snippet();
+            snippetFromSceneText.SetSnippetVariationText(0,(deserializedScene.SceneText));
+            deserializedScene.ClearAllSnippets();
+            deserializedScene.SnippetList.Add(snippetFromSceneText);
+            deserializedScene.SceneText = null;
+        }
+        return deserializedScene;
     }
 
     public bool AddOption(Option option)
@@ -112,5 +110,37 @@ public class Scene
     public Option GetOption(int index)
     {
         return this.OptionList[index];
+    }
+
+    public void AddSnippet(Snippet snippet)
+    {
+        this.SnippetList.Add(snippet);
+    }
+
+    public void ClearAllSnippets()
+    {
+        this.SnippetList.Clear();
+    }
+
+    public int GetSnippetCount()
+    {
+        return this.SnippetList.Count;
+    }
+
+    public string CalculateSceneText(bool preserveRandomization)
+    {
+        string sceneText = "";
+
+        // Normal scene text concatenation
+        for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
+        {
+            Snippet currentSnippet = this.SnippetList[snippetIndex];
+            sceneText += currentSnippet.CalculateText(preserveRandomization);
+        }
+
+        // Json serialization for debug purposes
+        sceneText = this.Serialize();
+
+        return sceneText;
     }
 }
