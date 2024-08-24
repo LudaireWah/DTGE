@@ -13,17 +13,17 @@ namespace DtgeEditor;
 public partial class OptionEditList : VBoxContainer
 {
 	VBoxContainer optionEditListVBoxContainer;
-	bool uiNeedUpdate;
+
+    private bool uiNeedsUpdate;
 
     private DtgeCore.Scene dtgeScene;
-
 	public DtgeCore.Scene DtgeScene
 	{
 		get { return dtgeScene; }
 		set
 		{
 			this.dtgeScene = value;
-			this.uiNeedUpdate = true;
+			this.uiNeedsUpdate = true;
 		}
 	}
 
@@ -46,20 +46,7 @@ public partial class OptionEditList : VBoxContainer
 		"G"
 	};
 
-    private bool actionsAreStale;
-    private Action<string> tryOpenSceneAction;
-	public Action<string> TryOpenSceneAction
-	{
-		get
-		{
-			return this.tryOpenSceneAction;
-		}
-		set
-		{
-			this.tryOpenSceneAction = value;
-			this.actionsAreStale = true;
-		}
-    }
+    public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 	public Action OnOptionListUpdated;
 
     // Called when the node enters the scene tree for the first time.
@@ -73,20 +60,11 @@ public partial class OptionEditList : VBoxContainer
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (this.uiNeedUpdate)
+		if (this.uiNeedsUpdate)
 		{
 			this.updateOptionEditPanelsFromScene();
-			this.uiNeedUpdate = false;
+			this.uiNeedsUpdate = false;
 		}
-
-		if (this.actionsAreStale)
-        {
-            for (int optionPanelIndex = 0; optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelIndex++)
-            {
-                this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex).TryOpenSceneAction = this.tryOpenSceneAction;
-            }
-            this.actionsAreStale = false;
-        }
 	}
 
 	public void FlushChangesForSave()
@@ -97,7 +75,7 @@ public partial class OptionEditList : VBoxContainer
         }
     }
 
-	public void OnOptionUpdated(bool countChanged)
+	public void HandleOptionUpdated(bool countChanged)
 	{
 		if (countChanged)
 		{
@@ -181,10 +159,15 @@ public partial class OptionEditList : VBoxContainer
         }
     }
 
-    public void OnOptionDeleted(OptionEditPanel toRemove)
+    public void HandleOptionDeleted(OptionEditPanel toRemove)
 	{
         this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.OnOptionUpdated(true);
+		this.HandleOptionUpdated(true);
+    }
+
+    public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+    {
+        this.OnTryOpenScene(sceneId);
     }
 
     public void _on_add_option_button_pressed()
@@ -256,11 +239,11 @@ public partial class OptionEditList : VBoxContainer
             if (newOptionEditPanel != null)
             {
                 newOptionEditPanel.BoundOption = option;
-                newOptionEditPanel.OptionUpdatedAction = this.OnOptionUpdated;
-				newOptionEditPanel.OptionMovedUpAction = this.MoveOptionUp;
-				newOptionEditPanel.OptionMovedDownAction = this.MoveOptionDown;
-                newOptionEditPanel.OptionDeletedAction = this.OnOptionDeleted;
-				newOptionEditPanel.TryOpenSceneAction = this.tryOpenSceneAction;
+                newOptionEditPanel.OnOptionUpdated = this.HandleOptionUpdated;
+				newOptionEditPanel.OnOptionMovedUp = this.MoveOptionUp;
+				newOptionEditPanel.OnOptionMovedDown = this.MoveOptionDown;
+                newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
+				newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
                 this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
             }
 
