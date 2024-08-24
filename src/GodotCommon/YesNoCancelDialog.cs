@@ -16,7 +16,7 @@ public partial class YesNoCancelDialog : Window
         this.rootMarginContainer = GetNode<MarginContainer>("RootMarginContainer");
         this.dialogText = GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
 
-        this.SizeChanged += this.OnWindowSizeChanged;
+        this.SizeChanged += this.HandleWindowSizeChanged;
     }
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -24,7 +24,7 @@ public partial class YesNoCancelDialog : Window
 	{
     }
 
-    public void OnWindowSizeChanged()
+    public void HandleWindowSizeChanged()
     {
         Rect2 newViewport = this.GetViewport().GetVisibleRect();
         this.rootMarginContainer.SetSize(newViewport.Size);

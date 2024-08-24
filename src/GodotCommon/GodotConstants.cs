@@ -14,6 +14,7 @@ public class GodotConstants
 
     public const string OPTION_EDIT_PANEL_PATH = "src/Editor/option_edit_panel.tscn";
     public const string SNIPPET_PANEL_CONTAINER_PATH = "src/Editor/snippet_panel_container.tscn";
+    public const string SUBSCENE_PANEL_CONTAINER_PATH = "src/Editor/subscene_panel_container.tscn";
 
     // Modifier Key enums
     public const Key KEY_CTRL_N = (Key)(KeyModifierMask.MaskCtrl) | Key.N;

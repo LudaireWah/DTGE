@@ -12,8 +12,8 @@ public partial class SnippetPanelContainer : PanelContainer
     private static readonly DtgeCore.Snippet.ConditionalMode[] SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING =
     {
         DtgeCore.Snippet.ConditionalMode.Simple,
-        DtgeCore.Snippet.ConditionalMode.Random,
-        DtgeCore.Snippet.ConditionalMode.Subscene
+        DtgeCore.Snippet.ConditionalMode.Subscene,
+        DtgeCore.Snippet.ConditionalMode.Random
     };
 
     OptionButton conditionalModeOptionButton;
@@ -36,10 +36,10 @@ public partial class SnippetPanelContainer : PanelContainer
         }
     }
 
-    public Action<bool> OnSnippetUpdated;
-    public Action<SnippetPanelContainer> SnippetMovedUpAction;
-    public Action<SnippetPanelContainer> SnippetMovedDownAction;
-    public Action<SnippetPanelContainer> SnippetDeletedAction;
+    public Action<bool> OnSnippetUpdated; // (bool snippetCountChanged)
+    public Action<SnippetPanelContainer> OnSnippetMovedUp;
+    public Action<SnippetPanelContainer> OnSnippetMovedDown;
+    public Action<SnippetPanelContainer> OnSnippetDeleted;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -51,10 +51,6 @@ public partial class SnippetPanelContainer : PanelContainer
 
         snippetTextEdit.FocusMode = FocusModeEnum.Click;
 
-        if (this.boundSnippet == null)
-        {
-            this.boundSnippet = new DtgeCore.Snippet();
-        }
         this.UpdateUIFromSnippet();
     }
 
@@ -75,102 +71,136 @@ public partial class SnippetPanelContainer : PanelContainer
 
     private void updateSnippetFromUI()
     {
-        //if (System.Diagnostics.Debugger.IsAttached)
-        //    System.Diagnostics.Debugger.Break();
-        this.BoundSnippet.SetSnippetVariationText(snippetTabBar.CurrentTab, this.snippetTextEdit.Text);
+        this.BoundSnippet.SetVariationText(snippetTabBar.CurrentTab, this.snippetTextEdit.Text);
         this.OnSnippetUpdated(false);
     }
 
     public void UpdateUIFromSnippet()
     {
-        this.conditionalModeOptionButton.Selected = (int)(this.boundSnippet.CurrentConditionalMode);
+        if (this.boundSnippet == null)
+        {
+            // error handling?
+        }
+        else
+        {
+            this.conditionalModeOptionButton.Selected = (int)(this.boundSnippet.CurrentConditionalMode);
+
+            this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.ConditionalMode.Simple, this.boundSnippet.IsSimpleModeDisabled());
+            if (this.boundSnippet.IsSimpleModeDisabled())
+            {
+                this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.ConditionalMode.Simple, "Returning to simple mode requires that you have only one variation");
+            }
+            else
+            {
+                this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.ConditionalMode.Simple, null);
+            }
+
+            this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.ConditionalMode.Subscene, this.boundSnippet.IsSubsceneModeDisabled());
+            if (this.boundSnippet.IsSubsceneModeDisabled())
+            {
+                this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.ConditionalMode.Subscene, "Subscene mode requires that the scene has implemented subscenes");
+            }
+            else
+            {
+                this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.ConditionalMode.Subscene, null);
+            }
+
+            this.updateVariationTabsFromSnippet();
+
+            this.snippetTextEdit.Text = this.BoundSnippet.GetVariationTextByIndex(this.snippetTabBar.CurrentTab);
+        }
+    }
+
+    private void updateVariationTabsFromSnippet()
+    {
 
         switch (this.BoundSnippet.CurrentConditionalMode)
         {
         case DtgeCore.Snippet.ConditionalMode.Simple:
             this.snippetTabsHBoxContainer.Visible = false;
             break;
-        case DtgeCore.Snippet.ConditionalMode.Random:
-            this.snippetTabsHBoxContainer.Visible = true;
-            break;
         case DtgeCore.Snippet.ConditionalMode.Subscene:
             this.snippetTabsHBoxContainer.Visible = true;
+            this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
+
             break;
+        case DtgeCore.Snippet.ConditionalMode.Random:
+            this.snippetTabsHBoxContainer.Visible = true;
+            if (this.snippetTabBar.TabCount > 1)
+            {
+                this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
+            }
+            else
+            {
+                this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
+            }
+            break;
+        default:
+            throw new NotImplementedException();
         }
-        this.snippetTabBar.ClearTabs();
-        for (int variationIndex = 0; variationIndex < boundSnippet.GetSnippetVariationCount(); variationIndex++)
+
+        for (int variationIndex = 0; variationIndex < this.boundSnippet.GetVariationCount(); variationIndex++)
         {
-            this.snippetTabBar.AddTab("variation +" + variationIndex);
+            if (this.snippetTabBar.TabCount > variationIndex)
+            {
+                this.snippetTabBar.SetTabTitle(variationIndex, this.boundSnippet.GetVariationName(variationIndex));
+            }
+            else
+            {
+                this.snippetTabBar.AddTab(this.boundSnippet.GetVariationName(variationIndex));
+            }
         }
 
-        this.snippetTextEdit.Text = this.BoundSnippet.GetVariationTextByIndex(this.snippetTabBar.CurrentTab);
-
-        this.OnSnippetUpdated(false);
+        while (this.snippetTabBar.TabCount > this.boundSnippet.GetVariationCount())
+        {
+            this.snippetTabBar.RemoveTab(this.snippetTabBar.TabCount - 1);
+        }
     }
 
-    private void createNewSnippetTab(string tabName = "snippet_tab")
+    private void createNewSnippetVariation()
     {
-        this.snippetTabBar.AddTab(tabName);
+        this.BoundSnippet.AddVariation();
         this.snippetTabBar.CurrentTab = this.snippetTabBar.TabCount - 1;
-
-        this.BoundSnippet.AddSnippetVariation();
         this.UpdateUIFromSnippet();
+        this.OnSnippetUpdated(false);
     }
 
     public void _on_snippet_text_edit_text_changed()
     {
-        //if (System.Diagnostics.Debugger.IsAttached)
-        //    System.Diagnostics.Debugger.Break();
         this.updateSnippetFromUI();
     }
 
     public void _on_move_up_button_pressed()
     {
-        this.SnippetMovedUpAction(this);
+        this.OnSnippetMovedUp(this);
     }
 
     public void _on_move_down_button_pressed()
     {
-        this.SnippetMovedDownAction(this);
+        this.OnSnippetMovedDown(this);
     }
 
     public void _on_delete_button_pressed()
     {
-        this.SnippetDeletedAction(this);
+        this.OnSnippetDeleted(this);
     }
 
     public void _on_conditional_mode_option_button_item_selected(int modeIndex)
     {
-        DtgeCore.Snippet.ConditionalMode newMode = SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING[modeIndex];
-        bool canUpdate = true;
-
-        switch(newMode)
-        {
-        case DtgeCore.Snippet.ConditionalMode.Simple:
-            if (this.snippetTabBar.TabCount > 1)
-            {
-                canUpdate = false;
-            }
-            this.conditionalModeOptionButton.Selected = (int)(this.boundSnippet.CurrentConditionalMode);
-            break;
-        }
-
-        if (canUpdate)
-        {
-            this.BoundSnippet.CurrentConditionalMode = SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING[modeIndex];
-            this.UpdateUIFromSnippet();
-        }
+        this.BoundSnippet.CurrentConditionalMode = SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING[modeIndex];
+        this.UpdateUIFromSnippet();
+        this.OnSnippetUpdated(false);
     }
 
     public void _on_new_tab_button_pressed()
     {
-        this.createNewSnippetTab();
+        this.createNewSnippetVariation();
     }
 
     public void _on_snippet_tab_bar_tab_close_pressed(int tabIndex)
     {
         this.snippetTabBar.RemoveTab(tabIndex);
-        this.boundSnippet.RemoveSnippetVariation(tabIndex);
+        this.boundSnippet.RemoveVariation(tabIndex);
         this.UpdateUIFromSnippet();
     }
 

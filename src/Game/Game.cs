@@ -61,19 +61,20 @@ public partial class Game : Control
         this.loadScenesFromFiles();
         this.updateUIFromScene();
 
-        this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
-        this.OnWindowSizeChanged();
+        this.GetTree().Root.SizeChanged += this.HandleWindowSizeChanged;
+        this.HandleWindowSizeChanged();
         this.manualViewportSizeOverride = false;
     }
 
     public void HandleOptionChosen(DtgeCore.Option option)
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-        DtgeCore.Scene dtgeScene = sceneManager.GetSceneById(option.TargetSceneId);
+        DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
+        DtgeCore.Scene dtgeScene = sceneManager.GetSceneAndSubsceneById(sceneId);
 
         if (dtgeScene == null)
         {
-            this.OnGameError("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + option.TargetSceneId + "], which was not found");
+            this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + option.TargetSceneId + "], which was not found");
         }
         else
         {
@@ -87,13 +88,13 @@ public partial class Game : Control
     {
         if (this.currentDtgeScene != null)
         {
-            //this.sceneTextDisplay.Text = currentDtgeScene.SceneText;
+            this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText(true);
             this.sceneTextDisplay.ScrollToLine(0);
             this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
         }
     }
 
-    public void OnWindowSizeChanged()
+    public void HandleWindowSizeChanged()
     {
         Vector2 newViewport;
         if (this.manualViewportSizeOverride)
@@ -111,10 +112,10 @@ public partial class Game : Control
     {
         this.manualViewportSizeOverride = true;
         this.manualViewportSize = manualSize;
-        OnWindowSizeChanged();
+        HandleWindowSizeChanged();
     }
 
-    public void OnGameError(string errorText)
+    public void PopupErrorDialog(string errorText)
     {
         this.errorAcceptDialog.DialogText = errorText;
         this.errorAcceptDialog.Popup();
@@ -138,7 +139,7 @@ public partial class Game : Control
         DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
         if (sceneDirectory == null)
         {
-            this.OnGameError("Error Code LABYRINTH: No scene directory found.");
+            this.PopupErrorDialog("Error Code LABYRINTH: No scene directory found.");
             return;
         }
 
@@ -170,7 +171,7 @@ public partial class Game : Control
 
         if (this.currentDtgeScene == null)
         {
-            this.OnGameError("Eror code LABYRINTH: No start scene found.");
+            this.PopupErrorDialog("Eror code LABYRINTH: No start scene found.");
         }
     }
 

@@ -37,6 +37,24 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 
+[node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="NewSubsceneButton" type="Button" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "Add new "
+
+[node name="SubsceneListScrollContainer" type="ScrollContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="SubsceneListHBoxContainer" type="HBoxContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer/SubsceneListScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
 [node name="SceneTextEditContainer" type="HSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -88,6 +106,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Scene Text Preview"
 
+[node name="SceneTextPreviewSubsceneSelectionOptionButton" type="OptionButton" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
+layout_mode = 2
+item_count = 1
+selected = 0
+popup/item_0/text = "Subscenes"
+popup/item_0/id = 0
+
 [node name="SceneTextPreviewRandomizeButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
 layout_mode = 2
 text = "Randomize"
@@ -97,7 +122,9 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton" to="." method="_on_scene_text_copy_all_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton" to="." method="_on_scene_text_paste_all_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
+[connection signal="item_selected" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewSubsceneSelectionOptionButton" to="." method="_on_scene_text_preview_subscene_selection_option_button_item_selected"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton" to="." method="_on_scene_text_preview_randomize_button_pressed"]

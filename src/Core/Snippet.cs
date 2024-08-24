@@ -10,25 +10,24 @@ namespace DtgeCore;
  * the desired text and any business logic of how the scene should unfold and change
  * in response to various kinds of information
  */
- [Serializable]
 public class Snippet
 {   
     public enum ConditionalMode
     {
         Simple,
-        Random,
-        Subscene
+        Subscene,
+        Random
     }
 
-    public ConditionalMode CurrentConditionalMode
-    {
-        get; set;
-    }
+    public ConditionalMode CurrentConditionalMode;
 
     public List<string> snippetVariations
     {
         get; set;
     }
+
+    private ISceneContextProvider sceneContextProvider;
+
     private Random snippetRandomizer;
     private readonly int snippetRandomizerSeed;
     private int currentRandomizedVariationIndex;
@@ -37,6 +36,21 @@ public class Snippet
     {
         this.snippetVariations = new List<string>();
         this.snippetVariations.Add(string.Empty);
+
+        this.sceneContextProvider = null;
+
+        Random seedGenerator = new Random();
+        this.snippetRandomizerSeed = seedGenerator.Next();
+        this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
+        this.currentRandomizedVariationIndex = snippetRandomizer.Next(this.snippetVariations.Count);
+    }
+
+    public Snippet(ISceneContextProvider sceneContextProvider)
+    {
+        this.snippetVariations = new List<string>();
+        this.snippetVariations.Add(string.Empty);
+
+        this.sceneContextProvider = sceneContextProvider;
 
         Random seedGenerator = new Random();
         this.snippetRandomizerSeed = seedGenerator.Next();
@@ -54,17 +68,26 @@ public class Snippet
         }
     }
 
-    public void AddSnippetVariation()
+    public void SetSceneContextProvider(ISceneContextProvider sceneContextProvider)
+    {
+        if (this.sceneContextProvider != null)
+        {
+            // error
+        }
+        this.sceneContextProvider = sceneContextProvider;
+    }
+
+    public void AddVariation()
     {
         this.snippetVariations.Add("");
     }
 
-    public void RemoveSnippetVariation(int variationIndex)
+    public void RemoveVariation(int variationIndex)
     {
         this.snippetVariations.RemoveAt(variationIndex);
     }
 
-    public void SetSnippetVariationText(int snippetTextIndex, string text)
+    public void SetVariationText(int snippetTextIndex, string text)
     {
         if (!(this.snippetVariations.Count > snippetTextIndex))
         {
@@ -76,18 +99,45 @@ public class Snippet
         }
     }
 
-    public int GetSnippetVariationCount()
+    public int GetVariationCount()
     {
-        return this.snippetVariations.Count;
+        int variationCount = 0;
+        switch (this.CurrentConditionalMode)
+        {
+        case ConditionalMode.Simple:
+            variationCount = 1;
+            break;
+        case ConditionalMode.Subscene:
+            variationCount = this.sceneContextProvider.GetSubsceneCount();
+            break;
+        case ConditionalMode.Random:
+            variationCount = this.snippetVariations.Count;
+            break;
+        }
+        return variationCount;
     }
 
-    public string CalculateText(bool preserveRandomization)
+    public string CalculateText(bool doNotRandomize)
     {
-        if (!preserveRandomization)
+        string calculatedText = null;
+
+        switch(this.CurrentConditionalMode)
         {
-            currentRandomizedVariationIndex = this.snippetRandomizer.Next(this.snippetVariations.Count);
+        case ConditionalMode.Simple:
+            calculatedText = this.snippetVariations[0];
+            break;
+        case ConditionalMode.Subscene:
+            calculatedText = this.snippetVariations[this.sceneContextProvider.GetCurrentSubsceneIndex()];
+            break;
+        case ConditionalMode.Random:
+            if (!doNotRandomize)
+            {
+                currentRandomizedVariationIndex = this.snippetRandomizer.Next(this.snippetVariations.Count);
+            }
+            calculatedText = this.snippetVariations[currentRandomizedVariationIndex];
+            break;
         }
-        return this.snippetVariations[currentRandomizedVariationIndex];
+        return calculatedText;
     }
 
     public string GetVariationTextByIndex(int variationIndex)
@@ -107,5 +157,37 @@ public class Snippet
     public void SetRandomizedIndex(int variationIndex)
     {
         this.currentRandomizedVariationIndex = variationIndex;
+    }
+
+    public string GetVariationName(int variationIndex)
+    {
+        string snippetName = null;
+
+        switch(this.CurrentConditionalMode)
+        {
+        case ConditionalMode.Simple:
+            snippetName = "";
+            break;
+        case ConditionalMode.Subscene:
+            snippetName = this.sceneContextProvider.GetSubsceneName(variationIndex);
+            break;
+        case ConditionalMode.Random:
+            snippetName = "Random " + variationIndex;
+            break;
+        default:
+            throw new NotImplementedException();
+        }
+
+        return snippetName;
+    }
+
+    public bool IsSimpleModeDisabled()
+    {
+        return this.snippetVariations.Count > 1;
+    }
+
+    public bool IsSubsceneModeDisabled()
+    {
+        return this.sceneContextProvider.GetSubsceneCount() == 0;
     }
 }

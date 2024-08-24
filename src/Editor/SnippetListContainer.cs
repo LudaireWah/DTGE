@@ -55,7 +55,7 @@ public partial class SnippetListContainer : VBoxContainer
         }
     }
 
-    public void OnSnippetUpdated(bool countChanged)
+    public void HandleSnippetUpdated(bool countChanged)
     {
         if (countChanged)
         {
@@ -73,7 +73,7 @@ public partial class SnippetListContainer : VBoxContainer
         }
     }
 
-    public void MoveSnippetUp(SnippetPanelContainer targetSnippet)
+    public void HandleMoveSnippetUp(SnippetPanelContainer targetSnippet)
     {
         SnippetPanelContainer currentSnippetPanelContainer = null;
         SnippetPanelContainer aboveSnippetPanelContainer = null;
@@ -85,7 +85,7 @@ public partial class SnippetListContainer : VBoxContainer
                 aboveSnippetPanelContainer != null &&
                 currentSnippetPanelContainer == targetSnippet)
             {
-                DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet();
+                DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
                 aboveSnippetCopy.CopyFrom(aboveSnippetPanelContainer.BoundSnippet);
                 aboveSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
                 currentSnippetPanelContainer.BoundSnippet.CopyFrom(aboveSnippetCopy);
@@ -107,7 +107,7 @@ public partial class SnippetListContainer : VBoxContainer
         this.OnSnippetListUpdated();
     }
 
-    public void MoveSnippetDown(SnippetPanelContainer targetSnippet)
+    public void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
     {
         SnippetPanelContainer currentSnippetPanelContainer = null;
         SnippetPanelContainer belowSnippetPanelContainer = null;
@@ -119,7 +119,7 @@ public partial class SnippetListContainer : VBoxContainer
                 belowSnippetPanelContainer != null &&
                 currentSnippetPanelContainer == targetSnippet)
             {
-                DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet();
+                DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
                 belowSnippetCopy.CopyFrom(belowSnippetPanelContainer.BoundSnippet);
                 belowSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
                 currentSnippetPanelContainer.BoundSnippet.CopyFrom(belowSnippetCopy);
@@ -141,15 +141,27 @@ public partial class SnippetListContainer : VBoxContainer
         this.OnSnippetListUpdated();
     }
 
-    public void OnSnippetDeleted(SnippetPanelContainer toRemove)
+    public void HandleSnippetDeleted(SnippetPanelContainer toRemove)
     {
         this.snippetListVBoxContainer.RemoveChild(toRemove);
-        this.OnSnippetUpdated(true);
+        this.HandleSnippetUpdated(true);
+    }
+
+    public void HandleSubsceneUpdate()
+    {
+        for (int subsceneIndex = 0; subsceneIndex < this.snippetListVBoxContainer.GetChildCount(); subsceneIndex++)
+        {
+            SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(subsceneIndex);
+            if (currentSnippetPanelContainer != null)
+            {
+                currentSnippetPanelContainer.UpdateUIFromSnippet();
+            }
+        }
     }
 
     public void _on_add_snippet_button_pressed()
     {
-        DtgeCore.Snippet newSnippet = new DtgeCore.Snippet();
+        DtgeCore.Snippet newSnippet = new DtgeCore.Snippet(this.dtgeScene);
         this.DtgeScene.AddSnippet(newSnippet);
         this.addNewSnippetPanelContainer(newSnippet);
         this.OnSnippetListUpdated();
@@ -199,10 +211,10 @@ public partial class SnippetListContainer : VBoxContainer
         if (newSnippetPanelContainer != null)
         {
             newSnippetPanelContainer.BoundSnippet = snippet;
-            newSnippetPanelContainer.OnSnippetUpdated = this.OnSnippetUpdated;
-            newSnippetPanelContainer.SnippetMovedUpAction = this.MoveSnippetUp;
-            newSnippetPanelContainer.SnippetMovedDownAction = this.MoveSnippetDown;
-            newSnippetPanelContainer.SnippetDeletedAction = this.OnSnippetDeleted;
+            newSnippetPanelContainer.OnSnippetUpdated = this.HandleSnippetUpdated;
+            newSnippetPanelContainer.OnSnippetMovedUp = this.HandleMoveSnippetUp;
+            newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
+            newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
             this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
         }
     }

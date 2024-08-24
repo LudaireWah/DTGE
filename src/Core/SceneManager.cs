@@ -44,6 +44,13 @@ public class SceneManager
         return scene;
     }
 
+    public Scene GetSceneAndSubsceneById(Scene.SceneId id)
+    {
+        Scene scene = this.GetSceneById(id.scene);
+        scene.SetCurrentSubsceneById(id.subscene);
+        return scene;
+    }
+
     public void ClearScenes()
     {
         this.scenes.Clear();

@@ -11,31 +11,61 @@ namespace DtgeCore;
  * through a set of scenes, each presenting the player with a description of the player's
  * situation and which options the player may choose to advance in the game.
  */
-public class Scene
+public class Scene : ISceneContextProvider
 {
     public const int MAX_OPTION_NUMBER = 15;
 
     public string Id { get; set; }
     public Option[] OptionList { get; set; }
+    public List<string> Subscenes { get; set; }
+    public int CurrentSubsceneIndex { get; set; }
     public List<Snippet> SnippetList { get; set; }
     public string SceneText { get; set; }
+
+    public struct SceneId
+    {
+        public string scene;
+        public string subscene;
+
+        public SceneId(string sceneName)
+        {
+            string[] ids = sceneName.Split(".");
+            scene = ids[0];
+            if (ids.Length > 1)
+            {
+                subscene = ids[1];
+            }
+            else
+            {
+                subscene = null;
+            }
+            if (ids.Length > 2)
+            {
+                // error
+            }
+        }
+    }
 
     public Scene()
     {
         this.Id = "";
         this.OptionList = new Option[MAX_OPTION_NUMBER];
+        this.Subscenes = new List<string>();
+        this.CurrentSubsceneIndex = 0;
         this.SnippetList = new List<Snippet>();
         this.AddOption(new Option());
-        this.AddSnippet(new Snippet());
+        this.AddSnippet(new Snippet(this));
     }
 
     public Scene(string id)
     {
         this.Id= id;
         this.OptionList = new Option[MAX_OPTION_NUMBER];
+        this.Subscenes = new List<string>();
+        this.CurrentSubsceneIndex = 0;
         this.SnippetList = new List<Snippet>();
         this.AddOption(new Option());
-        this.AddSnippet(new Snippet());
+        this.AddSnippet(new Snippet(this));
     }
 
     public override string ToString()
@@ -69,11 +99,16 @@ public class Scene
         Scene deserializedScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
         if (deserializedScene.SceneText != null && deserializedScene.SceneText.Length != 0)
         {
-            Snippet snippetFromSceneText = new Snippet();
-            snippetFromSceneText.SetSnippetVariationText(0,(deserializedScene.SceneText));
+            Snippet snippetFromSceneText = new Snippet(deserializedScene);
+            snippetFromSceneText.SetVariationText(0,(deserializedScene.SceneText));
+
             deserializedScene.ClearAllSnippets();
             deserializedScene.SnippetList.Add(snippetFromSceneText);
             deserializedScene.SceneText = null;
+        }
+        for (int snippetIndex = 0; snippetIndex < deserializedScene.SnippetList.Count; snippetIndex++)
+        {
+            deserializedScene.SnippetList[snippetIndex].SetSceneContextProvider(deserializedScene);
         }
         return deserializedScene;
     }
@@ -139,8 +174,57 @@ public class Scene
         }
 
         // Json serialization for debug purposes
-        sceneText = this.Serialize();
+        // sceneText = this.Serialize();
 
         return sceneText;
+    }
+
+    public void AddSubscene(string newSubsceneName)
+    {
+        this.Subscenes.Add(newSubsceneName);
+    }
+
+    public void RemoveSubsceneByIndex(int subsceneIndex)
+    {
+        this.Subscenes.RemoveAt(subsceneIndex);
+    }
+
+    public void SetCurrentSubsceneById(string desiredSubsceneId)
+    {
+        if (desiredSubsceneId != null)
+        {
+            int desiredSubsceneIndex = -1;
+
+            for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
+            {
+                if (Subscenes[subsceneIndex] == desiredSubsceneId)
+                {
+                    desiredSubsceneIndex = subsceneIndex;
+                    break;
+                }
+            }
+
+            this.CurrentSubsceneIndex = desiredSubsceneIndex;
+        }
+    }
+
+    public int GetSubsceneCount()
+    {
+        return this.Subscenes.Count;
+    }
+
+    public void SetSubsceneName(int subsceneIndex, string subsceneName)
+    {
+        this.Subscenes[subsceneIndex] = subsceneName;
+    }
+
+    public string GetSubsceneName(int subsceneIndex)
+    {
+        return this.Subscenes[subsceneIndex];
+    }
+
+    public int GetCurrentSubsceneIndex()
+    {
+        return CurrentSubsceneIndex;
     }
 }

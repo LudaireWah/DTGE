@@ -108,8 +108,8 @@ public partial class Editor : Control
         this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
         this.nextKeyforOpenDtgeSceneDictionary = 0;
 
-        this.dtgeSceneEditContainer.TryOpenSceneAction = this.TryOpenScene;
-        this.dtgeSceneEditContainer.OnSceneUpdated = this.OnSceneUpdated;
+        this.dtgeSceneEditContainer.OnTryOpenScene = this.HandleTryOpenScene;
+        this.dtgeSceneEditContainer.OnSceneUpdated = this.HandleSceneUpdated;
 
         this.filePopupMenu.AddItem("New", (int)PopupMenuIds.FileNew, GodotConstants.KEY_CTRL_N);
         this.filePopupMenu.AddItem("Open...", (int)PopupMenuIds.FileOpen, GodotConstants.KEY_CTRL_O);
@@ -145,8 +145,8 @@ public partial class Editor : Control
 
         this.createNewSceneTab();
 
-        this.GetTree().Root.SizeChanged += this.OnWindowSizeChanged;
-        OnWindowSizeChanged();
+        this.GetTree().Root.SizeChanged += this.HandleWindowSizeChanged;
+        HandleWindowSizeChanged();
 
         this.currentState = EditorState.Active;
         GetTree().AutoAcceptQuit = false;
@@ -203,7 +203,7 @@ public partial class Editor : Control
         }
     }
 
-    public void OnWindowSizeChanged()
+    public void HandleWindowSizeChanged()
     {
         Rect2 newViewport = this.GetTree().Root.GetViewport().GetVisibleRect();
         this.marginContainer.SetSize(newViewport.Size);
@@ -213,16 +213,18 @@ public partial class Editor : Control
         this.largeDialogInitialSize.Y = (int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
     }
 
-    public void TryOpenScene(string sceneId)
+    public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
     {
         bool sceneFoundInTabs = false;
+
         for (int dtgeSceneTabIndex = 0; dtgeSceneTabIndex < this.dtgeSceneTabBar.TabCount; dtgeSceneTabIndex++)
         {
             DtgeSceneTabInfo dtgeSceneTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(dtgeSceneTabIndex)];
-            if (dtgeSceneTabInfo.dtgeScene.Id == sceneId)
+            if (dtgeSceneTabInfo.dtgeScene.Id == sceneId.scene)
             {
                 this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabIndex;
                 this._on_dtge_scenes_tab_bar_tab_selected(dtgeSceneTabIndex);
+                this.dtgeSceneEditContainer.DtgeScene.SetCurrentSubsceneById(sceneId.subscene);
                 sceneFoundInTabs = true;
                 break;
             }
@@ -238,7 +240,7 @@ public partial class Editor : Control
             }
 
             string[] sceneFileNames = sceneDirectory.GetFiles();
-            string targetSceneFileName = sceneId + ".dscn";
+            string targetSceneFileName = sceneId.scene + ".dscn";
 
             for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
             {
@@ -257,6 +259,7 @@ public partial class Editor : Control
                         {
                             this.createOpenedSceneTab(newScene, sceneFilePath);
                             sceneFoundInFiles = true;
+                            newScene.SetCurrentSubsceneById(sceneId.subscene);
                         }
 
                         sceneFile.Close();
@@ -267,13 +270,13 @@ public partial class Editor : Control
 
         if (!sceneFoundInTabs && !sceneFoundInFiles)
         {
-            this.createNewSceneFromOptionConfirmationDialog.DialogText = "No scene [" + sceneId + "] was found. Do you want to create one?";
+            this.createNewSceneFromOptionConfirmationDialog.DialogText = "No scene [" + sceneId.scene + "] was found. Do you want to create one?";
             this.createNewSceneFromOptionConfirmationDialog.Popup();
-            this.pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog = sceneId;
+            this.pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog = sceneId.scene;
         }
     }
 
-    public void OnSceneUpdated()
+    public void HandleSceneUpdated()
     {
         this.setCurrentSceneTabInfoSaved(false);
         this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);

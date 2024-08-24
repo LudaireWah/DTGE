@@ -16,7 +16,7 @@ public partial class OptionEditPanel : PanelContainer
     CheckButton optionEnabledCheckButton;
 
     private DtgeCore.Option boundOption;
-	private bool uiNeedsUpdate;
+    private bool uiNeedsUpdate;
 
     public DtgeCore.Option BoundOption
 	{
@@ -31,11 +31,11 @@ public partial class OptionEditPanel : PanelContainer
 		}
 	}
     
-    public Action<bool> OptionUpdatedAction;
-	public Action<OptionEditPanel> OptionMovedUpAction;
-	public Action<OptionEditPanel> OptionMovedDownAction;
-	public Action<OptionEditPanel> OptionDeletedAction;
-	public Action<string> TryOpenSceneAction;
+    public Action<bool> OnOptionUpdated;
+	public Action<OptionEditPanel> OnOptionMovedUp;
+	public Action<OptionEditPanel> OnOptionMovedDown;
+	public Action<OptionEditPanel> OnOptionDeleted;
+	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -80,7 +80,7 @@ public partial class OptionEditPanel : PanelContainer
 		this.boundOption.TargetSceneId = this.targetSceneLineEdit.Text;
 		this.boundOption.DisplayName = this.displayNameLineEdit.Text;
         this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-        this.OptionUpdatedAction(newOptionAdded);
+        this.OnOptionUpdated(newOptionAdded);
 	}
 
 	public void UpdateUIFromOption()
@@ -107,7 +107,7 @@ public partial class OptionEditPanel : PanelContainer
 			this.boundOption = new DtgeCore.Option();
 		}
 		this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-        this.OptionUpdatedAction(true);
+        this.OnOptionUpdated(true);
 	}
 
 	public void _on_id_line_edit_text_submitted(string text)
@@ -132,7 +132,8 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_navigate_to_target_scene_button_pressed()
 	{
-		this.TryOpenSceneAction(this.targetSceneLineEdit.Text);
+		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
+        this.OnTryOpenScene(targetSceneId);
 	}
 
     public void _on_display_name_line_edit_text_submitted()
@@ -147,16 +148,16 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_move_up_button_pressed()
 	{
-		this.OptionMovedUpAction(this);
+		this.OnOptionMovedUp(this);
 	}
 
 	public void _on_move_down_button_pressed()
 	{
-		this.OptionMovedDownAction(this);
+		this.OnOptionMovedDown(this);
 	}
 
     public void _on_delete_button_pressed()
 	{
-		this.OptionDeletedAction(this);
+		this.OnOptionDeleted(this);
 	}
 }

@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=3 uid="uid://bedul1we0ivph"]
+
+[ext_resource type="Script" path="res://src/Editor/SubscenePanelContainer.cs" id="1_8kiyf"]
+
+[node name="SubscenePanelContainer" type="PanelContainer"]
+offset_right = 221.0
+offset_bottom = 41.0
+size_flags_vertical = 3
+script = ExtResource("1_8kiyf")
+
+[node name="SubsceneMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="SubsceneHBoxContainer" type="HBoxContainer" parent="SubsceneMarginContainer"]
+layout_mode = 2
+
+[node name="SubsceneDeleteButton" type="Button" parent="SubsceneMarginContainer/SubsceneHBoxContainer"]
+layout_mode = 2
+text = "X"
+
+[node name="SubsceneLineEdit" type="LineEdit" parent="SubsceneMarginContainer/SubsceneHBoxContainer"]
+layout_mode = 2
+expand_to_text_length = true
+
+[connection signal="pressed" from="SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton" to="." method="_on_subscene_delete_button_pressed"]
+[connection signal="text_changed" from="SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit" to="." method="_on_subscene_line_edit_text_changed"]
