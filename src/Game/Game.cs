@@ -70,15 +70,29 @@ public partial class Game : Control
     {
         DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
         DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
-        DtgeCore.Scene dtgeScene = sceneManager.GetSceneAndSubsceneById(sceneId);
+        DtgeCore.Scene dtgeScene;
+        DtgeCore.SceneManager.GetSceneSuccessValue successValue = sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
 
-        if (dtgeScene == null)
+        switch(successValue)
         {
-            this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + option.TargetSceneId + "], which was not found");
-        }
-        else
-        {
+        case DtgeCore.SceneManager.GetSceneSuccessValue.Success:
             this.currentDtgeScene = dtgeScene;
+            break;
+        case DtgeCore.SceneManager.GetSceneSuccessValue.SceneNotFound:
+            this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.scene + "], which was not found");
+            break;
+        case DtgeCore.SceneManager.GetSceneSuccessValue.SubsceneNotFound:
+            if (sceneId.subscene == null)
+            {
+                this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.scene + "] without a subscene, which is not supported by that Scene");
+            }
+            else
+            {
+                this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Subscene [" + sceneId.subscene + "], which was not found in Scene [" + sceneId.scene + "]");
+            }
+            break;
+        default:
+            throw new NotImplementedException();
         }
 
         this.updateUIFromScene();
@@ -88,7 +102,7 @@ public partial class Game : Control
     {
         if (this.currentDtgeScene != null)
         {
-            this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText(true);
+            this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText();
             this.sceneTextDisplay.ScrollToLine(0);
             this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
         }

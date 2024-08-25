@@ -25,6 +25,7 @@ text = "X"
 
 [node name="SubsceneLineEdit" type="LineEdit" parent="SubsceneMarginContainer/SubsceneHBoxContainer"]
 layout_mode = 2
+text = "New Subscene"
 expand_to_text_length = true
 
 [connection signal="pressed" from="SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton" to="." method="_on_subscene_delete_button_pressed"]

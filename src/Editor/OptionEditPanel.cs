@@ -110,40 +110,26 @@ public partial class OptionEditPanel : PanelContainer
         this.OnOptionUpdated(true);
 	}
 
-	public void _on_id_line_edit_text_submitted(string text)
+	public void _on_id_line_edit_text_changed(string newText)
 	{
 		this.updateOptionFromUI();
 	}
 
-	public void _on_id_line_edit_focus_exited()
-	{
-		this.updateOptionFromUI();
-	}
+	public void _on_target_scene_line_edit_text_changed(string newText)
+    {
+        this.updateOptionFromUI();
+    }
 
-	public void _on_target_scene_line_edit_text_submitted(string text)
-	{
-		this.updateOptionFromUI();
-	}
+	public void _on_display_name_line_edit_text_changed(string newText)
+    {
+        this.updateOptionFromUI();
+    }
 
-	public void _on_target_scene_line_edit_focus_exited()
-	{
-		this.updateOptionFromUI();
-	}
 
-	public void _on_navigate_to_target_scene_button_pressed()
+    public void _on_navigate_to_target_scene_button_pressed()
 	{
 		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
         this.OnTryOpenScene(targetSceneId);
-	}
-
-    public void _on_display_name_line_edit_text_submitted()
-	{
-		this.updateOptionFromUI();
-	}
-
-	public void _on_display_name_line_edit_focus_exited()
-	{
-		this.updateOptionFromUI();
 	}
 
 	public void _on_move_up_button_pressed()

@@ -134,6 +134,16 @@ title = "No scene found"
 ok_button_text = "Yes"
 cancel_button_text = "No"
 
+[node name="CreateNewSubsceneFromOptionConfirmationDialog" type="ConfirmationDialog" parent="."]
+title = "No matching subscene found"
+ok_button_text = "Yes"
+cancel_button_text = "No"
+
+[node name="EnableNullSubsceneConfirmationDialog" type="ConfirmationDialog" parent="."]
+title = "Null subscene not allowed"
+ok_button_text = "Yes"
+cancel_button_text = "No"
+
 [node name="GamePreviewAcceptDialog" type="AcceptDialog" parent="."]
 title = "Debug Game"
 initial_position = 2
@@ -151,4 +161,6 @@ ok_button_text = "Close"
 [connection signal="file_selected" from="SaveAsFileDialog" to="." method="_on_save_as_file_dialog_file_selected"]
 [connection signal="file_selected" from="SaveAsAndCloseFileDialog" to="." method="_on_save_as_and_close_file_dialog_file_selected"]
 [connection signal="confirmed" from="CreateNewSceneFromOptionConfirmationDialog" to="." method="_on_create_new_scene_from_option_confirmation_dialog_confirmed"]
+[connection signal="confirmed" from="CreateNewSubsceneFromOptionConfirmationDialog" to="." method="_on_create_new_subscene_from_option_confirmation_dialog_confirmed"]
+[connection signal="confirmed" from="EnableNullSubsceneConfirmationDialog" to="." method="_on_enable_null_subscene_confirmation_dialog_confirmed"]
 [connection signal="size_changed" from="GamePreviewAcceptDialog" to="." method="_on_game_preview_accept_dialog_size_changed"]

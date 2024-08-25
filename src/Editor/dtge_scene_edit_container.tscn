@@ -43,7 +43,11 @@ layout_mode = 2
 [node name="NewSubsceneButton" type="Button" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-text = "Add new "
+text = "Add new subscene"
+
+[node name="AllowNoSubsceneCheckButton" type="CheckButton" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+layout_mode = 2
+text = "Include None"
 
 [node name="SubsceneListScrollContainer" type="ScrollContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
 layout_mode = 2
@@ -123,6 +127,7 @@ size_flags_vertical = 3
 
 [connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
 [connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
+[connection signal="toggled" from="VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton" to="." method="_on_scene_text_copy_all_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton" to="." method="_on_scene_text_paste_all_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
