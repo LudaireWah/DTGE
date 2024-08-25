@@ -218,6 +218,7 @@ public partial class DtgeSceneEditContainer : Control
                 {
                     this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.SetItemText(subsceneIndex, currentSubsceneId.Name);
                 }
+            }
             if (this.lastSelectedSubsceneIdForTextPreviewSubsceneSelector != null)
             {
                 bool previousActiveSubsceneReselected = this.dtgeScene.SetCurrentSubscene(this.lastSelectedSubsceneIdForTextPreviewSubsceneSelector);
