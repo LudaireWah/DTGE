@@ -76,13 +76,17 @@ layout_mode = 2
 layout_mode = 2
 text = "Snippets"
 
-[node name="SceneTextCopyAllButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SceneTextCopySnippetsButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
-text = "Copy All"
+tooltip_text = "Copies text containing all snippets, allowing it to be
+pasted into a Word processor for spell/grammer 
+checking and then pasted back in here using Paste 
+Snippets."
+text = "Copy Snippets"
 
-[node name="SceneTextPasteAllButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SceneTextPasteSnippetsButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
-text = "Paste All"
+text = "Paste Snippets"
 
 [node name="Whitespace" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
@@ -125,11 +129,18 @@ text = "Randomize"
 layout_mode = 2
 size_flags_vertical = 3
 
+[node name="PasteSnippetsFailedAcceptDialog" type="AcceptDialog" parent="."]
+title = "Paste Failed!"
+initial_position = 2
+size = Vector2i(600, 314)
+dialog_text = "There was a problem with the text you tried to paste into snippets. When modifying copied snippets, do not change anything inside >>> and <<< so the editor can read your text back in when pasted. If pasted from another scene, ensure the snippet layout (count of snippets and variations in each snippet) are identical."
+dialog_autowrap = true
+
 [connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
 [connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
-[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopyAllButton" to="." method="_on_scene_text_copy_all_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteAllButton" to="." method="_on_scene_text_paste_all_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton" to="." method="_on_scene_text_copy_snippets_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton" to="." method="_on_scene_text_paste_snippets_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
 [connection signal="item_selected" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewSubsceneSelectionOptionButton" to="." method="_on_scene_text_preview_subscene_selection_option_button_item_selected"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton" to="." method="_on_scene_text_preview_randomize_button_pressed"]

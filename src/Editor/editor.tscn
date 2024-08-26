@@ -99,9 +99,9 @@ The fundamental element of DTGE is the Scene. The core idea of DTGE is that you 
 
 To create a scene, give your scene an id so you can reference it later and fill in your description of the scene in the large scene text below the id. Afterwards, click the Add Option button to add enough options to cover all the decisions a player can make. Each option will list itself by its keyboard shortcut.
 
-Options should also be given a unique id, and otherwise are made up of a target scene that should be opened if it's selected, a display name to communicate to the player what decision the option represents.
+Options should also be given a unique id, and otherwise are made up of a target scene that should be opened if it's selected and a display name to communicate to the player what decision the option represents.
 
-When the game starts, it will look in the DTGEScenes folder and load all scenes to be played. It will also look for a file called \"startscene.dscn\" and that is the scene that the player will start with upon launching the game. DTGE automatically saves to and opens from the correct file location, so all scenes you save from the  editor should be loaded.
+When the game starts, it will look in the DTGEScenes folder and load all scenes to be played. It will also look for a file called \"startscene.dscn\" and that is the scene that the player will start with upon launching the game. DTGE automatically saves to and opens from the correct file location, so all scenes you save from the editor should be loaded.
 
 Once you're happy with your scene, save it (make sure to name it \"startscene.dscn\" if you want it to be the first scene). Pick one of the options that you want to create a new scene for, note its Target Scene Id, then you can use File->New to create a new scene. Enter that id, fill in your text, and add your options.
 
@@ -127,20 +127,24 @@ THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMP
 dialog_autowrap = true
 
 [node name="SaveYesNoCancelDialog" parent="." instance=ExtResource("3_0d7xp")]
+initial_position = 2
 visible = false
 
 [node name="CreateNewSceneFromOptionConfirmationDialog" type="ConfirmationDialog" parent="."]
 title = "No scene found"
+initial_position = 2
 ok_button_text = "Yes"
 cancel_button_text = "No"
 
 [node name="CreateNewSubsceneFromOptionConfirmationDialog" type="ConfirmationDialog" parent="."]
 title = "No matching subscene found"
+initial_position = 2
 ok_button_text = "Yes"
 cancel_button_text = "No"
 
 [node name="EnableNullSubsceneConfirmationDialog" type="ConfirmationDialog" parent="."]
 title = "Null subscene not allowed"
+initial_position = 2
 ok_button_text = "Yes"
 cancel_button_text = "No"
 
