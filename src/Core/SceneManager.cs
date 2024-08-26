@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace DtgeCore;
@@ -7,45 +8,66 @@ namespace DtgeCore;
  */
 public class SceneManager
 {
-    private static SceneManager instance;
-    private readonly Dictionary<string, Scene> scenes;
+	public enum GetSceneSuccessValue
+	{
+		Success,
+		SceneNotFound,
+		SubsceneNotFound
+	}
 
-    private SceneManager()
-    {
-        this.scenes= new Dictionary<string, Scene>();
-    }
+	private static SceneManager instance;
+	private readonly Dictionary<string, Scene> scenes;
 
-    public static SceneManager GetSceneManager()
-    {
-        if (SceneManager.instance == null)
-        {
-            SceneManager.instance= new SceneManager();
-        }
+	private SceneManager()
+	{
+		this.scenes= new Dictionary<string, Scene>();
+	}
 
-        return SceneManager.instance;
-    }
+	public static SceneManager GetSceneManager()
+	{
+		if (SceneManager.instance == null)
+		{
+			SceneManager.instance= new SceneManager();
+		}
 
-    public void AddScene(Scene newScene)
-    {
-        this.scenes[newScene.Id] = newScene;
-    }
+		return SceneManager.instance;
+	}
 
-    public Scene GetSceneById(string id)
-    {
-        Scene scene = null;
-        
-        bool success = this.scenes.TryGetValue(id, out scene);
+	public void AddScene(Scene newScene)
+	{
+		this.scenes[newScene.Id] = newScene;
+	}
 
-        if (!success)
-        {
-            scene = null;
-        }
+	public GetSceneSuccessValue GetSceneById(string id, out Scene outScene)
+	{
+		GetSceneSuccessValue successValue = GetSceneSuccessValue.Success;
+		bool foundScene = this.scenes.TryGetValue(id, out outScene);
 
-        return scene;
-    }
+		if (!foundScene)
+		{
+			successValue = GetSceneSuccessValue.SceneNotFound;
+		}
 
-    public void ClearScenes()
-    {
-        this.scenes.Clear();
-    }
+		return successValue;
+	}
+
+	public GetSceneSuccessValue GetSceneAndSubsceneById(Scene.SceneId id, out Scene outScene)
+	{
+		GetSceneSuccessValue successValue = this.GetSceneById(id.scene, out outScene);
+		
+		if (successValue == GetSceneSuccessValue.Success)
+		{
+			bool subsceneSetSuccessfully = outScene.SetCurrentSubscene(id.subscene);
+			if (!subsceneSetSuccessfully)
+			{
+				successValue = GetSceneSuccessValue.SubsceneNotFound;
+			}
+		}
+		return successValue;
+	}
+
+	public void ClearScenes()
+	{
+		this.scenes.Clear();
+	}
 }

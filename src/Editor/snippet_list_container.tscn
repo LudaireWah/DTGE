@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://bxadunm0l6bjj"]
+
+[ext_resource type="Script" path="res://src/Editor/SnippetListContainer.cs" id="1_5coki"]
+
+[node name="SnippetListContainer" type="VBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_5coki")
+
+[node name="AddSnippetButton" type="Button" parent="."]
+layout_mode = 2
+text = "Add Snippet"
+
+[node name="SnippetListScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SnippetListVBoxContainer" type="VBoxContainer" parent="SnippetListScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="pressed" from="AddSnippetButton" to="." method="_on_add_snippet_button_pressed"]
