@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DtgeGame;
 
@@ -15,6 +16,8 @@ namespace DtgeGame;
  */
 public partial class Game : Control
 {
+	private const string SETTINGS_PATH = "dtge.config";
+
 	private MarginContainer marginContainer;
 	private RichTextLabel sceneTextDisplay;
 	private NavigationButtonGrid navigationButtonGrid;
@@ -30,7 +33,6 @@ public partial class Game : Control
 	private GameSettingsWindow gameSettingsWindow;
 
 	private GameSettings gameSettings;
-	private const string SETTINGS_PATH = "dtge.config";
 
 	private DtgeCore.Scene currentDtgeScene;
 
@@ -46,6 +48,14 @@ public partial class Game : Control
 		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
 		this.gameSettingsWindow = GetNode<GameSettingsWindow>("GameSettingsWindow");
 
+		Game.initializeGameDataFromFile();
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+		this.navigationButtonGrid.OnOptionSelected = this.handleOptionSelected;
+		this.navigationButtonGrid.NavigationGridShortcutMode = gameData.ActiveNavigationGridShortcutMode;
+		this.navigationButtonGrid.ChangeGridDimensions(gameData.NavigationGridColumns, gameData.NavigationGridRows);
+		this.navigationButtonGrid.SizeFlagsStretchRatio = ((float)gameData.NavigationGridRows) / 10.0f;
+
 		this.filePopupMenu.AddItem("Settings", (int)PopupMenuIds.FileSettings);
 
 		this.gameSettingsWindow.OnSaveSettingsAction = this.onSaveSettings;
@@ -57,7 +67,6 @@ public partial class Game : Control
 		}
 
 		this.updateUIFromSettings();
-
 		this.loadScenesFromFiles();
 		this.updateUIFromScene();
 
@@ -66,7 +75,7 @@ public partial class Game : Control
 		this.manualViewportSizeOverride = false;
 	}
 
-	public void HandleOptionChosen(DtgeCore.Option option)
+	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
 		DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
@@ -104,7 +113,7 @@ public partial class Game : Control
 		{
 			this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText();
 			this.sceneTextDisplay.ScrollToLine(0);
-			this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene, this.HandleOptionChosen);
+			this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene);
 		}
 	}
 
@@ -146,23 +155,48 @@ public partial class Game : Control
 		}
 	}
 
+	private static void initializeGameDataFromFile()
+	{
+		FileAccess gameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Read);
+
+		if (gameDataFile != null)
+		{
+			string gameDataJson = gameDataFile.GetAsText();
+			DtgeCore.GameData.PopulateFromJson(gameDataJson);
+			gameDataFile.Close();
+		}
+		else
+		{
+			FileAccess newGameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
+			if (newGameDataFile != null)
+			{
+				string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(DtgeCore.GameData.GetGameData());
+				newGameDataFile.StoreString(gameDataString);
+				newGameDataFile.Close();
+			}
+		}
+	}
+
 	private void loadScenesFromFiles()
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		
-		DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+		DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
 		if (sceneDirectory == null)
 		{
 			this.PopupErrorDialog("Error Code LABYRINTH: No scene directory found.");
 			return;
 		}
 
+		DtgeCore.Scene startScene = null;
+
 		string[] sceneFileNames = sceneDirectory.GetFiles();
 		
 		for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
 		{
 			string sceneFileName = sceneFileNames[sceneFileIndex];
-			string sceneFilePath = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH + "/" + sceneFileName;
+			string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
 			FileAccess sceneFile = FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
 
 			if (sceneFile != null)
@@ -173,9 +207,13 @@ public partial class Game : Control
 				{
 					sceneManager.AddScene(newScene);
 
-					if (sceneFileName == DtgeCore.Constants.DTGE_DEFAULT_START_SCENE_NAME && this.currentDtgeScene == null)
+					if (newScene.Id == gameData.StartSceneName)
 					{
-						this.currentDtgeScene = newScene;
+						if (startScene != null)
+						{
+							this.PopupErrorDialog("Error code GEMINI: Two start scenes found.");
+						}
+						startScene = newScene;
 					}
 				}
 
@@ -183,9 +221,13 @@ public partial class Game : Control
 			}
 		}
 
-		if (this.currentDtgeScene == null)
+		if (startScene == null)
 		{
-			this.PopupErrorDialog("Eror code LABYRINTH: No start scene found.");
+			this.PopupErrorDialog("Eror code NONSTARTER: No start scene found.");
+		}
+		else
+		{
+			this.currentDtgeScene = startScene;
 		}
 	}
 

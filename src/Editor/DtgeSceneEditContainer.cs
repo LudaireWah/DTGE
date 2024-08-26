@@ -100,12 +100,20 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void UpdateUIFromScene()
 	{
-		this.dtgeSceneIdEntry.Text = this.dtgeScene.Id;
-		this.optionEditList.DtgeScene = this.dtgeScene;
-		this.snippetListContainer.DtgeScene = this.dtgeScene;
-		setSceneTextPreviewText(true);
-		this.updateSubsceneListFromDTGEScene();
-		this.updateSceneTextPreview();
+		if (this.dtgeScene == null)
+		{
+			this.Visible = false;
+		}
+		else
+		{
+			this.Visible = true;
+			this.dtgeSceneIdEntry.Text = this.dtgeScene.Id;
+			this.optionEditList.DtgeScene = this.dtgeScene;
+			this.snippetListContainer.DtgeScene = this.dtgeScene;
+			setSceneTextPreviewText(true);
+			this.updateSubsceneListFromDTGEScene();
+			this.updateSceneTextPreview();
+		}
 	}
 
 	public void RestoreFromSerializedScene(string serializedScene)
@@ -276,15 +284,15 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void setSceneTextPreviewText(bool preserveRandomization)
 	{
-		this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateSceneText();
-		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateDebugSceneText(preserveRandomization);
+		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateSceneText();
+		this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateDebugSceneText(preserveRandomization);
 		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.GetCopyableText();
 	}
 
 	public void _on_id_line_edit_text_changed(string new_text)
 	{
 		this.dtgeScene.Id = new_text;
-		if (this.OnSceneUpdated != null)
+		if (this.OnSceneUpdated != null)   
 		{
 			this.OnSceneUpdated();
 		}

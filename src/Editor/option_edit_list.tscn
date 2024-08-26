@@ -13,6 +13,14 @@ script = ExtResource("1_tihpb")
 layout_mode = 2
 text = "Add Option"
 
+[node name="TooManyOptionsLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.917647, 0, 0, 1)
+text = "YOU HAVE MORE OPTIONS THAN ARE SUPPORTED BY YOUR GAME!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="OptionEditListScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
 size_flags_vertical = 3

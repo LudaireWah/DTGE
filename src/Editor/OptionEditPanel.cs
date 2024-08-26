@@ -95,9 +95,9 @@ public partial class OptionEditPanel : PanelContainer
 		this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
 	}
 
-	public void UpdateOptionLocationLabel(string shortcutString)
+	public void UpdateOptionLocationLabel(int optionIndex)
 	{
-		this.optionLocationLabel.Text = "Option " + shortcutString;
+		this.optionLocationLabel.Text = "Option " + (optionIndex + 1);
 	}
 
 	public void _on_option_enabled_check_button_pressed()
