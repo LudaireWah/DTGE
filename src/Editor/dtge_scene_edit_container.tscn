@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
 [ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
-[ext_resource type="PackedScene" uid="uid://bxadunm0l6bjj" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
+[ext_resource type="PackedScene" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
 offset_right = 1152.0
@@ -33,8 +33,58 @@ vertical_alignment = 1
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="IdLineEdit" type="LineEdit" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer"]
+[node name="SceneIdAndAddImageHBoxContainer" type="HBoxContainer" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="IdLineEdit" type="LineEdit" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddSceneImageButton" type="Button" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
+layout_mode = 2
+text = "Add Image
+"
+
+[node name="SceneImageHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="SceneImageLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Scene Image"
+vertical_alignment = 1
+
+[node name="RemoveSceneImageButton" type="Button" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Remove Image"
+
+[node name="ImagePositionLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+text = "Position"
+
+[node name="ImagePositionOptionButton" type="OptionButton" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+item_count = 5
+selected = 0
+popup/item_0/text = "Left"
+popup/item_0/id = 0
+popup/item_1/text = "Right"
+popup/item_1/id = 1
+popup/item_2/text = "Above"
+popup/item_2/id = 2
+popup/item_3/text = "Below"
+popup/item_3/id = 3
+popup/item_4/text = "Only Image"
+popup/item_4/id = 4
+
+[node name="ChooseImageButton" type="Button" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+text = "Choose File..."
+
+[node name="ImagePathLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
 layout_mode = 2
 
 [node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
@@ -136,7 +186,18 @@ size = Vector2i(600, 314)
 dialog_text = "There was a problem with the text you tried to paste into snippets. When modifying copied snippets, do not change anything inside >>> and <<< so the editor can read your text back in when pasted. If pasted from another scene, ensure the snippet layout (count of snippets and variations in each snippet) are identical."
 dialog_autowrap = true
 
-[connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[node name="ChooseImageFileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+initial_position = 2
+size = Vector2i(600, 350)
+ok_button_text = "Open"
+file_mode = 0
+
+[connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[connection signal="pressed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton" to="." method="_on_add_scene_image_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton" to="." method="_on_remove_scene_image_button_pressed"]
+[connection signal="item_selected" from="VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton" to="." method="_on_image_position_option_button_item_selected"]
+[connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/ChooseImageButton" to="." method="_on_choose_image_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton" to="." method="_on_scene_text_copy_snippets_button_pressed"]
@@ -144,3 +205,4 @@ dialog_autowrap = true
 [connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
 [connection signal="item_selected" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewSubsceneSelectionOptionButton" to="." method="_on_scene_text_preview_subscene_selection_option_button_item_selected"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton" to="." method="_on_scene_text_preview_randomize_button_pressed"]
+[connection signal="file_selected" from="ChooseImageFileDialog" to="." method="_on_choose_image_file_dialog_file_selected"]
