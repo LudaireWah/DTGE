@@ -28,7 +28,18 @@ layout_mode = 2
 
 [node name="File" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
-[node name="SceneTextDisplay" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+[node name="SceneTextPanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SceneTextMarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/SceneTextPanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="SceneTextDisplay" type="RichTextLabel" parent="MarginContainer/VBoxContainer/SceneTextPanelContainer/SceneTextMarginContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 24
@@ -37,8 +48,7 @@ theme_override_font_sizes/italics_font_size = 24
 theme_override_font_sizes/bold_italics_font_size = 24
 theme_override_font_sizes/mono_font_size = 24
 bbcode_enabled = true
-text = "[center]Scene Text![/center]
-"
+text = "asdfa"
 
 [node name="NavigationButtonGridContainer" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_1mosd")]
 layout_mode = 2

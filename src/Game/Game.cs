@@ -42,7 +42,7 @@ public partial class Game : Control
 	public override void _Ready()
 	{
 		this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-		this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneTextDisplay");
+		this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneTextPanelContainer/SceneTextMarginContainer/SceneTextDisplay");
 		this.navigationButtonGrid = GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
 		this.errorAcceptDialog = GetNode<AcceptDialog>("ErrorAcceptDialog");
 		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
