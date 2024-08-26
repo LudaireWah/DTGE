@@ -8,49 +8,49 @@ namespace DtgeCore;
  */
 public class Option
 {
-    public string Id { get; set; }
-    public string TargetSceneId { get; set; }
-    public string DisplayName { get; set; }
-    public string Tooltip { get; set; }
-    public bool Enabled { get; set; }
+	public string Id { get; set; }
+	public string TargetSceneId { get; set; }
+	public string DisplayName { get; set; }
+	public string Tooltip { get; set; }
+	public bool Enabled { get; set; }
 
-    public Option()
-    {
-        this.Id = "";
-        this.TargetSceneId = "";
-        this.DisplayName = "";
-        this.Enabled = true;
-    }
-    public Option(string id, string targetSceneId, string displayName, bool enabled= true)
-    {
-        this.Id= id;
-        this.TargetSceneId= targetSceneId;
-        this.DisplayName= displayName;
-        this.Enabled= enabled;
-    }
+	public Option()
+	{
+		this.Id = "";
+		this.TargetSceneId = "";
+		this.DisplayName = "";
+		this.Enabled = true;
+	}
+	public Option(string id, string targetSceneId, string displayName, bool enabled= true)
+	{
+		this.Id= id;
+		this.TargetSceneId= targetSceneId;
+		this.DisplayName= displayName;
+		this.Enabled= enabled;
+	}
 
-    public void CopyFrom(Option other)
-    {
-        this.Id = other.Id;
-        this.TargetSceneId = other.TargetSceneId;
-        this.DisplayName = other.DisplayName;
-        this.Enabled = other.Enabled;
-    }
+	public void CopyFrom(Option other)
+	{
+		this.Id = other.Id;
+		this.TargetSceneId = other.TargetSceneId;
+		this.DisplayName = other.DisplayName;
+		this.Enabled = other.Enabled;
+	}
 
-    public override string ToString()
-    {
-        string optionString = 
-            "Option:\n" +
-            "  Id: " + this.Id + "\n" +
-            "  Target Scene: " + this.TargetSceneId + "\n" +
-            "  Display Name: " + this.DisplayName + "\n" +
-            "  Enabled: " + this.Enabled +"\n";
-        return optionString;
-    }
+	public override string ToString()
+	{
+		string optionString = 
+			"Option:\n" +
+			"  Id: " + this.Id + "\n" +
+			"  Target Scene: " + this.TargetSceneId + "\n" +
+			"  Display Name: " + this.DisplayName + "\n" +
+			"  Enabled: " + this.Enabled +"\n";
+		return optionString;
+	}
 
-    public string Serialize()
-    {
-        string toReturn = JsonSerializer.Serialize(this);
-        return toReturn;
-    }
+	public string Serialize()
+	{
+		string toReturn = JsonSerializer.Serialize(this);
+		return toReturn;
+	}
 }
