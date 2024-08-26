@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://jeisn4kmgonf"]
+[gd_scene load_steps=5 format=3 uid="uid://jeisn4kmgonf"]
 
 [ext_resource type="Script" path="res://src/Editor/Editor.cs" id="1_ufwon"]
 [ext_resource type="PackedScene" uid="uid://cfepolkldqo55" path="res://src/Editor/dtge_scene_edit_container.tscn" id="2_ap0h8"]
 [ext_resource type="PackedScene" uid="uid://3d6axeq5s121" path="res://src/GodotCommon/yes_no_cancel_dialog.tscn" id="3_0d7xp"]
+[ext_resource type="PackedScene" uid="uid://db3sfyd8u61cy" path="res://src/Editor/project_settings_confirmation_dialog.tscn" id="4_y4mjv"]
 
 [node name="DtgeEditorRoot" type="Control"]
 layout_mode = 3
@@ -153,6 +154,9 @@ title = "Debug Game"
 initial_position = 2
 size = Vector2i(1280, 720)
 ok_button_text = "Close"
+
+[node name="ProjectSettingsConfirmationDialog" parent="." instance=ExtResource("4_y4mjv")]
+visible = false
 
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]

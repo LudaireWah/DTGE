@@ -14,7 +14,6 @@ namespace DtgeCore;
  */
 public class Scene : ISubsceneContextProvider
 {
-	public const int MAX_OPTION_NUMBER = 15;
 	private const string NULL_SUBSCENE_DISPLAY_NAME = "(None)";
 	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
 	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
@@ -77,7 +76,7 @@ public class Scene : ISubsceneContextProvider
 	}
 
 	public string Id { get; set; }
-	public Option[] OptionList { get; set; }
+	public List<Option> OptionList { get; set; }
 	public List<SubsceneId> Subscenes { get; set; }
 	public int CurrentSubsceneIndex { get; set; }
 	public bool AllowNullSubscene { get; set; }
@@ -93,7 +92,7 @@ public class Scene : ISubsceneContextProvider
 	public Scene()
 	{
 		this.Id = "";
-		this.OptionList = new Option[MAX_OPTION_NUMBER];
+		this.OptionList = new List<Option>();
 		this.Subscenes = new List<SubsceneId>();
 		this.CurrentSubsceneIndex = 0;
 		this.AllowNullSubscene = false;
@@ -109,7 +108,7 @@ public class Scene : ISubsceneContextProvider
 	public Scene(string id)
 	{
 		this.Id= id;
-		this.OptionList = new Option[MAX_OPTION_NUMBER];
+		this.OptionList = new List<Option>();
 		this.Subscenes = new List<SubsceneId>();
 		this.CurrentSubsceneIndex = 0;
 		this.AllowNullSubscene = false;
@@ -140,40 +139,30 @@ public class Scene : ISubsceneContextProvider
 			deserializedScene.SnippetList.Add(snippetFromSceneText);
 			deserializedScene.SceneText = null;
 		}
+
 		for (int snippetIndex = 0; snippetIndex < deserializedScene.SnippetList.Count; snippetIndex++)
 		{
 			deserializedScene.SnippetList[snippetIndex].SetSubsceneContextProvider(deserializedScene);
 		}
+
+		deserializedScene.OptionList.RemoveAll(item => item == null);
+
 		return deserializedScene;
 	}
 
-	public bool AddOption(Option option)
+	public void AddOption(Option option)
 	{
-		int assignedOptionIndex = -1;
-
-		for (int optionIndex = 0; optionIndex < MAX_OPTION_NUMBER && assignedOptionIndex == -1; optionIndex++)
-		{
-			if (this.OptionList[optionIndex] == null)
-			{
-				this.OptionList[optionIndex] = option;
-				assignedOptionIndex = optionIndex;
-			}
-		}
-
-		return assignedOptionIndex > -1;
+		this.OptionList.Add(option);
 	}
 
 	public void ClearAllOptions()
 	{
-		for (int optionIndex = 0; optionIndex < MAX_OPTION_NUMBER; optionIndex++)
-		{
-			this.OptionList[optionIndex] = null;
-		}
+		this.OptionList.Clear();
 	}
 
 	public int GetOptionCount()
 	{
-		return this.OptionList.Length;
+		return this.OptionList.Count;
 	}
 
 	public Option GetOption(int index)

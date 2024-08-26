@@ -13,6 +13,7 @@ namespace DtgeEditor;
 public partial class OptionEditList : VBoxContainer
 {
 	VBoxContainer optionEditListVBoxContainer;
+	Label tooManyOptionsLabel;
 
 	private bool uiNeedsUpdate;
 
@@ -27,25 +28,7 @@ public partial class OptionEditList : VBoxContainer
 		}
 	}
 
-	private readonly string[] OptionLocationLabelValues =
-	{
-		"1",
-		"2",
-		"3",
-		"4",
-		"5",
-		"Q",
-		"W",
-		"E",
-		"R",
-		"T",
-		"A",
-		"S",
-		"D",
-		"F",
-		"G"
-	};
-
+	public int MaximumSupportedOptions;
 	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 	public Action OnOptionListUpdated;
 
@@ -53,8 +36,9 @@ public partial class OptionEditList : VBoxContainer
 	public override void _Ready()
 	{
 		this.optionEditListVBoxContainer = this.GetNode<VBoxContainer>("OptionEditListScrollContainer/OptionEditListVBoxContainer");
+		this.tooManyOptionsLabel = this.GetNode<Label>("TooManyOptionsLabel");
 
-		this.updateOptionLocationLabels();
+		this.updateOptionLabelsAndTooManyWarning();
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -86,7 +70,7 @@ public partial class OptionEditList : VBoxContainer
 				this.dtgeScene.AddOption(currentOptionEditPanel.BoundOption);
 			}
 
-			this.updateOptionLocationLabels();
+			this.updateOptionLabelsAndTooManyWarning();
 		}
 
 		if (this.OnOptionListUpdated != null)
@@ -178,76 +162,71 @@ public partial class OptionEditList : VBoxContainer
 		this.OnOptionListUpdated();
 	}
 
-	private void updateOptionLocationLabels()
+	private void updateOptionLabelsAndTooManyWarning()
 	{
 		for (int optionPanelIndex = 0, optionlocationLabelIndex = 0;
 			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
 			optionPanelIndex++, optionlocationLabelIndex++)
 		{
 			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
-			currentOptionEditPanel.UpdateOptionLocationLabel(this.OptionLocationLabelValues[optionlocationLabelIndex]);
+			currentOptionEditPanel.UpdateOptionLocationLabel(optionPanelIndex);
+		}
+
+		if (this.optionEditListVBoxContainer.GetChildCount() > DtgeCore.GameData.GetGameData().MaximumSupportedOptions)
+		{
+			this.tooManyOptionsLabel.Visible = true;
+		}
+		else
+		{
+			this.tooManyOptionsLabel.Visible = false;
 		}
 	}
 
 	private void updateOptionEditPanelsFromScene()
 	{
-		DtgeCore.Option[] updatedOptions = this.dtgeScene.OptionList;
-		int nonNullOptionCount = 0;
+		List<DtgeCore.Option> updatedOptions = this.dtgeScene.OptionList;
 
-		for (int optionIndex = 0; optionIndex < updatedOptions.Length; optionIndex++)
+		for (int optionIndex = 0; optionIndex < updatedOptions.Count; optionIndex++)
 		{
 			DtgeCore.Option currentOption = updatedOptions[optionIndex];
-			if (currentOption == null)
+			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
+			if (currentOptionEditPanel != null)
 			{
-				break;
+				currentOptionEditPanel.BoundOption = updatedOptions[optionIndex];
 			}
 			else
 			{
-				nonNullOptionCount++;
-				OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
-				if (currentOptionEditPanel != null)
-				{
-					currentOptionEditPanel.BoundOption = updatedOptions[optionIndex];
-				}
-				else
-				{
-					this.addNewOptionEditPanel(updatedOptions[optionIndex]);
-				}
+				this.addNewOptionEditPanel(updatedOptions[optionIndex]);
 			}
 		}
 
-		while (nonNullOptionCount < this.optionEditListVBoxContainer.GetChildCount())
+		while (updatedOptions.Count < this.optionEditListVBoxContainer.GetChildCount())
 		{
 			OptionEditPanel excessOptionEditPanel
 				= this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(
 					this.optionEditListVBoxContainer.GetChildCount() - 1);
 			this.optionEditListVBoxContainer.RemoveChild(excessOptionEditPanel);
 		}
+
+		this.updateOptionLabelsAndTooManyWarning();
 	}
 
 	private void addNewOptionEditPanel(DtgeCore.Option option)
 	{
-		if (this.optionEditListVBoxContainer.GetChildCount() >= 15)
-		{
-			GD.Print("Cannot add more than 15 options");
-		}
-		else
-		{
-			OptionEditPanel newOptionEditPanel =
-				((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH)).Instantiate<OptionEditPanel>();
+		OptionEditPanel newOptionEditPanel =
+			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH)).Instantiate<OptionEditPanel>();
 
-			if (newOptionEditPanel != null)
-			{
-				newOptionEditPanel.BoundOption = option;
-				newOptionEditPanel.OnOptionUpdated = this.HandleOptionUpdated;
-				newOptionEditPanel.OnOptionMovedUp = this.MoveOptionUp;
-				newOptionEditPanel.OnOptionMovedDown = this.MoveOptionDown;
-				newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
-				newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
-				this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
-			}
-
-			this.updateOptionLocationLabels();
+		if (newOptionEditPanel != null)
+		{
+			newOptionEditPanel.BoundOption = option;
+			newOptionEditPanel.OnOptionUpdated = this.HandleOptionUpdated;
+			newOptionEditPanel.OnOptionMovedUp = this.MoveOptionUp;
+			newOptionEditPanel.OnOptionMovedDown = this.MoveOptionDown;
+			newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
+			newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
+			this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
 		}
+
+		this.updateOptionLabelsAndTooManyWarning();
 	}
 }

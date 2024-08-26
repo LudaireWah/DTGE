@@ -12,24 +12,65 @@ namespace DtgeGame;
 public partial class NavigationButton : MarginContainer
 {
 	public DtgeCore.Option boundOption;
-	public Action<DtgeCore.Option> boundAction;
 
 	Button button;
 	MarginContainer shortcutMarginContainer;
+	Label shortcutLabel;
 	ColorRect navigationButtonPlaceholderColorRect;
+
+	public Action<DtgeCore.Option> OnOptionSelected;
+
+	private string desiredShortcutText;
+	private Key desiredShortcutKey;
+	private bool shortcutNeedsUpdate;
 
 	public override void _Ready()
 	{
 		this.button = GetNode<Button>("MainButton");
 		this.shortcutMarginContainer = GetNode<MarginContainer>("ShortcutContainer");
+		this.shortcutLabel = GetNode<Label>("ShortcutContainer/ShortcutLabel");
 		this.navigationButtonPlaceholderColorRect = GetNode<ColorRect>("NavigationButtonPlaceholderColorRect");
+		if (this.shortcutNeedsUpdate)
+		{
+			this.SetOptionShortcut(this.desiredShortcutText, this.desiredShortcutKey);
+		}
 	}
 
-	public void BindButton(DtgeCore.Option option, Action<DtgeCore.Option> action)
+	public void BindToOption(DtgeCore.Option option)
 	{
 		this.boundOption = option;
-		this.boundAction = action;
 		this.updateStateFromOption();
+	}
+
+	public void ClearBoundOption()
+	{
+		this.boundOption = null;
+		this.updateStateFromOption();
+	}
+
+	public void SetOptionShortcut(string shortcutText, Key key)
+	{
+		if (this.IsNodeReady())
+		{
+			this.shortcutLabel.Text = shortcutText;
+
+			if (this.button.Shortcut == null)
+			{
+				this.button.Shortcut = new Shortcut();
+			}
+			this.button.Shortcut.Events.Clear();
+			InputEventKey hotkey = new InputEventKey();
+			hotkey.Keycode = key;
+			this.button.Shortcut.Events.Add(hotkey);
+
+			this.shortcutNeedsUpdate = false;
+		}
+		else
+		{
+			this.desiredShortcutText = shortcutText;
+			this.desiredShortcutKey = key;
+			this.shortcutNeedsUpdate = true;
+		}
 	}
 
 	private void updateStateFromOption()
@@ -54,9 +95,9 @@ public partial class NavigationButton : MarginContainer
 
 	private void _on_navigation_button_pressed()
 	{
-		if (boundOption != null && boundAction != null)
+		if (boundOption != null && this.OnOptionSelected != null)
 		{
-			this.boundAction(this.boundOption);
+			this.OnOptionSelected(this.boundOption);
 		}
 	}
 }

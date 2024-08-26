@@ -11,104 +11,153 @@ namespace DtgeGame;
  */
 public partial class NavigationButtonGrid : GridContainer
 {
+	public Action<DtgeCore.Option> OnOptionSelected;
+	public DtgeCore.GameData.NavigationGridShortcutMode NavigationGridShortcutMode;
 
-	private NavigationButton button1;
-	private NavigationButton button2;
-	private NavigationButton button3;
-	private NavigationButton button4;
-	private NavigationButton button5;
-	private NavigationButton button6;
-	private NavigationButton button7;
-	private NavigationButton button8;
-	private NavigationButton button9;
-	private NavigationButton button10;
-	private NavigationButton button11;
-	private NavigationButton button12;
-	private NavigationButton button13;
-	private NavigationButton button14;
-	private NavigationButton button15;
-	#region compile_assert
-	const uint DTGE_SCENE_MAX_OPTIONS_SHOULD_MATCH_BUTTON_COUNT = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
-	#endregion
-	private NavigationButton[] allButtons;
+	private int columnCount;
+	private int rowCount;
 
-	private int currentButtonToBind = 0;
+	private static readonly string[,] navigationGridShortcutStringsKeyboard =
+		{ {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0" },
+		 { "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P" },
+		 { "A", "S", "D", "F", "G", "H", "J", "K", "L", ";" },
+		 { "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/" } };
+	private static readonly Key[,] navigationGridShortcutKeysKeyboard =
+		{ { Key.Key1, Key.Key2, Key.Key3, Key.Key4, Key.Key5, Key.Key6, Key.Key7, Key.Key8, Key.Key9, Key.Key0 },
+			{ Key.Q, Key.W, Key.E, Key.R, Key.T, Key.Y, Key.U, Key.I, Key.O, Key.P },
+			{ Key.A, Key.S, Key.D, Key.F, Key.G, Key.H, Key.J, Key.K, Key.L, Key.Semicolon },
+			{ Key.Z, Key.X, Key.C, Key.V, Key.B, Key.N, Key.M, Key.Comma, Key.Period, Key.Slash } };
+	private static readonly int maximumShortcutColumn = 10;
+	private static readonly int maximumShortcutRow = 4;
+
+	private static readonly string[] navigationGridShortcutStringsNumeric =
+		{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0" };
+	private static readonly Key[] navigationGridShortcutKeysNumeric =
+		{ Key.Key1, Key.Key2, Key.Key3, Key.Key4, Key.Key5, Key.Key6, Key.Key7, Key.Key8, Key.Key9, Key.Key0 };
+
+	private static readonly string navigationGridShortcutStringNone = "";
+	private static readonly Key navigationGridShortcutKeyNone = Key.None;
+
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.button1 = GetNode<NavigationButton>("NavigationButton1");
-		this.button2 = GetNode<NavigationButton>("NavigationButton2");
-		this.button3 = GetNode<NavigationButton>("NavigationButton3");
-		this.button4 = GetNode<NavigationButton>("NavigationButton4");
-		this.button5 = GetNode<NavigationButton>("NavigationButton5");
-		this.button6 = GetNode<NavigationButton>("NavigationButton6");
-		this.button7 = GetNode<NavigationButton>("NavigationButton7");
-		this.button8 = GetNode<NavigationButton>("NavigationButton8");
-		this.button9 = GetNode<NavigationButton>("NavigationButton9");
-		this.button10 = GetNode<NavigationButton>("NavigationButton10");
-		this.button11 = GetNode<NavigationButton>("NavigationButton11");
-		this.button12 = GetNode<NavigationButton>("NavigationButton12");
-		this.button13 = GetNode<NavigationButton>("NavigationButton13");
-		this.button14 = GetNode<NavigationButton>("NavigationButton14");
-		this.button15 = GetNode<NavigationButton>("NavigationButton15");
-		#region compile_assert
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
-		const uint DTGECORE_OPTION_MAX_OPTIONS_SHOULD_MATCH_2 = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
-		#endregion
-
-		this.allButtons = new NavigationButton[DtgeCore.Scene.MAX_OPTION_NUMBER];
-		this.allButtons[0] = this.button1;
-		this.allButtons[1] = this.button2;
-		this.allButtons[2] = this.button3;
-		this.allButtons[3] = this.button4;
-		this.allButtons[4] = this.button5;
-		this.allButtons[5] = this.button6;
-		this.allButtons[6] = this.button7;
-		this.allButtons[7] = this.button8;
-		this.allButtons[8] = this.button9;
-		this.allButtons[9] = this.button10;
-		this.allButtons[10] = this.button11;
-		this.allButtons[11] = this.button12;
-		this.allButtons[12] = this.button13;
-		this.allButtons[13] = this.button14;
-		this.allButtons[14] = this.button15;
-		#region compile_assert
-#pragma warning disable CS0219 // Variable is assigned but its value is never used
-		const uint DTGECORE_OPTION_MAX_OPTIONS_SHOULD_MATCH_3 = (DtgeCore.Scene.MAX_OPTION_NUMBER == 15 ? 0 : -1);
-#pragma warning restore CS0219 // Variable is assigned but its value is never used
-		#endregion
-
-		this.clearButtons();
+		
 	}
 
-	public void BindSceneOptionsToButtons(DtgeCore.Scene scene, Action<DtgeCore.Option> action)
+	public void ChangeGridDimensions(int columns, int rows)
 	{
-		this.clearButtons();
+		this.columnCount = columns;
+		this.rowCount = rows;
+		this.Columns = this.columnCount;
+		int desiredButtonCount = this.rowCount * this.columnCount;
 
+		while (this.GetChildCount() > desiredButtonCount)
+		{
+			this.RemoveChild(this.GetChild(this.GetChildCount() - 1));
+		}
+
+		while (this.GetChildCount() < desiredButtonCount)
+		{
+			NavigationButton newNavigationButton =
+				((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.NAVIGATION_BUTTON_PATH)).Instantiate<NavigationButton>();
+			newNavigationButton.OnOptionSelected = this.handleOptionSelected;
+
+			this.AddChild(newNavigationButton);
+		}
+
+		for (int navigationButtonIndex = 0; navigationButtonIndex < this.GetChildCount(); navigationButtonIndex++)
+		{
+			NavigationButton currentNavigationButton = this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
+			currentNavigationButton.SetOptionShortcut(
+				this.getStringFromNavigationButtonIndex(navigationButtonIndex),
+				this.getKeyFromNavigationButtonIndex(navigationButtonIndex));
+		}
+	}
+
+	public void BindSceneOptionsToButtons(DtgeCore.Scene scene)
+	{
 		if (scene == null)
 		{
 			return;
 		}
 		else
 		{
-			int optionCount = scene.GetOptionCount();
-			for (int optionIndex = 0; optionIndex < optionCount; optionIndex++)
+			int sceneOptionCount = scene.GetOptionCount();
+			for (int navigationButtonIndex = 0; navigationButtonIndex < this.GetChildCount(); navigationButtonIndex++)
 			{
-				this.allButtons[optionIndex].BindButton(scene.GetOption(optionIndex), action);
+				NavigationButton currentNavigationButton = this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
+				if (navigationButtonIndex < sceneOptionCount)
+				{
+					currentNavigationButton.BindToOption(scene.GetOption(navigationButtonIndex));
+				}
+				else
+				{
+					currentNavigationButton.ClearBoundOption();
+				}
 			}
 		}
 	}
 
-	private void clearButtons()
+	private void bindCachedSceneOptionsToButtons()
 	{
-		for (int buttonIndex = 0; buttonIndex < DtgeCore.Scene.MAX_OPTION_NUMBER; buttonIndex++)
-		{
-			NavigationButton currentButton = this.allButtons[buttonIndex];
-			currentButton.BindButton(null, null);
-		}
+		
+	}
 
-		this.currentButtonToBind = 0;
+	private void handleOptionSelected(DtgeCore.Option option)
+	{
+		this.OnOptionSelected(option);
+	}
+
+	private string getStringFromNavigationButtonIndex(int optionIndex)
+	{
+		string result = NavigationButtonGrid.navigationGridShortcutStringNone;
+
+		switch(this.NavigationGridShortcutMode)
+		{
+		case DtgeCore.GameData.NavigationGridShortcutMode.Keyboard:
+			if (optionIndex < NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
+			{
+				int columnIndex = optionIndex % this.columnCount;
+				int rowIndex = optionIndex / this.columnCount;
+				result = NavigationButtonGrid.navigationGridShortcutStringsKeyboard[rowIndex, columnIndex];
+			}
+			break;
+		case DtgeCore.GameData.NavigationGridShortcutMode.Numeric:
+			if (optionIndex < NavigationButtonGrid.navigationGridShortcutStringsNumeric.Length)
+			{
+				result = NavigationButtonGrid.navigationGridShortcutStringsNumeric[optionIndex];
+			}
+			break;
+		default:
+			throw new NotImplementedException();
+		}
+		return result;
+	}
+
+	private Key getKeyFromNavigationButtonIndex(int optionIndex)
+	{
+		Key result = NavigationButtonGrid.navigationGridShortcutKeyNone;
+
+		switch(this.NavigationGridShortcutMode)
+		{
+		case DtgeCore.GameData.NavigationGridShortcutMode.Keyboard:
+			if (optionIndex < NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
+			{
+				int columnIndex = optionIndex % this.columnCount;
+				int rowIndex = optionIndex / this.columnCount;
+				result = NavigationButtonGrid.navigationGridShortcutKeysKeyboard[rowIndex, columnIndex];
+			}
+			break;
+		case DtgeCore.GameData.NavigationGridShortcutMode.Numeric:
+			if (optionIndex < NavigationButtonGrid.navigationGridShortcutKeysNumeric.Length)
+			{
+				result = NavigationButtonGrid.navigationGridShortcutKeysNumeric[optionIndex];
+			}
+			break;
+		default:
+			throw new NotImplementedException();
+		}
+		return result;
 	}
 }

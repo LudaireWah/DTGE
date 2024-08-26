@@ -1,0 +1,83 @@
+[gd_scene load_steps=2 format=3 uid="uid://db3sfyd8u61cy"]
+
+[ext_resource type="Script" path="res://src/Editor/ProjectSettingsConfirmationDialog.cs" id="1_r0aiw"]
+
+[node name="ProjectSettingsConfirmationDialog" type="ConfirmationDialog"]
+title = "Project Settings"
+initial_position = 2
+size = Vector2i(600, 193)
+visible = true
+ok_button_text = "Save"
+script = ExtResource("1_r0aiw")
+
+[node name="ProjectSettingsHBoxContainer2" type="HBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 592.0
+offset_bottom = 144.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SettingLabelsVBoxContainer" type="VBoxContainer" parent="ProjectSettingsHBoxContainer2"]
+layout_mode = 2
+
+[node name="StartSceneNameLabel" type="Label" parent="ProjectSettingsHBoxContainer2/SettingLabelsVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Start Scene Name"
+vertical_alignment = 1
+
+[node name="NavigationButtonGridShortcutModeLabel" type="Label" parent="ProjectSettingsHBoxContainer2/SettingLabelsVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+tooltip_text = "Sets whether the game's navigation grid's keyboard shortcuts maps to the keyboard grid or 1-0."
+mouse_filter = 1
+text = "Navigation Grid Shortcut Mode"
+vertical_alignment = 1
+
+[node name="NavigationButtonGridColumnCountLabel" type="Label" parent="ProjectSettingsHBoxContainer2/SettingLabelsVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Navigation Grid Column  Count"
+vertical_alignment = 1
+
+[node name="NavigationButtonGridRowCountLabel" type="Label" parent="ProjectSettingsHBoxContainer2/SettingLabelsVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Navigation Grid Row Count"
+vertical_alignment = 1
+
+[node name="SettingsEntryVBoxContainer" type="VBoxContainer" parent="ProjectSettingsHBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StartSceneNameLineEdit" type="LineEdit" parent="ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+
+[node name="NavigationButtonGridShortcutModeOptionButton" type="OptionButton" parent="ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer"]
+layout_mode = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "Keyboard"
+popup/item_0/id = 0
+popup/item_1/text = "Numeric"
+popup/item_1/id = 1
+
+[node name="NavigationButtonGridColumnCountSpinBox" type="SpinBox" parent="ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+min_value = 1.0
+max_value = 10.0
+value = 5.0
+rounded = true
+
+[node name="NavigationButtonGridRowCountSpinBox" type="SpinBox" parent="ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+min_value = 1.0
+max_value = 4.0
+value = 3.0
+rounded = true
+
+[connection signal="confirmed" from="." to="." method="_on_confirmed"]

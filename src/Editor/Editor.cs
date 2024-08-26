@@ -36,6 +36,7 @@ public partial class Editor : Control
 		FileSaveAll,
 		GameRun,
 		GameRunCurrentScene,
+		GameProjectSettings,
 		HelpAbout,
 		HelpTutorial,
 		HelpLicense,
@@ -53,6 +54,7 @@ public partial class Editor : Control
 	ConfirmationDialog enableNullSubsceneOptionConfirmationDialog;
 	AcceptDialog gamePreviewAcceptDialog;
 	DtgeGame.Game gamePreviewScene;
+	ProjectSettingsConfirmationDialog projectSettingsConfirmationDialog;
 
 	Vector2I smallDialogInitialSize;
 	Vector2I largeDialogInitialSize;
@@ -114,6 +116,10 @@ public partial class Editor : Control
 		this.createNewSceneFromOptionConfirmationDialog = GetNode<ConfirmationDialog>("CreateNewSceneFromOptionConfirmationDialog");
 		this.createNewSubsceneFromOptionConfirmationDialog = GetNode<ConfirmationDialog>("CreateNewSubsceneFromOptionConfirmationDialog");
 		this.enableNullSubsceneOptionConfirmationDialog = GetNode<ConfirmationDialog>("EnableNullSubsceneConfirmationDialog");
+		this.projectSettingsConfirmationDialog = GetNode<ProjectSettingsConfirmationDialog>("ProjectSettingsConfirmationDialog");
+
+		Editor.initializeGameDataFromFile();
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 
 		this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
 		this.nextKeyforOpenDtgeSceneDictionary = 0;
@@ -128,14 +134,15 @@ public partial class Editor : Control
 		this.filePopupMenu.AddItem("Save All", (int)PopupMenuIds.FileSaveAll, GodotConstants.KEY_CTRL_SHIFT_ALT_S);
 		this.gamePopupMenu.AddItem("Run Game", (int)PopupMenuIds.GameRun, Key.F5);
 		this.gamePopupMenu.AddItem("Run Current Scene", (int)PopupMenuIds.GameRunCurrentScene, GodotConstants.KEY_CTRL_F5);
+		this.gamePopupMenu.AddItem("Project Settings...", (int)PopupMenuIds.GameProjectSettings);
 		this.helpPopupMenu.AddItem("About", (int)PopupMenuIds.HelpAbout);
 		this.helpPopupMenu.AddItem("Tutorial", (int)PopupMenuIds.HelpTutorial, Key.F1);
 		this.helpPopupMenu.AddItem("License", (int)PopupMenuIds.HelpLicense);
 
 		this.openFileDialog.AddFilter("*.dscn", "DTGE Scene");
-		this.openFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
+		this.openFileDialog.RootSubfolder = gameData.SceneDirectoryPath;
 		this.saveAsFileDialog.AddFilter("*.dscn", "DTGE Scene");
-		this.saveAsFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
+		this.saveAsFileDialog.RootSubfolder = gameData.SceneDirectoryPath;
 		this.saveAsFileDialog.Canceled += () =>
 		{
 			if (this.currentState == EditorState.Closing)
@@ -144,7 +151,7 @@ public partial class Editor : Control
 			}
 		};
 		this.saveAsAndCloseFileDialog.AddFilter("*.dscn", "DTGE Scene");
-		this.saveAsAndCloseFileDialog.RootSubfolder = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH;
+		this.saveAsAndCloseFileDialog.RootSubfolder = gameData.SceneDirectoryPath;
 		this.saveAsAndCloseFileDialog.Canceled += () =>
 		{
 			if (this.currentState == EditorState.Closing)
@@ -190,7 +197,7 @@ public partial class Editor : Control
 					this.dtgeSceneTabBar.CurrentTab = this.tabToProcessBeforeClosing;
 					DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
 
-					if (!currentDtgeSceneTabInfo.saved)
+					if (!currentDtgeSceneTabInfo.saved && this.anyEditsMade)
 					{
 						this.popSaveYesNoCancelDialog(currentDtgeSceneTabInfo, this.tabToProcessBeforeClosing, false);
 						this.tabToProcessBeforeClosing++;
@@ -244,7 +251,9 @@ public partial class Editor : Control
 		bool sceneFoundInFiles = false;
 		if (!sceneFoundInTabs)
 		{
-			DirAccess sceneDirectory = DirAccess.Open(DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH);
+			DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+			DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
 			if (sceneDirectory == null)
 			{
 				return;
@@ -259,7 +268,7 @@ public partial class Editor : Control
 
 				if (sceneFileName == targetSceneFileName)
 				{
-					string sceneFilePath = DtgeCore.Constants.DTGE_DEFAULT_SCENE_DIRECTORY_PATH + "/" + sceneFileName;
+					string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
 					FileAccess sceneFile = FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
 
 					if (sceneFile != null)
@@ -385,6 +394,11 @@ public partial class Editor : Control
 			this.gamePreviewScene.LoadScene(this.dtgeSceneEditContainer.DtgeScene);
 			break;
 		}
+		case PopupMenuIds.GameProjectSettings:
+		{
+			this.popupProjectSettingsDialog();
+			break;
+		}
 		case PopupMenuIds.HelpAbout:
 		{
 			this.aboutAcceptDialog.Size = this.smallDialogInitialSize;
@@ -403,6 +417,8 @@ public partial class Editor : Control
 			this.licenseAcceptDialog.Popup();
 			break;
 		}
+		default:
+			throw new NotImplementedException();
 		}
 	}
 
@@ -477,7 +493,7 @@ public partial class Editor : Control
 		else
 		{
 			DtgeSceneTabInfo targetDtgeSceneTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
-			if (targetDtgeSceneTabInfo.saved)
+			if (targetDtgeSceneTabInfo.saved || !this.anyEditsMade)
 			{
 				this.removeDtgeSceneTab(tabIndex);
 			}
@@ -652,7 +668,7 @@ public partial class Editor : Control
 		}
 		else
 		{
-			this.dtgeSceneEditContainer.DtgeScene = new DtgeCore.Scene();
+			this.dtgeSceneEditContainer.DtgeScene = null;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
@@ -684,61 +700,102 @@ public partial class Editor : Control
 
 	private void popSaveYesNoCancelDialog(DtgeSceneTabInfo dtgeSceneTabInfo, int tabIndex, bool closeTab)
 	{
-		if (this.anyEditsMade)
+		this.saveYesNoCancelDialog.Size = this.smallDialogInitialSize;
+		string sceneDisplayName = "";
+		if (dtgeSceneTabInfo.dtgeScene.Id.Length > 0)
 		{
-			this.saveYesNoCancelDialog.Size = this.smallDialogInitialSize;
-			string sceneDisplayName = "";
-			if (dtgeSceneTabInfo.dtgeScene.Id.Length > 0)
+			sceneDisplayName = "Scene [" + dtgeSceneTabInfo.dtgeScene.Id + "]";
+		}
+		else
+		{
+			sceneDisplayName = "unnamed scene";
+		}
+		this.saveYesNoCancelDialog.SetDialogText("Would you like to save " + sceneDisplayName+ " before closing it?");
+		this.saveYesNoCancelDialog.OnYesSelected = () =>
+		{
+			if (dtgeSceneTabInfo.path != null)
 			{
-				sceneDisplayName = "Scene [" + dtgeSceneTabInfo.dtgeScene.Id + "]";
-			}
-			else
-			{
-				sceneDisplayName = "unnamed scene";
-			}
-			this.saveYesNoCancelDialog.SetDialogText("Would you like to save " + sceneDisplayName+ " before closing it?");
-			this.saveYesNoCancelDialog.OnYesSelected = () =>
-			{
-				if (dtgeSceneTabInfo.path != null)
-				{
-					Editor.saveSceneToPath(dtgeSceneTabInfo.dtgeScene, dtgeSceneTabInfo.path);
-					if (closeTab)
-					{
-						this.removeDtgeSceneTab(tabIndex);
-					}
-				}
-				else
-				{
-					if (closeTab)
-					{
-						this.saveAsAndCloseFileDialog.Popup();
-					}
-					else
-					{
-						this.saveAsFileDialog.Popup();
-					}
-				}
-			};
-			this.saveYesNoCancelDialog.OnNoSelected = () =>
-			{
+				Editor.saveSceneToPath(dtgeSceneTabInfo.dtgeScene, dtgeSceneTabInfo.path);
 				if (closeTab)
 				{
 					this.removeDtgeSceneTab(tabIndex);
 				}
-			};
-			this.saveYesNoCancelDialog.OnCancelSelected = () =>
+			}
+			else
 			{
-				if (this.currentState == EditorState.Closing)
+				if (closeTab)
 				{
-					this.currentState = EditorState.Active;
+					this.saveAsAndCloseFileDialog.Popup();
 				}
-			};
-			this.saveYesNoCancelDialog.Popup();
-		}
+				else
+				{
+					this.saveAsFileDialog.Popup();
+				}
+			}
+		};
+		this.saveYesNoCancelDialog.OnNoSelected = () =>
+		{
+			if (closeTab)
+			{
+				this.removeDtgeSceneTab(tabIndex);
+			}
+		};
+		this.saveYesNoCancelDialog.OnCancelSelected = () =>
+		{
+			if (this.currentState == EditorState.Closing)
+			{
+				this.currentState = EditorState.Active;
+			}
+		};
+		this.saveYesNoCancelDialog.Popup();
 	}
 
 	private int getKeyFromTabIndex(int tabIndex)
 	{
 		return (int)this.dtgeSceneTabBar.GetTabMetadata(tabIndex);
+	}
+
+	private static void initializeGameDataFromFile()
+	{
+		FileAccess gameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Read);
+
+		if (gameDataFile != null)
+		{
+			string gameDataJson = gameDataFile.GetAsText();
+			DtgeCore.GameData.PopulateFromJson(gameDataJson);
+			gameDataFile.Close();
+		}
+		else
+		{
+			FileAccess newGameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
+			if (newGameDataFile != null)
+			{
+				string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(DtgeCore.GameData.GetGameData());
+				newGameDataFile.StoreString(gameDataString);
+				newGameDataFile.Close();
+			}
+		}
+	}
+
+	private void popupProjectSettingsDialog()
+	{
+		this.projectSettingsConfirmationDialog.PopulateFromGameData();
+		this.projectSettingsConfirmationDialog.OnProjectSettingsSaved = this.HandleProjectSettingsSaved;
+		this.projectSettingsConfirmationDialog.Popup();
+	}
+
+	private void HandleProjectSettingsSaved()
+	{
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+		FileAccess gameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
+		if (gameDataFile != null)
+		{
+			string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(gameData);
+			gameDataFile.StoreString(gameDataString);
+			gameDataFile.Close();
+		}
+
+		this.dtgeSceneEditContainer.UpdateUIFromScene();
 	}
 }
