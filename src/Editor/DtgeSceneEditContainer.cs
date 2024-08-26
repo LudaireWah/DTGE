@@ -276,8 +276,8 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void setSceneTextPreviewText(bool preserveRandomization)
 	{
-		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateSceneText();
-		this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateDebugSceneText(preserveRandomization);
+		this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateSceneText();
+		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.CalculateDebugSceneText(preserveRandomization);
 		//this.dtgeSceneTextPreviewRichTextLabel.Text = this.dtgeScene.GetCopyableText();
 	}
 
