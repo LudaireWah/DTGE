@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
 [ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
-[ext_resource type="PackedScene" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
+[ext_resource type="PackedScene" uid="uid://bmqr2dojcmlm3" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
 offset_right = 1152.0

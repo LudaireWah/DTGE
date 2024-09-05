@@ -90,10 +90,13 @@ public class Scene : ISubsceneContextProvider
 	public int CurrentSubsceneIndex { get; set; }
 	public bool AllowNullSubscene { get; set; }
 	public List<Snippet> SnippetList { get; set; }
-	public string SceneText { get; set; }
 	public bool RenderImage { get; set; }
 	public SceneImagePosition ImagePosition {  get; set; }
 	public string ImagePath {  get; set; }
+
+	// Backwards compatibility
+	public Option[] optionList { get; set; }
+	public string SceneText { get; set; }
 
 	private List<Action<SubsceneId>> OnSubsceneAddedList;
 	private List<Action<SubsceneId>> OnSubsceneRemovedList;
@@ -159,7 +162,17 @@ public class Scene : ISubsceneContextProvider
 			deserializedScene.SnippetList[snippetIndex].SetSubsceneContextProvider(deserializedScene);
 		}
 
-		deserializedScene.OptionList.RemoveAll(item => item == null);
+		if (deserializedScene.optionList != null)
+		{
+			for (int optionIndex = 0; optionIndex < deserializedScene.optionList.Length; optionIndex++)
+			{
+				if (deserializedScene.optionList[optionIndex] != null)
+				{
+					deserializedScene.OptionList.Add(deserializedScene.optionList[optionIndex]);
+				}
+			}
+			//deserializedScene.optionList = null;
+		}
 
 		return deserializedScene;
 	}
