@@ -66,6 +66,8 @@ tab_close_display_policy = 1
 layout_mode = 2
 size_flags_vertical = 3
 placeholder_text = "Write your text here"
+wrap_mode = 1
+scroll_fit_content_height = true
 
 [connection signal="item_selected" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton" to="." method="_on_conditional_mode_option_button_item_selected"]
 [connection signal="pressed" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton" to="." method="_on_move_up_button_pressed"]

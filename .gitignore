@@ -428,4 +428,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 dtge.config
-game.dtge
+dtge.gamedata

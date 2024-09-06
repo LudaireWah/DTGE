@@ -18,6 +18,15 @@ public class Scene : ISubsceneContextProvider
 	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
 	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
 
+	public enum SceneImagePosition
+	{
+		Left,
+		Right,
+		Top,
+		Bottom,
+		OnlyImage
+	}
+
 	public struct SceneId
 	{
 		public string scene;
@@ -80,14 +89,18 @@ public class Scene : ISubsceneContextProvider
 	public List<SubsceneId> Subscenes { get; set; }
 	public int CurrentSubsceneIndex { get; set; }
 	public bool AllowNullSubscene { get; set; }
-	
 	public List<Snippet> SnippetList { get; set; }
+	public bool RenderImage { get; set; }
+	public SceneImagePosition ImagePosition {  get; set; }
+	public string ImagePath {  get; set; }
+
+	// Backwards compatibility
+	public Option[] optionList { get; set; }
 	public string SceneText { get; set; }
 
 	private List<Action<SubsceneId>> OnSubsceneAddedList;
 	private List<Action<SubsceneId>> OnSubsceneRemovedList;
 	private List<Action<SubsceneId, string>> OnSubsceneRenamedList;
-
 
 	public Scene()
 	{
@@ -100,6 +113,8 @@ public class Scene : ISubsceneContextProvider
 		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
 		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
 		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
+		this.RenderImage = false;
+		this.ImagePath = null;
 
 		this.AddOption(new Option());
 		this.AddSnippet(new Snippet(this));
@@ -116,6 +131,8 @@ public class Scene : ISubsceneContextProvider
 		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
 		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
 		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
+		this.RenderImage = false;
+		this.ImagePath = null;
 
 		this.AddOption(new Option());
 		this.AddSnippet(new Snippet(this));
@@ -145,7 +162,17 @@ public class Scene : ISubsceneContextProvider
 			deserializedScene.SnippetList[snippetIndex].SetSubsceneContextProvider(deserializedScene);
 		}
 
-		deserializedScene.OptionList.RemoveAll(item => item == null);
+		if (deserializedScene.optionList != null)
+		{
+			for (int optionIndex = 0; optionIndex < deserializedScene.optionList.Length; optionIndex++)
+			{
+				if (deserializedScene.optionList[optionIndex] != null)
+				{
+					deserializedScene.OptionList.Add(deserializedScene.optionList[optionIndex]);
+				}
+			}
+			//deserializedScene.optionList = null;
+		}
 
 		return deserializedScene;
 	}
@@ -202,8 +229,8 @@ public class Scene : ISubsceneContextProvider
 	{
 		string sceneText = "";
 		
-		sceneText += this.Serialize();
-		sceneText += "\r\n\r\nCalculatedText:\r\n";
+		//sceneText += this.Serialize();
+		//sceneText += "\r\n\r\nCalculatedText:\r\n";
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
