@@ -14,25 +14,57 @@ public class Snippet
 {
 	private const uint SIMPLE_DICTIONARY_KEY = 0;
 	private const string SIMPLE_VARIATION_NAME = "simple";
-	private const string RANDOM_KEY_PREFIX = "Random_";
+	private const string RANDOM_KEY_PREFIX = "random_";
+	private const uint IF_DICTIONARY_KEY = 0;
+	private const string IF_VARIATION_NAME = "if";
+	private const string ELSEIF_VARIATION_NAME = "else if";
+	private const string ELSE_VARIATION_NAME = "else";
 
-	public class VariationInfo
+	public class Variation
+	{
+		public string Text { get; set; }
+		public uint Id { get; private set; }
+		public string ConditionalEntityName { get; set; }
+		public Dictionary<uint, EntitySetter> EntitySetters { get; set; }
+
+		private static uint nextId = 0;
+
+		public Variation()
+		{
+			this.Text = string.Empty;
+			this.Id = nextId++;
+			this.ConditionalEntityName = string.Empty;
+			this.EntitySetters = new Dictionary<uint, EntitySetter>();
+		}
+
+		public Variation(string text, Dictionary<uint, EntitySetter> entitySetters)
+		{
+			this.Text = text;
+			this.Id = nextId++;
+			this.ConditionalEntityName = string.Empty;
+			this.EntitySetters = entitySetters;
+		}
+	}
+
+	public class EntitySetter
 	{
 		public string Name { get; set; }
-		public string Text { get; set; }
+		public bool Value { get; set; }
 		public uint Id { get; private set; }
 
 		private static uint nextId = 0;
 
-		public VariationInfo()
+		public EntitySetter()
 		{
+			this.Name = string.Empty;
+			this.Value = false;
 			this.Id = nextId++;
 		}
 
-		public VariationInfo(string name, string text)
+		public EntitySetter(string name, bool value)
 		{
 			this.Name = name;
-			this.Text = text;
+			this.Value = value;
 			this.Id = nextId++;
 		}
 	}
@@ -41,6 +73,8 @@ public class Snippet
 	{
 		Simple,
 		Subscene,
+		If,
+		IfElse,
 		Random
 	}
 
@@ -49,7 +83,7 @@ public class Snippet
 		get; set;
 	}
 
-	public Dictionary<uint, VariationInfo> variations { get; set; }
+	public Dictionary<uint, Variation> variations { get; set; }
 
 	private ISubsceneContextProvider subsceneContextProvider;
 
@@ -61,8 +95,8 @@ public class Snippet
 	{
 		this.CurrentMode = Mode.Simple;
 
-		this.variations = new Dictionary<uint, VariationInfo>();
-		this.variations.Add(SIMPLE_DICTIONARY_KEY, new VariationInfo(SIMPLE_VARIATION_NAME, string.Empty));
+		this.variations = new Dictionary<uint, Variation>();
+		this.variations.Add(SIMPLE_DICTIONARY_KEY, new Variation());
 
 		this.subsceneContextProvider = null;
 
@@ -76,8 +110,8 @@ public class Snippet
 	{
 		this.CurrentMode = Mode.Simple;
 
-		this.variations = new Dictionary<uint, VariationInfo>();
-		this.variations.Add(SIMPLE_DICTIONARY_KEY, new VariationInfo(SIMPLE_VARIATION_NAME, string.Empty));
+		this.variations = new Dictionary<uint, Variation>();
+		this.variations.Add(SIMPLE_DICTIONARY_KEY, new Variation());
 
 		this.subsceneContextProvider = subsceneContextProvider;
 		this.registerHandlerFunctionsWithISubsceneContextProvider();
@@ -105,9 +139,15 @@ public class Snippet
 		this.registerHandlerFunctionsWithISubsceneContextProvider();
 	}
 
-	public string CalculateText(bool doNotRandomize)
+	public void Randomize()
+	{
+		this.currentRandomizedVariationIndex = (uint)this.snippetRandomizer.Next(this.variations.Count);
+	}
+
+	public string CalculateText()
 	{
 		string calculatedText = null;
+		SimpleEntityManager simpleEntityManager = SimpleEntityManager.GetSimpleEntityManager();
 
 		switch (this.CurrentMode)
 		{
@@ -117,17 +157,82 @@ public class Snippet
 		case Mode.Subscene:
 			calculatedText = this.variations[this.subsceneContextProvider.GetCurrentSubsceneId().Id].Text;
 			break;
-		case Mode.Random:
-			if (!doNotRandomize)
+		case Mode.If:
+			Variation ifVariation = this.variations[IF_DICTIONARY_KEY];
+			if (simpleEntityManager.HasEntityValue(ifVariation.ConditionalEntityName) && simpleEntityManager.GetEntityValue(ifVariation.ConditionalEntityName))
 			{
-				currentRandomizedVariationIndex = (uint)this.snippetRandomizer.Next(this.variations.Count);
+				calculatedText = ifVariation.Text;
 			}
+			break;
+		case Mode.IfElse:
+			for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
+			{
+				Variation currentIfElseVariation = this.GetVariation(variationIndex);
+				if (simpleEntityManager.HasEntityValue(currentIfElseVariation.ConditionalEntityName) && simpleEntityManager.GetEntityValue(currentIfElseVariation.ConditionalEntityName) ||
+					variationIndex == this.variations.Count - 1)
+				{
+					calculatedText = currentIfElseVariation.Text;
+					break;
+				}
+			}
+			break;
+		case Mode.Random:
 			calculatedText = this.variations[currentRandomizedVariationIndex].Text;
 			break;
 		default:
 			throw new NotImplementedException();
 		}
 		return calculatedText;
+	}
+
+	public void ExecuteEntitySetters()
+	{
+		SimpleEntityManager simpleEntityManager = SimpleEntityManager.GetSimpleEntityManager();
+		Dictionary<uint, EntitySetter> entitySetters = null;
+
+		switch (this.CurrentMode)
+		{
+		case Mode.Simple:
+			entitySetters = this.variations[SIMPLE_DICTIONARY_KEY].EntitySetters;
+			break;
+		case Mode.Subscene:
+			entitySetters = this.variations[this.subsceneContextProvider.GetCurrentSubsceneId().Id].EntitySetters;
+			break;
+		case Mode.If:
+			Variation ifVariation = this.variations[IF_DICTIONARY_KEY];
+			if (simpleEntityManager.HasEntityValue(ifVariation.ConditionalEntityName) && simpleEntityManager.GetEntityValue(ifVariation.ConditionalEntityName))
+			{
+				entitySetters = ifVariation.EntitySetters;
+			}
+			break;
+		case Mode.IfElse:
+			for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
+			{
+				Variation currentIfElseVariation = this.GetVariation(variationIndex);
+				if (simpleEntityManager.HasEntityValue(currentIfElseVariation.ConditionalEntityName) && simpleEntityManager.GetEntityValue(currentIfElseVariation.ConditionalEntityName) ||
+					variationIndex == this.variations.Count - 1)
+				{
+					entitySetters = currentIfElseVariation.EntitySetters;
+					break;
+				}
+			}
+			break;
+		case Mode.Random:
+			entitySetters = this.variations[currentRandomizedVariationIndex].EntitySetters;
+			break;
+		default:
+			throw new NotImplementedException();
+		}
+
+		if (entitySetters != null)
+		{
+
+			foreach (uint id in entitySetters.Keys)
+			{
+				EntitySetter currentEntitySetter = entitySetters[id];
+				simpleEntityManager.SetEntityValue(currentEntitySetter.Name, currentEntitySetter.Value);
+			}
+		}
 	}
 
 	public void ChangeMode(Mode newMode)
@@ -139,6 +244,12 @@ public class Snippet
 			break;
 		case Mode.Subscene:
 			this.changeFromSubsceneMode(newMode);
+			break;
+		case Mode.If:
+			this.changeFromIfMode(newMode);
+			break;
+		case Mode.IfElse:
+			this.changeFromIfElseMode(newMode);
 			break;
 		case Mode.Random:
 			this.changeFromRandomMode(newMode);
@@ -165,8 +276,14 @@ public class Snippet
 		case Mode.Subscene:
 			// Error
 			break;
+		case Mode.If:
+			// Error
+			break;
+		case Mode.IfElse:
+			this.variations.Add((uint)this.variations.Count, new Variation());
+			break;
 		case Mode.Random:
-			this.variations.Add((uint)this.variations.Count, new VariationInfo(translateIndexToKeyForRandomVariation(this.variations.Count), string.Empty));
+			this.variations.Add((uint)this.variations.Count, new Variation());
 			break;
 		default:
 			throw new NotImplementedException();
@@ -182,6 +299,21 @@ public class Snippet
 			break;
 		case Mode.Subscene:
 			// Error
+			break;
+		case Mode.If:
+			// Error
+			break;
+		case Mode.IfElse:
+			for (uint currentVariationIndex = (uint)variationIndexToRemove; currentVariationIndex < variations.Count - 1; currentVariationIndex++)
+			{
+				this.variations[currentVariationIndex] =
+					this.variations[currentVariationIndex + 1];
+			}
+			this.variations.Remove((uint)variations.Count - 1);
+			if (this.variations.Count > 1)
+			{
+				this.variations[(uint)this.variations.Count - 1].ConditionalEntityName = string.Empty;
+			}
 			break;
 		case Mode.Random:
 			for (uint currentVariationIndex = (uint)variationIndexToRemove; currentVariationIndex < variations.Count - 1; currentVariationIndex++)
@@ -208,8 +340,25 @@ public class Snippet
 		case Mode.Subscene:
 			variationName = this.subsceneContextProvider.GetSubsceneId(variationIndex).Name;
 			break;
+		case Mode.If:
+			variationName = IF_VARIATION_NAME;
+			break;
+		case Mode.IfElse:
+			if (variationIndex == 0)
+			{
+				variationName = IF_VARIATION_NAME;
+			}
+			else if (variationIndex == this.variations.Count - 1)
+			{
+				variationName = ELSE_VARIATION_NAME;
+			}
+			else
+			{
+				variationName = ELSEIF_VARIATION_NAME;
+			}
+			break;
 		case Mode.Random:
-			variationName = this.variations[(uint)variationIndex].Name;
+			variationName = translateIndexToNameForRandomVariation(variationIndex);
 			break;
 		default:
 			throw new NotImplementedException();
@@ -218,26 +367,32 @@ public class Snippet
 		return variationName;
 	}
 
-	public VariationInfo GetVariationInfo(int variationIndex)
+	public Variation GetVariation(int variationIndex)
 	{
-		VariationInfo variationInfo;
-
+		Variation variation = null;
+		
 		switch (this.CurrentMode)
 		{
 		case Mode.Simple:
-			variationInfo = this.variations[SIMPLE_DICTIONARY_KEY];
+			variation = this.variations[SIMPLE_DICTIONARY_KEY];
 			break;
 		case Mode.Subscene:
-			variationInfo = this.variations[this.subsceneContextProvider.GetSubsceneId(variationIndex).Id];
+			variation = this.variations[this.subsceneContextProvider.GetSubsceneId(variationIndex).Id];
+			break;
+		case Mode.If:
+			variation = this.variations[IF_DICTIONARY_KEY];
+			break;
+		case Mode.IfElse:
+			variation = this.variations[(uint)variationIndex];
 			break;
 		case Mode.Random:
-			variationInfo = this.variations[(uint)variationIndex];
+			variation = this.variations[(uint)variationIndex];
 			break;
 		default:
 			throw new NotImplementedException();
 		}
 
-		return variationInfo;
+		return variation;
 	}
 
 	public void SetVariationText(int variationIndex, string text)
@@ -249,6 +404,12 @@ public class Snippet
 			break;
 		case Mode.Subscene:
 			this.variations[this.subsceneContextProvider.GetSubsceneId(variationIndex).Id].Text = text;
+			break;
+		case Mode.If:
+			this.variations[IF_DICTIONARY_KEY].Text = text;
+			break;
+		case Mode.IfElse:
+			this.variations[(uint)variationIndex].Text = text;
 			break;
 		case Mode.Random:
 			this.variations[(uint)variationIndex].Text = text;
@@ -269,6 +430,12 @@ public class Snippet
 			break;
 		case Mode.Subscene:
 			variationText = this.variations[this.subsceneContextProvider.GetSubsceneId(variationIndex).Id].Text;
+			break;
+		case Mode.If:
+			variationText = this.variations[IF_DICTIONARY_KEY].Text;
+			break;
+		case Mode.IfElse:
+			variationText = this.variations[(uint)variationIndex].Text;
 			break;
 		case Mode.Random:
 			variationText = this.variations[(uint)variationIndex].Text;
@@ -316,6 +483,8 @@ public class Snippet
 
 	private void changeFromSimpleMode(Mode newMode)
 	{
+		Variation simpleVariation = this.variations[SIMPLE_DICTIONARY_KEY];
+
 		switch (newMode)
 		{
 		case Mode.Simple:
@@ -328,53 +497,194 @@ public class Snippet
 			}
 			else
 			{
-				string simpleTextToTransferToFirstSubsceneVariation = this.variations[SIMPLE_DICTIONARY_KEY].Text;
 				this.variations.Clear();
 				Scene.SubsceneId firstSubsceneId = this.subsceneContextProvider.GetSubsceneId(0);
-				this.variations.Add(firstSubsceneId.Id, new VariationInfo(firstSubsceneId.Name, simpleTextToTransferToFirstSubsceneVariation));
+				this.variations.Add(firstSubsceneId.Id, new Variation(simpleVariation.Text, simpleVariation.EntitySetters));
 				for (int subsceneIndex = 1; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 				{
 					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
-					this.variations.Add(currentSubsceneId.Id, new VariationInfo(currentSubsceneId.Name, string.Empty));
+					this.variations.Add(currentSubsceneId.Id, new Variation());
 				}
 			}
 			break;
+		case Mode.If:
+			this.variations[IF_DICTIONARY_KEY].ConditionalEntityName = string.Empty;
+			break;
+		case Mode.IfElse:
+			this.variations[IF_DICTIONARY_KEY].ConditionalEntityName = string.Empty;
+			this.variations.Add(1, new Variation());
+			break;
 		case Mode.Random:
-			string simpleTextToTransferToFirstRandomVariation = this.variations[SIMPLE_DICTIONARY_KEY].Text;
 			this.variations.Clear();
-			this.variations.Add(0, new VariationInfo(translateIndexToKeyForRandomVariation(0), simpleTextToTransferToFirstRandomVariation));
+			this.variations.Add(0, new Variation(simpleVariation.Text, simpleVariation.EntitySetters));
 			break;
 		default:
 			throw new NotImplementedException();
 		}
-
 	}
 	
 	private void changeFromSubsceneMode(Mode newMode)
 	{
+		Variation firstSubsceneVariation = this.variations[this.subsceneContextProvider.GetSubsceneId(0).Id];
+
 		switch (newMode)
 		{
 		case Mode.Simple:
-			string firstSubsceneTextToTransferToSimpleVariation = this.variations[this.subsceneContextProvider.GetSubsceneId(0).Id].Text;
 			this.variations.Clear();
-			this.variations.Add(SIMPLE_DICTIONARY_KEY, new VariationInfo(SIMPLE_VARIATION_NAME, firstSubsceneTextToTransferToSimpleVariation));
+			this.variations.Add(SIMPLE_DICTIONARY_KEY, new Variation(firstSubsceneVariation.Text, firstSubsceneVariation.EntitySetters));
 			break;
 		case Mode.Subscene:
 			// No-op
 			break;
-		case Mode.Random:
-			string[] cachedSubsceneTextsToTranslateToRandom = new string[this.subsceneContextProvider.GetSubsceneCount()];
+		case Mode.If:
+			this.variations.Clear();
+			this.variations.Add(IF_DICTIONARY_KEY, new Variation(firstSubsceneVariation.Text, firstSubsceneVariation.EntitySetters));
+			this.variations[IF_DICTIONARY_KEY].ConditionalEntityName = string.Empty;
+			break;
+		case Mode.IfElse:
+			Variation[] cachedSubsceneVariationsForIfElse = new Variation[this.subsceneContextProvider.GetSubsceneCount()];
 			for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 			{
 				Scene.SubsceneId subsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
-				cachedSubsceneTextsToTranslateToRandom[subsceneIndex] = this.variations[subsceneId.Id].Text;
+				cachedSubsceneVariationsForIfElse[subsceneIndex] = this.variations[subsceneId.Id];
 			}
 			this.variations.Clear();
-			for (int variationIndex = 0; variationIndex < cachedSubsceneTextsToTranslateToRandom.Length; variationIndex++)
+			this.variations.Add(0, new Variation(cachedSubsceneVariationsForIfElse[0].Text, cachedSubsceneVariationsForIfElse[0].EntitySetters));
+			if (cachedSubsceneVariationsForIfElse.Length > 1)
+			{
+				for (int variationIndex = 1; variationIndex < cachedSubsceneVariationsForIfElse.Length - 1; variationIndex++)
+				{
+					this.variations.Add(
+						(uint)variationIndex,
+						new Variation(cachedSubsceneVariationsForIfElse[variationIndex].Text, cachedSubsceneVariationsForIfElse[variationIndex].EntitySetters));
+				}
+				this.variations.Add((uint)cachedSubsceneVariationsForIfElse.Length - 1, new Variation());
+			}
+			else
+			{
+				this.variations.Add(1, new Variation());
+			}
+			break;
+		case Mode.Random:
+			Variation[] cachedSubsceneVariationsForRandom = new Variation[this.subsceneContextProvider.GetSubsceneCount()];
+			for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
+			{
+				Scene.SubsceneId subsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+				cachedSubsceneVariationsForRandom[subsceneIndex] = this.variations[subsceneId.Id];
+			}
+			this.variations.Clear();
+			for (int variationIndex = 0; variationIndex < cachedSubsceneVariationsForRandom.Length; variationIndex++)
 			{
 				this.variations.Add(
 					(uint)variationIndex,
-					new VariationInfo(translateIndexToKeyForRandomVariation(variationIndex), cachedSubsceneTextsToTranslateToRandom[variationIndex]));
+					new Variation(cachedSubsceneVariationsForRandom[variationIndex].Text, cachedSubsceneVariationsForRandom[variationIndex].EntitySetters));
+			}
+			break;
+		default:
+			throw new NotImplementedException();
+		}
+	}
+
+	private void changeFromIfMode(Mode newMode)
+	{
+		Variation ifVariation = this.variations[IF_DICTIONARY_KEY];
+
+		switch (newMode)
+		{
+		case Mode.Simple:
+			ifVariation.ConditionalEntityName = string.Empty;
+			this.variations[SIMPLE_DICTIONARY_KEY].ConditionalEntityName = string.Empty;
+			break;
+		case Mode.Subscene:
+			if (this.subsceneContextProvider.GetSubsceneCount() < 1)
+			{
+				// error
+			}
+			else
+			{
+				ifVariation.ConditionalEntityName = string.Empty;
+				this.variations.Clear();
+				Scene.SubsceneId firstSubsceneId = this.subsceneContextProvider.GetSubsceneId(0);
+				this.variations.Add(firstSubsceneId.Id, new Variation(ifVariation.Text, ifVariation.EntitySetters));
+				for (int subsceneIndex = 1; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
+				{
+					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+					this.variations.Add(currentSubsceneId.Id, new Variation());
+				}
+			}
+			break;
+		case Mode.If:
+			// No-op
+			break;
+		case Mode.IfElse:
+			this.variations.Add(1, new Variation());
+			break;
+		case Mode.Random:
+			ifVariation.ConditionalEntityName = string.Empty;
+			this.variations.Clear();
+			this.variations.Add(0, new Variation(ifVariation.Text, ifVariation.EntitySetters));
+			break;
+		default:
+			throw new NotImplementedException();
+		}
+	}
+
+	private void changeFromIfElseMode(Mode newMode)
+	{
+		Variation ifVariation = this.variations[IF_DICTIONARY_KEY];
+
+		switch (newMode)
+		{
+		case Mode.Simple:
+			this.variations.Clear();
+			this.variations.Add(SIMPLE_DICTIONARY_KEY, new Variation(ifVariation.Text, ifVariation.EntitySetters));
+			break;
+		case Mode.Subscene:
+			if (this.subsceneContextProvider.GetSubsceneCount() < 1)
+			{
+				// error
+			}
+			else
+			{
+				Variation[] cachedIfElseVariationsForSubscene = new Variation[this.variations.Count];
+				for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
+				{
+					cachedIfElseVariationsForSubscene[variationIndex] = this.variations[(uint)variationIndex];
+				}
+				this.variations.Clear();
+				for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
+				{
+					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+					if (subsceneIndex < cachedIfElseVariationsForSubscene.Length)
+					{
+						this.variations.Add(currentSubsceneId.Id, new Variation(cachedIfElseVariationsForSubscene[subsceneIndex].Text, cachedIfElseVariationsForSubscene[subsceneIndex].EntitySetters));
+					}
+					else
+					{
+						this.variations.Add(currentSubsceneId.Id, new Variation());
+					}
+				}
+			}
+			break;
+		case Mode.If:
+			this.variations.Clear();
+			this.variations.Add(IF_DICTIONARY_KEY, new Variation(ifVariation.Text, ifVariation.EntitySetters));
+			break;
+		case Mode.IfElse:
+			// No-op
+			break;
+		case Mode.Random:
+			Variation[] cachedIfElseVariationsForRandom = new Variation[this.variations.Count];
+			for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
+			{
+				cachedIfElseVariationsForRandom[variationIndex] = this.variations[(uint)variationIndex];
+			}
+			this.variations.Clear();
+			for (int variationIndex = 0; variationIndex < cachedIfElseVariationsForRandom.Length; variationIndex++)
+			{
+				this.variations.Add(
+					(uint)variationIndex,
+					new Variation(cachedIfElseVariationsForRandom[variationIndex].Text, cachedIfElseVariationsForRandom[variationIndex].EntitySetters));
 			}
 			break;
 		default:
@@ -384,12 +694,13 @@ public class Snippet
 
 	private void changeFromRandomMode(Mode newMode)
 	{
+		Variation firstRandomVariation = this.variations[0];
+
 		switch (newMode)
 		{
 		case Mode.Simple:
-			string firstRandomTextToTransferToSimpleVariation = this.variations[0].Text;
 			this.variations.Clear();
-			this.variations.Add(SIMPLE_DICTIONARY_KEY, new VariationInfo(SIMPLE_VARIATION_NAME, firstRandomTextToTransferToSimpleVariation));
+			this.variations.Add(SIMPLE_DICTIONARY_KEY, new Variation(firstRandomVariation.Text, firstRandomVariation.EntitySetters));
 			break;
 		case Mode.Subscene:
 			if (this.subsceneContextProvider.GetSubsceneCount() < 1)
@@ -398,17 +709,50 @@ public class Snippet
 			}
 			else
 			{
-				string[] cachedRandomTextsToTranslateToSubscenes = new string[this.subsceneContextProvider.GetSubsceneCount()];
+				Variation[] cachedRandomVariationsForSubscene = new Variation[this.variations.Count];
 				for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
 				{
-					cachedRandomTextsToTranslateToSubscenes[variationIndex] = this.variations[(uint)variationIndex].Text;
+					cachedRandomVariationsForSubscene[variationIndex] = this.variations[(uint)variationIndex];
 				}
 				this.variations.Clear();
 				for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 				{
 					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
-					this.variations.Add(currentSubsceneId.Id, new VariationInfo(currentSubsceneId.Name, cachedRandomTextsToTranslateToSubscenes[subsceneIndex]));
+					if (subsceneIndex < cachedRandomVariationsForSubscene.Length)
+					{
+						this.variations.Add(currentSubsceneId.Id, new Variation(cachedRandomVariationsForSubscene[subsceneIndex].Text, cachedRandomVariationsForSubscene[subsceneIndex].EntitySetters));
+					}
+					else
+					{
+						this.variations.Add(currentSubsceneId.Id, new Variation());
+					}
 				}
+			}
+			break;
+		case Mode.If:
+			this.variations.Clear();
+			this.variations.Add(IF_DICTIONARY_KEY, new Variation(firstRandomVariation.Text, firstRandomVariation.EntitySetters));
+			break;
+		case Mode.IfElse:
+			Variation[] cachedRandomVariationsForIfElse = new Variation[this.variations.Count];
+			for (int variationIndex = 0; variationIndex < this.variations.Count; variationIndex++)
+			{
+				cachedRandomVariationsForIfElse[variationIndex] = this.variations[(uint)variationIndex];
+			}
+			this.variations.Clear();
+			this.variations.Add(0, new Variation(cachedRandomVariationsForIfElse[0].Text, cachedRandomVariationsForIfElse[0].EntitySetters));
+			if (cachedRandomVariationsForIfElse.Length > 1)
+			{
+				for (int variationIndex = 1; variationIndex < cachedRandomVariationsForIfElse.Length; variationIndex++)
+				{
+					this.variations.Add(
+						(uint)variationIndex,
+						new Variation(cachedRandomVariationsForIfElse[variationIndex].Text, cachedRandomVariationsForIfElse[variationIndex].EntitySetters));
+				}
+			}
+			else
+			{
+				this.variations.Add(1, new Variation());
 			}
 			break;
 		case Mode.Random:
@@ -419,7 +763,7 @@ public class Snippet
 		}
 	}
 
-	private static string translateIndexToKeyForRandomVariation(int index)
+	private static string translateIndexToNameForRandomVariation(int index)
 	{
 		return RANDOM_KEY_PREFIX + (index + 1).ToString();
 	}
@@ -428,20 +772,13 @@ public class Snippet
 	{
 		this.subsceneContextProvider.RegisterOnSubsceneAdded(this.handleSubsceneAdded);
 		this.subsceneContextProvider.RegisterOnSubsceneRemoved(this.handleSubsceneRemoved);
-		this.subsceneContextProvider.RegisterOnSubsceneRenamed(this.handleSubsceneRenamed);
-	}
-	private void unregisterHandlerFunctionsWithISubsceneContextProvider()
-	{
-		this.subsceneContextProvider.UnregisterOnSubsceneAdded(this.handleSubsceneAdded);
-		this.subsceneContextProvider.UnregisterOnSubsceneRemoved(this.handleSubsceneRemoved);
-		this.subsceneContextProvider.UnregisterOnSubsceneRenamed(this.handleSubsceneRenamed);
 	}
 
 	private void handleSubsceneAdded(Scene.SubsceneId subsceneId)
 	{
 		if (this.CurrentMode == Mode.Subscene)
 		{
-			this.variations.Add(subsceneId.Id, new VariationInfo(subsceneId.Name, string.Empty));
+			this.variations.Add(subsceneId.Id, new Variation());
 		}
 	}
 
@@ -457,14 +794,6 @@ public class Snippet
 			{
 				this.variations.Remove(subsceneId.Id);
 			}
-		}
-	}
-
-	private void handleSubsceneRenamed(Scene.SubsceneId subsceneId, string newName)
-	{
-		if (this.CurrentMode == Mode.Subscene)
-		{
-			this.variations[subsceneId.Id].Name = subsceneId.Name;
 		}
 	}
 }

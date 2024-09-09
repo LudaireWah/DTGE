@@ -28,14 +28,18 @@ size_flags_horizontal = 3
 
 [node name="ConditionalModeOptionButton" type="OptionButton" parent="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer"]
 layout_mode = 2
-item_count = 3
+item_count = 5
 selected = 0
 popup/item_0/text = "Simple"
 popup/item_0/id = 0
 popup/item_1/text = "Subscene"
 popup/item_1/id = 1
-popup/item_2/text = "Randomize"
-popup/item_2/id = 2
+popup/item_2/text = "If"
+popup/item_2/id = 3
+popup/item_3/text = "If Else"
+popup/item_3/id = 4
+popup/item_4/text = "Randomize"
+popup/item_4/id = 2
 
 [node name="MoveUpButton" type="Button" parent="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer"]
 layout_mode = 2
@@ -62,10 +66,36 @@ layout_mode = 2
 size_flags_horizontal = 3
 tab_close_display_policy = 1
 
+[node name="ConditionalHBoxContainer" type="HBoxContainer" parent="SnippetMarginContainer/SnippetVBoxContainer"]
+layout_mode = 2
+
+[node name="ConditionalPrefixLabel" type="Label" parent="SnippetMarginContainer/SnippetVBoxContainer/ConditionalHBoxContainer"]
+layout_mode = 2
+text = "if("
+vertical_alignment = 1
+
+[node name="ConditionalLineEdit" type="LineEdit" parent="SnippetMarginContainer/SnippetVBoxContainer/ConditionalHBoxContainer"]
+layout_mode = 2
+placeholder_text = "Entity name"
+expand_to_text_length = true
+
+[node name="ConditionalSuffixLabel" type="Label" parent="SnippetMarginContainer/SnippetVBoxContainer/ConditionalHBoxContainer"]
+layout_mode = 2
+text = ")"
+vertical_alignment = 1
+
 [node name="SnippetTextEdit" type="TextEdit" parent="SnippetMarginContainer/SnippetVBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 placeholder_text = "Write your text here"
+
+[node name="EntitySetterListVBoxContainer" type="VBoxContainer" parent="SnippetMarginContainer/SnippetVBoxContainer"]
+layout_mode = 2
+
+[node name="AddEntitySetterButton" type="Button" parent="SnippetMarginContainer/SnippetVBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Add Entity Setter"
 
 [connection signal="item_selected" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton" to="." method="_on_conditional_mode_option_button_item_selected"]
 [connection signal="pressed" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton" to="." method="_on_move_up_button_pressed"]
@@ -74,4 +104,6 @@ placeholder_text = "Write your text here"
 [connection signal="pressed" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton" to="." method="_on_new_tab_button_pressed"]
 [connection signal="tab_close_pressed" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar" to="." method="_on_snippet_tab_bar_tab_close_pressed"]
 [connection signal="tab_selected" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar" to="." method="_on_snippet_tab_bar_tab_selected"]
+[connection signal="text_changed" from="SnippetMarginContainer/SnippetVBoxContainer/ConditionalHBoxContainer/ConditionalLineEdit" to="." method="_on_conditional_line_edit_text_changed"]
 [connection signal="text_changed" from="SnippetMarginContainer/SnippetVBoxContainer/SnippetTextEdit" to="." method="_on_snippet_text_edit_text_changed"]
+[connection signal="pressed" from="SnippetMarginContainer/SnippetVBoxContainer/AddEntitySetterButton" to="." method="_on_add_entity_setter_button_pressed"]

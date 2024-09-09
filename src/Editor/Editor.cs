@@ -21,10 +21,12 @@ public partial class Editor : Control
 	MarginContainer marginContainer;
 	TabBar dtgeSceneTabBar;
 	DtgeSceneEditContainer dtgeSceneEditContainer;
+	DtgeScenePreviewContainer dtgeScenePreviewContainer;
 	Button addNewDtgeSceneButton;
 
 	PopupMenu filePopupMenu;
 	PopupMenu gamePopupMenu;
+	PopupMenu editorPopupMenu;
 	PopupMenu helpPopupMenu;
 
 	private enum PopupMenuIds
@@ -37,10 +39,13 @@ public partial class Editor : Control
 		GameRun,
 		GameRunCurrentScene,
 		GameProjectSettings,
+		EditorShowPreview,
 		HelpAbout,
 		HelpTutorial,
 		HelpLicense,
 	}
+
+	private const int EDITOR_SHOW_PREVIEW_INDEX = 0;
 
 	FileDialog openFileDialog;
 	FileDialog saveAsFileDialog;
@@ -101,9 +106,11 @@ public partial class Editor : Control
 		this.marginContainer = GetNode<MarginContainer>("MarginContainer");
 		this.dtgeSceneTabBar = GetNode<TabBar>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar");
 		this.addNewDtgeSceneButton = GetNode<Button>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton");
-		this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
+		this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/HSplitContainer/DtgeSceneEditContainer");
+		this.dtgeScenePreviewContainer = GetNode<DtgeScenePreviewContainer>("MarginContainer/VBoxContainer/HSplitContainer/SceneTextPreviewContainer");
 		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
 		this.gamePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
+		this.editorPopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Editor");
 		this.helpPopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
 		this.openFileDialog = GetNode<FileDialog>("OpenFileDialog");
 		this.saveAsFileDialog = GetNode<FileDialog>("SaveAsFileDialog");
@@ -125,7 +132,10 @@ public partial class Editor : Control
 		this.nextKeyforOpenDtgeSceneDictionary = 0;
 
 		this.dtgeSceneEditContainer.OnTryOpenScene = this.HandleTryOpenScene;
+		this.dtgeSceneEditContainer.OnNewScene = this.HandleNewScene;
 		this.dtgeSceneEditContainer.OnSceneUpdated = this.HandleSceneUpdated;
+
+		this.dtgeScenePreviewContainer.DtgeScene = dtgeSceneEditContainer.DtgeScene;
 
 		this.filePopupMenu.AddItem("New", (int)PopupMenuIds.FileNew, GodotConstants.KEY_CTRL_N);
 		this.filePopupMenu.AddItem("Open...", (int)PopupMenuIds.FileOpen, GodotConstants.KEY_CTRL_O);
@@ -135,6 +145,8 @@ public partial class Editor : Control
 		this.gamePopupMenu.AddItem("Run Game", (int)PopupMenuIds.GameRun, Key.F5);
 		this.gamePopupMenu.AddItem("Run Current Scene", (int)PopupMenuIds.GameRunCurrentScene, GodotConstants.KEY_CTRL_F5);
 		this.gamePopupMenu.AddItem("Project Settings...", (int)PopupMenuIds.GameProjectSettings);
+		this.editorPopupMenu.AddCheckItem("Show preview", (int)PopupMenuIds.EditorShowPreview);
+		this.editorPopupMenu.SetItemChecked(EDITOR_SHOW_PREVIEW_INDEX, true);
 		this.helpPopupMenu.AddItem("About", (int)PopupMenuIds.HelpAbout);
 		this.helpPopupMenu.AddItem("Tutorial", (int)PopupMenuIds.HelpTutorial, Key.F1);
 		this.helpPopupMenu.AddItem("License", (int)PopupMenuIds.HelpLicense);
@@ -324,10 +336,17 @@ public partial class Editor : Control
 		}
 	}
 
+	public void HandleNewScene()
+	{
+		this.dtgeScenePreviewContainer.DtgeScene = this.dtgeSceneEditContainer.DtgeScene;
+		this.HandleSceneUpdated();
+	}
+
 	public void HandleSceneUpdated()
 	{
 		this.setCurrentSceneTabInfoSaved(false);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
+		this.dtgeScenePreviewContainer.UpdateUI();
 		this.anyEditsMade = true;
 	}
 
@@ -397,6 +416,13 @@ public partial class Editor : Control
 		case PopupMenuIds.GameProjectSettings:
 		{
 			this.popupProjectSettingsDialog();
+			break;
+		}
+		case PopupMenuIds.EditorShowPreview:
+		{
+			bool newEditorShowPreviewCheckedValue = !this.editorPopupMenu.IsItemChecked(EDITOR_SHOW_PREVIEW_INDEX);
+			this.editorPopupMenu.SetItemChecked(EDITOR_SHOW_PREVIEW_INDEX, newEditorShowPreviewCheckedValue);
+			this.dtgeScenePreviewContainer.Visible = newEditorShowPreviewCheckedValue;
 			break;
 		}
 		case PopupMenuIds.HelpAbout:

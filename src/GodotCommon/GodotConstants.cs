@@ -11,11 +11,12 @@ public class GodotConstants
 {
 	// Scene Paths
 	public const string GAME_SCENE_PATH = "src/Game/game.tscn";
+	public const string NAVIGATION_BUTTON_PATH = "src/Game/navigation_button.tscn";
 
+	public const string ENTITY_SETTER_CONTAINER_PATH = "src/Editor/entitiy_setter_container.tscn";
 	public const string OPTION_EDIT_PANEL_PATH = "src/Editor/option_edit_panel.tscn";
 	public const string SNIPPET_PANEL_CONTAINER_PATH = "src/Editor/snippet_panel_container.tscn";
 	public const string SUBSCENE_PANEL_CONTAINER_PATH = "src/Editor/subscene_panel_container.tscn";
-	public const string NAVIGATION_BUTTON_PATH = "src/Game/navigation_button.tscn";
 
 	// Modifier Key enums
 	public const Key KEY_CTRL_N = (Key)(KeyModifierMask.MaskCtrl) | Key.N;

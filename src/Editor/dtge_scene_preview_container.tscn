@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddmn206plp2dq"]
+
+[ext_resource type="Script" path="res://src/Editor/DtgeScenePreviewContainer.cs" id="1_01bxh"]
+
+[node name="SceneTextPreviewContainer" type="VBoxContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_01bxh")
+
+[node name="PreviewLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Scene Preview"
+
+[node name="ScenePreviewControlsHBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PreviewEntityInfoCheckButton" type="CheckButton" parent="ScenePreviewControlsHBoxContainer"]
+layout_mode = 2
+text = "Entity Display"
+
+[node name="PreviewSubsceneSelectionOptionButton" type="OptionButton" parent="ScenePreviewControlsHBoxContainer"]
+layout_mode = 2
+item_count = 1
+selected = 0
+popup/item_0/text = "Subscenes"
+popup/item_0/id = 0
+
+[node name="PreviewRandomizeButton" type="Button" parent="ScenePreviewControlsHBoxContainer"]
+layout_mode = 2
+text = "Randomize"
+
+[node name="PreviewEntityVBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AddPreviewEntitySetterButton" type="Button" parent="PreviewEntityVBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Add preview Entity"
+
+[node name="PreviewEntitySetterListVBoxContainer" type="VBoxContainer" parent="PreviewEntityVBoxContainer"]
+layout_mode = 2
+
+[node name="SceneTextPreviewLabel" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scene Text"
+
+[node name="SceneTextPreviewPanelContainer" type="PanelContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SceneTextPreviewMarginContainer" type="MarginContainer" parent="SceneTextPreviewPanelContainer"]
+layout_mode = 2
+
+[node name="SceneTextPreviewRichTextLabel" type="RichTextLabel" parent="SceneTextPreviewPanelContainer/SceneTextPreviewMarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PreviewEntityResultsLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Entity Results Preview"
+
+[node name="PreviewEntityResultsVBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[connection signal="toggled" from="ScenePreviewControlsHBoxContainer/PreviewEntityInfoCheckButton" to="." method="_on_preview_entity_info_check_button_toggled"]
+[connection signal="item_selected" from="ScenePreviewControlsHBoxContainer/PreviewSubsceneSelectionOptionButton" to="." method="_on_preview_subscene_selection_option_button_item_selected"]
+[connection signal="pressed" from="ScenePreviewControlsHBoxContainer/PreviewRandomizeButton" to="." method="_on_preview_randomize_button_pressed"]
+[connection signal="pressed" from="PreviewEntityVBoxContainer/AddPreviewEntitySetterButton" to="." method="_on_add_preview_entity_setter_button_pressed"]
