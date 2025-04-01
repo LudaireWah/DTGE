@@ -206,8 +206,8 @@ public class Scene : ISubsceneContextProvider
 	{
 		string sceneText = "";
 		
-		sceneText += this.Serialize();
-		sceneText += "\r\n\r\nCalculatedText:\r\n";
+		//sceneText += this.Serialize();
+		//sceneText += "\r\n\r\nCalculatedText:\r\n";
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{

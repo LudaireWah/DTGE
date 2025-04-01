@@ -93,6 +93,21 @@ public partial class Editor : Control
 
 	bool anyEditsMade = false;
 
+	private DtgeCore.Scene currentDtgeScene;
+	private DtgeCore.Scene CurrentDtgeScene
+	{
+		set
+		{
+			this.currentDtgeScene = value;
+			this.dtgeSceneEditContainer.DtgeScene = value;
+			this.dtgeScenePreviewContainer.DtgeScene = value;
+		}
+		get
+		{
+			return this.currentDtgeScene;
+		}
+	}
+
 	public Editor()
 	{
 
@@ -127,15 +142,13 @@ public partial class Editor : Control
 
 		Editor.initializeGameDataFromFile();
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+		this.CurrentDtgeScene = new DtgeCore.Scene();
 
 		this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
 		this.nextKeyforOpenDtgeSceneDictionary = 0;
 
 		this.dtgeSceneEditContainer.OnTryOpenScene = this.HandleTryOpenScene;
-		this.dtgeSceneEditContainer.OnNewScene = this.HandleNewScene;
 		this.dtgeSceneEditContainer.OnSceneUpdated = this.HandleSceneUpdated;
-
-		this.dtgeScenePreviewContainer.DtgeScene = dtgeSceneEditContainer.DtgeScene;
 
 		this.filePopupMenu.AddItem("New", (int)PopupMenuIds.FileNew, GodotConstants.KEY_CTRL_N);
 		this.filePopupMenu.AddItem("Open...", (int)PopupMenuIds.FileOpen, GodotConstants.KEY_CTRL_O);
@@ -301,7 +314,7 @@ public partial class Editor : Control
 
 		if (sceneFoundInTabs || sceneFoundInFiles)
 		{
-			bool subsceneSuccessfullySet = this.dtgeSceneEditContainer.DtgeScene.SetCurrentSubscene(sceneId.subscene);
+			bool subsceneSuccessfullySet = this.CurrentDtgeScene.SetCurrentSubscene(sceneId.subscene);
 			if (!subsceneSuccessfullySet)
 			{
 				if (sceneId.subscene != null)
@@ -336,12 +349,6 @@ public partial class Editor : Control
 		}
 	}
 
-	public void HandleNewScene()
-	{
-		this.dtgeScenePreviewContainer.DtgeScene = this.dtgeSceneEditContainer.DtgeScene;
-		this.HandleSceneUpdated();
-	}
-
 	public void HandleSceneUpdated()
 	{
 		this.setCurrentSceneTabInfoSaved(false);
@@ -373,14 +380,14 @@ public partial class Editor : Control
 			}
 			else
 			{
-				this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
+				this.saveAsFileDialog.CurrentFile = this.CurrentDtgeScene.Id;
 				this.saveAsFileDialog.Popup();
 			}
 			break;
 		}
 		case PopupMenuIds.FileSaveAs:
 		{
-			this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
+			this.saveAsFileDialog.CurrentFile = this.CurrentDtgeScene.Id;
 			this.saveAsFileDialog.Popup();
 			break;
 		}
@@ -410,7 +417,7 @@ public partial class Editor : Control
 		case PopupMenuIds.GameRunCurrentScene:
 		{
 			this.runDebugGame();
-			this.gamePreviewScene.LoadScene(this.dtgeSceneEditContainer.DtgeScene);
+			this.gamePreviewScene.LoadScene(this.CurrentDtgeScene);
 			break;
 		}
 		case PopupMenuIds.GameProjectSettings:
@@ -458,8 +465,8 @@ public partial class Editor : Control
 		else
 		{
 			string sceneJson = sceneFile.GetAsText();
-			this.dtgeSceneEditContainer.RestoreFromSerializedScene(sceneJson);
-			this.createOpenedSceneTab(this.dtgeSceneEditContainer.DtgeScene, path);
+			this.CurrentDtgeScene = DtgeCore.Scene.Deserialize(sceneJson);
+			this.createOpenedSceneTab(this.CurrentDtgeScene, path);
 			this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 
 			sceneFile.Close();
@@ -502,7 +509,7 @@ public partial class Editor : Control
 		if (this.openDtgeSceneDictionary.Count > 0)
 		{
 			DtgeSceneTabInfo selectedTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
-			this.dtgeSceneEditContainer.DtgeScene = selectedTabInfo.dtgeScene;
+			this.CurrentDtgeScene = selectedTabInfo.dtgeScene;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
@@ -546,12 +553,12 @@ public partial class Editor : Control
 		{
 			this.createNewSceneTab();
 		}
-		this.dtgeSceneEditContainer.DtgeScene.Id = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
+		this.CurrentDtgeScene.Id = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
 		bool subsceneIsNonNull = (bool)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL);
 		if (subsceneIsNonNull)
 		{
 			string subsceneName = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
-			this.dtgeSceneEditContainer.DtgeScene.AddSubscene(subsceneName);
+			this.CurrentDtgeScene.AddSubscene(subsceneName);
 		}
 		this.setCurrentSceneTabInfoSaved(false);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
@@ -561,14 +568,14 @@ public partial class Editor : Control
 
 	public void _on_create_new_subscene_from_option_confirmation_dialog_confirmed()
 	{
-		this.dtgeSceneEditContainer.DtgeScene.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
+		this.CurrentDtgeScene.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
 
 	public void _on_enable_null_subscene_confirmation_dialog_confirmed()
 	{
-		this.dtgeSceneEditContainer.DtgeScene.EnableNullSubscene();
+		this.CurrentDtgeScene.EnableNullSubscene();
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
@@ -598,8 +605,7 @@ public partial class Editor : Control
 		this.nextKeyforOpenDtgeSceneDictionary++;
 		this.dtgeSceneTabBar.CurrentTab = newTabIndex;
 
-		this.dtgeSceneEditContainer.DtgeScene = newDtgeSceneTabInfo.dtgeScene;
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
+		this.CurrentDtgeScene = newDtgeSceneTabInfo.dtgeScene;
 		this.anyEditsMade = true;
 	}
 
@@ -621,8 +627,7 @@ public partial class Editor : Control
 		this.nextKeyforOpenDtgeSceneDictionary++;
 		this.dtgeSceneTabBar.CurrentTab = newTabIndex;
 
-		this.dtgeSceneEditContainer.DtgeScene = openedDtgeSceneTabInfo.dtgeScene;
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
+		this.CurrentDtgeScene = openedDtgeSceneTabInfo.dtgeScene;
 		this.anyEditsMade = true;
 	}
 
@@ -689,12 +694,11 @@ public partial class Editor : Control
 		if (this.dtgeSceneTabBar.TabCount > 0)
 		{
 			DtgeSceneTabInfo newActiveDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
-			this.dtgeSceneEditContainer.DtgeScene = newActiveDtgeSceneTabInfo.dtgeScene;
-			this.dtgeSceneEditContainer.UpdateUIFromScene();
+			this.CurrentDtgeScene = newActiveDtgeSceneTabInfo.dtgeScene;
 		}
 		else
 		{
-			this.dtgeSceneEditContainer.DtgeScene = null;
+			this.CurrentDtgeScene = null;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
@@ -702,7 +706,7 @@ public partial class Editor : Control
 	private void saveCurrentSceneToPath(string path)
 	{
 		this.dtgeSceneEditContainer.FlushChangesForSave();
-		Editor.saveSceneToPath(this.dtgeSceneEditContainer.DtgeScene, path);
+		Editor.saveSceneToPath(this.CurrentDtgeScene, path);
 		setCurrentSceneTabInfoPath(path);
 		setCurrentSceneTabInfoSaved(true);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);

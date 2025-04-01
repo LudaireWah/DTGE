@@ -88,6 +88,7 @@ vertical_alignment = 1
 layout_mode = 2
 size_flags_vertical = 3
 placeholder_text = "Write your text here"
+wrap_mode = 1
 
 [node name="EntitySetterListVBoxContainer" type="VBoxContainer" parent="SnippetMarginContainer/SnippetVBoxContainer"]
 layout_mode = 2

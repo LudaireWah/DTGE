@@ -28,7 +28,7 @@ project/assembly_name="DTGE"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/CustomNode/plugin.cfg")
+enabled=PackedStringArray()
 
 [rendering]
 

@@ -13,7 +13,7 @@ script = ExtResource("1_ggvl2")
 
 [node name="OptionEditList" parent="." instance=ExtResource("2_swfsj")]
 layout_mode = 2
-size_flags_stretch_ratio = 0.2
+size_flags_stretch_ratio = 0.3
 
 [node name="DtgeSceneAndPreviewSplitContainer" type="SplitContainer" parent="."]
 layout_mode = 2

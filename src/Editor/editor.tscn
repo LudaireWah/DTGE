@@ -60,10 +60,10 @@ size_flags_vertical = 3
 
 [node name="DtgeSceneEditContainer" parent="MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("2_ap0h8")]
 layout_mode = 2
+size_flags_stretch_ratio = 1.3
 
 [node name="SceneTextPreviewContainer" parent="MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("3_u68k6")]
 layout_mode = 2
-size_flags_stretch_ratio = 0.8
 
 [node name="OpenFileDialog" type="FileDialog" parent="."]
 title = "Open a File"

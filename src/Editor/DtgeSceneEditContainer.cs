@@ -37,7 +37,6 @@ public partial class DtgeSceneEditContainer : Control
 	}
 
 	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
-	public Action OnNewScene;
 	public Action OnSceneUpdated;
 
 	private DtgeCore.Scene.SubsceneId lastSelectedSubsceneIdForTextPreviewSubsceneSelector;
@@ -59,12 +58,8 @@ public partial class DtgeSceneEditContainer : Control
 
 		this.optionEditList.OnOptionListUpdated = this.HandleOptionListUpdated;
 		this.optionEditList.OnTryOpenScene = this.HandleTryOpenScene;
-		this.optionEditList.DtgeScene = this.DtgeScene;
 
 		this.snippetListContainer.OnSnippetListUpdated = this.HandleSnippetListUpdated;
-
-		this.DtgeScene = new DtgeCore.Scene();
-		this.snippetListContainer.DtgeScene = this.DtgeScene;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -72,7 +67,6 @@ public partial class DtgeSceneEditContainer : Control
 	{
 		if (this.uiNeedsUpdate)
 		{
-			this.OnNewScene();
 			this.UpdateUIFromScene();
 			this.uiNeedsUpdate = false;
 		}
@@ -98,13 +92,6 @@ public partial class DtgeSceneEditContainer : Control
 			this.snippetListContainer.DtgeScene = this.dtgeScene;
 			this.updateSubsceneListFromDTGEScene();
 		}
-	}
-
-	public void RestoreFromSerializedScene(string serializedScene)
-	{
-		this.dtgeScene = DtgeCore.Scene.Deserialize(serializedScene);
-		this.OnNewScene();
-		this.UpdateUIFromScene();
 	}
 
 	public void GiveIdEntryFocus()
