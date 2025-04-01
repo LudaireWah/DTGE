@@ -7,37 +7,39 @@
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
 offset_right = 1152.0
 offset_bottom = 648.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1_ggvl2")
 
 [node name="OptionEditList" parent="." instance=ExtResource("2_swfsj")]
 layout_mode = 2
-size_flags_stretch_ratio = 0.2
+size_flags_stretch_ratio = 0.3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="DtgeSceneAndPreviewSplitContainer" type="SplitContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PropertiesContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="DtgeSceneEditVBoxContainer" type="VBoxContainer" parent="DtgeSceneAndPreviewSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PropertiesContainer" type="HBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer"]
 layout_mode = 2
 
-[node name="PropertyLabelContainer" type="VBoxContainer" parent="VBoxContainer/PropertiesContainer"]
+[node name="PropertyLabelContainer" type="VBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer"]
 layout_mode = 2
 
-[node name="IdLabel" type="Label" parent="VBoxContainer/PropertiesContainer/PropertyLabelContainer"]
+[node name="IdLabel" type="Label" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer/PropertyLabelContainer"]
 custom_minimum_size = Vector2(0, 31)
 layout_mode = 2
 text = "Scene Id"
 vertical_alignment = 1
 
-[node name="PropertyEntryContainer" type="VBoxContainer" parent="VBoxContainer/PropertiesContainer"]
+[node name="PropertyEntryContainer" type="VBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SceneIdAndAddImageHBoxContainer" type="HBoxContainer" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="IdLineEdit" type="LineEdit" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
+[node name="IdLineEdit" type="LineEdit" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer/PropertyEntryContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -87,46 +89,46 @@ text = "Choose File..."
 [node name="ImagePathLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
 layout_mode = 2
 
-[node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer"]
 layout_mode = 2
 
-[node name="NewSubsceneButton" type="Button" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+[node name="NewSubsceneButton" type="Button" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "Add new subscene"
 
-[node name="AllowNoSubsceneCheckButton" type="CheckButton" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+[node name="AllowNoSubsceneCheckButton" type="CheckButton" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer"]
 layout_mode = 2
 text = "Include None"
 
-[node name="SubsceneListScrollContainer" type="ScrollContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
+[node name="SubsceneListScrollContainer" type="ScrollContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 vertical_scroll_mode = 0
 
-[node name="SubsceneListHBoxContainer" type="HBoxContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer/SubsceneListScrollContainer"]
+[node name="SubsceneListHBoxContainer" type="HBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer/SubsceneListScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneTextEditContainer" type="HSplitContainer" parent="VBoxContainer"]
+[node name="SceneTextEditContainer" type="HSplitContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneTextEntryContainer" type="VBoxContainer" parent="VBoxContainer/SceneTextEditContainer"]
+[node name="SceneTextEntryContainer" type="VBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneTextEntryHeader" type="HBoxContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
+[node name="SceneTextEntryHeader" type="HBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer"]
 layout_mode = 2
 
-[node name="SceneTextEntryLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SceneTextEntryLabel" type="Label" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
 text = "Snippets"
 
-[node name="SceneTextCopySnippetsButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SceneTextCopySnippetsButton" type="Button" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
 tooltip_text = "Copies text containing all snippets, allowing it to be
 pasted into a Word processor for spell/grammer 
@@ -134,50 +136,17 @@ checking and then pasted back in here using Paste
 Snippets."
 text = "Copy Snippets"
 
-[node name="SceneTextPasteSnippetsButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SceneTextPasteSnippetsButton" type="Button" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
 text = "Paste Snippets"
 
-[node name="Whitespace" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="Whitespace" type="Label" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
 
-[node name="ShowPreviewCheckButton" type="CheckButton" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader"]
+[node name="SnippetListContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer" instance=ExtResource("3_q0oq0")]
 layout_mode = 2
-button_pressed = true
-text = "Show Preview"
-
-[node name="SnippetListContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer" instance=ExtResource("3_q0oq0")]
-layout_mode = 2
-
-[node name="SceneTextPreviewContainer" type="VBoxContainer" parent="VBoxContainer/SceneTextEditContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer"]
-layout_mode = 2
-
-[node name="SceneTextPreviewLabel" type="Label" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Scene Text Preview"
-
-[node name="SceneTextPreviewSubsceneSelectionOptionButton" type="OptionButton" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
-layout_mode = 2
-item_count = 1
-selected = 0
-popup/item_0/text = "Subscenes"
-popup/item_0/id = 0
-
-[node name="SceneTextPreviewRandomizeButton" type="Button" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer"]
-layout_mode = 2
-text = "Randomize"
-
-[node name="SceneTextPreviewRichTextLabel" type="RichTextLabel" parent="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer"]
-layout_mode = 2
-size_flags_vertical = 3
 
 [node name="PasteSnippetsFailedAcceptDialog" type="AcceptDialog" parent="."]
 title = "Paste Failed!"
@@ -186,23 +155,8 @@ size = Vector2i(600, 314)
 dialog_text = "There was a problem with the text you tried to paste into snippets. When modifying copied snippets, do not change anything inside >>> and <<< so the editor can read your text back in when pasted. If pasted from another scene, ensure the snippet layout (count of snippets and variations in each snippet) are identical."
 dialog_autowrap = true
 
-[node name="ChooseImageFileDialog" type="FileDialog" parent="."]
-title = "Open a File"
-initial_position = 2
-size = Vector2i(600, 350)
-ok_button_text = "Open"
-file_mode = 0
-
-[connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
-[connection signal="pressed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton" to="." method="_on_add_scene_image_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton" to="." method="_on_remove_scene_image_button_pressed"]
-[connection signal="item_selected" from="VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton" to="." method="_on_image_position_option_button_item_selected"]
-[connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/ChooseImageButton" to="." method="_on_choose_image_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
-[connection signal="toggled" from="VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
-[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton" to="." method="_on_scene_text_copy_snippets_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton" to="." method="_on_scene_text_paste_snippets_button_pressed"]
-[connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]
-[connection signal="item_selected" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewSubsceneSelectionOptionButton" to="." method="_on_scene_text_preview_subscene_selection_option_button_item_selected"]
-[connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton" to="." method="_on_scene_text_preview_randomize_button_pressed"]
-[connection signal="file_selected" from="ChooseImageFileDialog" to="." method="_on_choose_image_file_dialog_file_selected"]
+[connection signal="text_changed" from="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer/PropertyEntryContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[connection signal="pressed" from="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
+[connection signal="toggled" from="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
+[connection signal="pressed" from="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton" to="." method="_on_scene_text_copy_snippets_button_pressed"]
+[connection signal="pressed" from="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton" to="." method="_on_scene_text_paste_snippets_button_pressed"]

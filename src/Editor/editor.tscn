@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://jeisn4kmgonf"]
+[gd_scene load_steps=6 format=3 uid="uid://jeisn4kmgonf"]
 
 [ext_resource type="Script" path="res://src/Editor/Editor.cs" id="1_ufwon"]
 [ext_resource type="PackedScene" uid="uid://cfepolkldqo55" path="res://src/Editor/dtge_scene_edit_container.tscn" id="2_ap0h8"]
 [ext_resource type="PackedScene" uid="uid://3d6axeq5s121" path="res://src/GodotCommon/yes_no_cancel_dialog.tscn" id="3_0d7xp"]
+[ext_resource type="PackedScene" uid="uid://ddmn206plp2dq" path="res://src/Editor/dtge_scene_preview_container.tscn" id="3_u68k6"]
 [ext_resource type="PackedScene" uid="uid://db3sfyd8u61cy" path="res://src/Editor/project_settings_confirmation_dialog.tscn" id="4_y4mjv"]
 
 [node name="DtgeEditorRoot" type="Control"]
@@ -35,6 +36,8 @@ layout_mode = 2
 
 [node name="Game" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
+[node name="Editor" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
+
 [node name="Help" type="PopupMenu" parent="MarginContainer/VBoxContainer/MenuBar"]
 
 [node name="SceneTabsHBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
@@ -51,9 +54,16 @@ size_flags_horizontal = 3
 tab_close_display_policy = 1
 drag_to_rearrange_enabled = true
 
-[node name="DtgeSceneEditContainer" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_ap0h8")]
+[node name="HSplitContainer" type="HSplitContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="DtgeSceneEditContainer" parent="MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("2_ap0h8")]
+layout_mode = 2
+size_flags_stretch_ratio = 1.3
+
+[node name="SceneTextPreviewContainer" parent="MarginContainer/VBoxContainer/HSplitContainer" instance=ExtResource("3_u68k6")]
+layout_mode = 2
 
 [node name="OpenFileDialog" type="FileDialog" parent="."]
 title = "Open a File"
@@ -160,6 +170,7 @@ visible = false
 
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]
+[connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Editor" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Help" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton" to="." method="_on_new_tab_button_pressed"]
 [connection signal="active_tab_rearranged" from="MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar" to="." method="_on_dtge_scenes_tab_bar_active_tab_rearranged"]

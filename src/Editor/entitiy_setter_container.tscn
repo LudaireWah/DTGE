@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3 uid="uid://djnn18vj57mxt"]
+
+[ext_resource type="Script" path="res://src/Editor/EntitySetterHBoxContainer.cs" id="1_1ih83"]
+
+[node name="EntitySetterHBoxContainer" type="HBoxContainer"]
+offset_right = 353.0
+offset_bottom = 67.0
+script = ExtResource("1_1ih83")
+
+[node name="EntityKeyLineEdit" type="LineEdit" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EntityValueOptionButton" type="OptionButton" parent="."]
+layout_mode = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "False"
+popup/item_0/id = 0
+popup/item_1/text = "True"
+popup/item_1/id = 1
+
+[node name="EntitySetterDeleteButton" type="Button" parent="."]
+layout_mode = 2
+text = "X"
+
+[connection signal="text_changed" from="EntityKeyLineEdit" to="." method="_on_entity_setter_line_edit_text_changed"]
+[connection signal="item_selected" from="EntityValueOptionButton" to="." method="_on_entity_setter_option_button_item_selected"]
+[connection signal="pressed" from="EntitySetterDeleteButton" to="." method="_on_entity_setter_delete_button_pressed"]
