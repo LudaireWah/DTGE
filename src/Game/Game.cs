@@ -19,7 +19,12 @@ public partial class Game : Control
 	private const string SETTINGS_PATH = "dtge.config";
 
 	private MarginContainer marginContainer;
+	private PanelContainer sceneTextPanelContainer;
 	private RichTextLabel sceneTextDisplay;
+	private TextureRect leftTextureRect;
+	private TextureRect rightTextureRect;
+	private TextureRect topTextureRect;
+	private TextureRect bottomTextureRect;
 	private NavigationButtonGrid navigationButtonGrid;
 	private AcceptDialog errorAcceptDialog;
 
@@ -42,7 +47,12 @@ public partial class Game : Control
 	public override void _Ready()
 	{
 		this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-		this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneTextDisplay");
+		this.sceneTextPanelContainer = GetNode<PanelContainer>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer");
+		this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer/SceneTextMarginContainer/SceneTextDisplay");
+		this.leftTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/LeftTextureRect");
+		this.rightTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/RightTextureRect");
+		this.topTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/TopTextureRect");
+		this.bottomTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/BottomTextureRect");
 		this.navigationButtonGrid = GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
 		this.errorAcceptDialog = GetNode<AcceptDialog>("ErrorAcceptDialog");
 		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
@@ -85,7 +95,7 @@ public partial class Game : Control
 		DtgeCore.Scene dtgeScene;
 		DtgeCore.SceneManager.GetSceneSuccessValue successValue = sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
 
-		switch(successValue)
+		switch (successValue)
 		{
 		case DtgeCore.SceneManager.GetSceneSuccessValue.Success:
 			this.currentDtgeScene = dtgeScene;
@@ -117,6 +127,7 @@ public partial class Game : Control
 			this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText();
 			this.sceneTextDisplay.ScrollToLine(0);
 			this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene);
+			this.updateNodeVisibilityFromScene(this.currentDtgeScene);
 		}
 	}
 
@@ -195,7 +206,7 @@ public partial class Game : Control
 		DtgeCore.Scene startScene = null;
 
 		string[] sceneFileNames = sceneDirectory.GetFiles();
-		
+
 		for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
 		{
 			string sceneFileName = sceneFileNames[sceneFileIndex];
@@ -283,6 +294,86 @@ public partial class Game : Control
 			settingsFile.StoreString(settingsJson);
 
 			settingsFile.Close();
+		}
+	}
+
+	private void updateNodeVisibilityFromScene(DtgeCore.Scene scene)
+	{
+		if (scene == null || !scene.RenderImage)
+		{
+			this.sceneTextPanelContainer.Visible = true;
+			this.leftTextureRect.Visible = false;
+			this.rightTextureRect.Visible = false;
+			this.topTextureRect.Visible = false;
+			this.bottomTextureRect.Visible = false;
+		}
+		else
+		{
+			Image sceneImage = new Image();
+			sceneImage.Load(scene.ImagePath);
+			sceneImage.Rotate90(ClockDirection.Counterclockwise);
+			ImageTexture sceneTexture = ImageTexture.CreateFromImage(sceneImage);
+
+			switch (scene.ImagePosition)
+			{
+			case DtgeCore.Scene.SceneImagePosition.Left:
+				this.sceneTextPanelContainer.Visible = true;
+				this.leftTextureRect.Visible = true;
+				this.leftTextureRect.Texture = sceneTexture;
+				this.rightTextureRect.Visible = false;
+				this.rightTextureRect.Texture = null;
+				this.topTextureRect.Visible = false;
+				this.topTextureRect.Texture = null;
+				this.bottomTextureRect.Visible = false;
+				this.bottomTextureRect.Texture = null;
+				break;
+			case DtgeCore.Scene.SceneImagePosition.Right:
+				this.sceneTextPanelContainer.Visible = true;
+				this.leftTextureRect.Visible = false;
+				this.leftTextureRect.Texture = null;
+				this.rightTextureRect.Visible = true;
+				this.rightTextureRect.Texture = sceneTexture;
+				this.topTextureRect.Visible = false;
+				this.topTextureRect.Texture = null;
+				this.bottomTextureRect.Visible = false;
+				this.bottomTextureRect.Texture = null;
+				break;
+			case DtgeCore.Scene.SceneImagePosition.Top:
+				this.sceneTextPanelContainer.Visible = true;
+				this.leftTextureRect.Visible = false;
+				this.leftTextureRect.Texture = null;
+				this.rightTextureRect.Visible = false;
+				this.rightTextureRect.Texture = null;
+				this.topTextureRect.Visible = true;
+				this.topTextureRect.Texture = sceneTexture;
+				this.bottomTextureRect.Visible = false;
+				this.bottomTextureRect.Texture = null;
+				break;
+			case DtgeCore.Scene.SceneImagePosition.Bottom:
+				this.sceneTextPanelContainer.Visible = true;
+				this.leftTextureRect.Visible = false;
+				this.leftTextureRect.Texture = null;
+				this.rightTextureRect.Visible = false;
+				this.rightTextureRect.Texture = null;
+				this.topTextureRect.Visible = false;
+				this.topTextureRect.Texture = null;
+				this.bottomTextureRect.Visible = true;
+				this.bottomTextureRect.Texture = sceneTexture;
+				break;
+			case DtgeCore.Scene.SceneImagePosition.OnlyImage:
+				this.sceneTextPanelContainer.Visible = false;
+				this.leftTextureRect.Visible = true;
+				this.leftTextureRect.Texture = sceneTexture;
+				this.rightTextureRect.Visible = false;
+				this.rightTextureRect.Texture = null;
+				this.topTextureRect.Visible = false;
+				this.topTextureRect.Texture = null;
+				this.bottomTextureRect.Visible = false;
+				this.bottomTextureRect.Texture = null;
+				break;
+			default:
+				throw new NotImplementedException();
+			}
 		}
 	}
 }

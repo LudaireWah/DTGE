@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://bxadunm0l6bjj"]
+[gd_scene load_steps=2 format=3 uid="uid://bmqr2dojcmlm3"]
 
 [ext_resource type="Script" path="res://src/Editor/SnippetListContainer.cs" id="1_5coki"]
 

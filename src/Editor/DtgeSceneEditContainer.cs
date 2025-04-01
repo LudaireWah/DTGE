@@ -14,6 +14,12 @@ public partial class DtgeSceneEditContainer : Control
 	OptionEditList optionEditList;
 
 	LineEdit dtgeSceneIdEntry;
+	Button addSceneImageButton;
+	HBoxContainer sceneImageHboxContainer;
+	Button removeSceneImageButton;
+	OptionButton sceneImagePositionOptionButton;
+	Button sceneImageChooseFileButton;
+	Label sceneImagePathLabel;
 
 	HBoxContainer subsceneListHBoxContainer;
 	CheckButton allowNoSubsceneCheckButton;
@@ -22,6 +28,7 @@ public partial class DtgeSceneEditContainer : Control
 	SnippetListContainer snippetListContainer;
 
 	AcceptDialog pasteSnippetAcceptDialog;
+	FileDialog chooseImageFileDialog;
 
 	private bool uiNeedsUpdate;
 
@@ -55,6 +62,7 @@ public partial class DtgeSceneEditContainer : Control
 		this.snippetListContainer = GetNode<SnippetListContainer>("DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SnippetListContainer");
 
 		this.pasteSnippetAcceptDialog = GetNode<AcceptDialog>("PasteSnippetsFailedAcceptDialog");
+		this.chooseImageFileDialog = GetNode<FileDialog>("ChooseImageFileDialog");
 
 		this.optionEditList.OnOptionListUpdated = this.HandleOptionListUpdated;
 		this.optionEditList.OnTryOpenScene = this.HandleTryOpenScene;
@@ -80,7 +88,7 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void UpdateUIFromScene()
 	{
-		if (this.dtgeScene == null)
+		if (this.IsNodeReady())
 		{
 			this.Visible = false;
 		}
@@ -137,6 +145,15 @@ public partial class DtgeSceneEditContainer : Control
 		this.updateSubsceneListFromDTGEScene();
 		this.snippetListContainer.HandleSubsceneUpdate();
 		this.OnSceneUpdated();
+	}
+
+	private void updateSceneHeader()
+	{
+		this.dtgeSceneIdEntry.Text = this.dtgeScene.Id;
+		this.addSceneImageButton.Visible = !this.dtgeScene.RenderImage;
+		this.sceneImageHboxContainer.Visible = this.dtgeScene.RenderImage;
+		this.sceneImagePositionOptionButton.Selected = (int)this.dtgeScene.ImagePosition;
+		this.sceneImagePathLabel.Text = this.dtgeScene.ImagePath;
 	}
 
 	private void updateSubsceneListFromDTGEScene()
@@ -236,5 +253,37 @@ public partial class DtgeSceneEditContainer : Control
 		}
 		this.updateSubsceneListFromDTGEScene();
 		this.HandleSubscenesUpdated();
+	}
+
+	public void _on_add_scene_image_button_pressed()
+	{
+		this.dtgeScene.RenderImage = true;
+		this.UpdateUIFromScene();
+	}
+
+	public void _on_choose_image_button_pressed()
+	{
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+		this.chooseImageFileDialog.RootSubfolder = gameData.SceneImageDirectoryPath;
+		this.chooseImageFileDialog.Popup();
+	}
+
+	public void _on_image_position_option_button_item_selected(int indexSelected)
+	{
+		this.DtgeScene.ImagePosition = (DtgeCore.Scene.SceneImagePosition)indexSelected;
+	}
+
+	public void _on_remove_scene_image_button_pressed()
+	{
+		this.dtgeScene.RenderImage = false;
+		this.dtgeScene.ImagePath = null;
+		this.dtgeScene.ImagePosition = (DtgeCore.Scene.SceneImagePosition)0;
+		this.UpdateUIFromScene();
+	}
+
+	public void _on_choose_image_file_dialog_file_selected(string filePathSelected)
+	{
+		this.dtgeScene.ImagePath = filePathSelected;
+		this.UpdateUIFromScene();
 	}
 }

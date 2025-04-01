@@ -24,6 +24,7 @@ public class GameData
 	}
 
 	public string SceneDirectoryPath { get; private set; }
+	public string SceneImageDirectoryPath { get { return this.SceneDirectoryPath + "/Images"; } }
 	public string StartSceneName { get; set; }
 	public string StartScenePath { get { return StartSceneName + ".dscn"; } }
 	public NavigationGridShortcutMode ActiveNavigationGridShortcutMode {  get; set; }

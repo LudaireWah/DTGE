@@ -603,7 +603,10 @@ public partial class Editor : Control
 		this.dtgeSceneTabBar.SetTabMetadata(newTabIndex, this.nextKeyforOpenDtgeSceneDictionary);
 		this.openDtgeSceneDictionary.Add(this.nextKeyforOpenDtgeSceneDictionary, newDtgeSceneTabInfo);
 		this.nextKeyforOpenDtgeSceneDictionary++;
-		this.dtgeSceneTabBar.CurrentTab = newTabIndex;
+		if (this.dtgeSceneTabBar.CurrentTab != newTabIndex)
+		{
+			this.dtgeSceneTabBar.CurrentTab = newTabIndex;
+		}
 
 		this.CurrentDtgeScene = newDtgeSceneTabInfo.dtgeScene;
 		this.anyEditsMade = true;

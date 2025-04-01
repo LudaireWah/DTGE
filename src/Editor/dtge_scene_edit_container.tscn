@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
 [ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
-[ext_resource type="PackedScene" uid="uid://bxadunm0l6bjj" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
+[ext_resource type="PackedScene" uid="uid://bmqr2dojcmlm3" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
 offset_right = 1152.0
@@ -41,6 +41,52 @@ size_flags_horizontal = 3
 
 [node name="IdLineEdit" type="LineEdit" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer/PropertiesContainer/PropertyEntryContainer"]
 custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddSceneImageButton" type="Button" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
+layout_mode = 2
+text = "Add Image
+"
+
+[node name="SceneImageHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="SceneImageLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
+custom_minimum_size = Vector2(0, 31)
+layout_mode = 2
+text = "Scene Image"
+vertical_alignment = 1
+
+[node name="RemoveSceneImageButton" type="Button" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Remove Image"
+
+[node name="ImagePositionLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+text = "Position"
+
+[node name="ImagePositionOptionButton" type="OptionButton" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+item_count = 5
+selected = 0
+popup/item_0/text = "Left"
+popup/item_0/id = 0
+popup/item_1/text = "Right"
+popup/item_1/id = 1
+popup/item_2/text = "Above"
+popup/item_2/id = 2
+popup/item_3/text = "Below"
+popup/item_3/id = 3
+popup/item_4/text = "Only Image"
+popup/item_4/id = 4
+
+[node name="ChooseImageButton" type="Button" parent="VBoxContainer/SceneImageHBoxContainer"]
+layout_mode = 2
+text = "Choose File..."
+
+[node name="ImagePathLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
 layout_mode = 2
 
 [node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="DtgeSceneAndPreviewSplitContainer/DtgeSceneEditVBoxContainer"]
