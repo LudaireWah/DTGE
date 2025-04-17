@@ -17,8 +17,8 @@ public partial class OptionEditList : VBoxContainer
 
 	private bool uiNeedsUpdate;
 
-	private DtgeCore.Scene dtgeScene;
-	public DtgeCore.Scene DtgeScene
+	private DtgeCore.SceneEditable dtgeScene;
+	public DtgeCore.SceneEditable DtgeScene
 	{
 		get { return dtgeScene; }
 		set
@@ -29,7 +29,7 @@ public partial class OptionEditList : VBoxContainer
 	}
 
 	public int MaximumSupportedOptions;
-	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.SceneId> OnTryOpenScene;
 	public Action OnOptionListUpdated;
 
 	// Called when the node enters the scene tree for the first time.
@@ -149,7 +149,7 @@ public partial class OptionEditList : VBoxContainer
 		this.HandleOptionUpdated(true);
 	}
 
-	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	public void HandleTryOpenScene(DtgeCore.SceneId sceneId)
 	{
 		this.OnTryOpenScene(sceneId);
 	}
@@ -184,7 +184,7 @@ public partial class OptionEditList : VBoxContainer
 
 	private void updateOptionEditPanelsFromScene()
 	{
-		List<DtgeCore.Option> updatedOptions = this.dtgeScene.OptionList;
+		List<DtgeCore.Option> updatedOptions = this.dtgeScene.GetOptionList();
 
 		for (int optionIndex = 0; optionIndex < updatedOptions.Count; optionIndex++)
 		{

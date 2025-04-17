@@ -81,7 +81,7 @@ public partial class Editor : Control
 
 	private struct DtgeSceneTabInfo
 	{
-		public DtgeCore.Scene dtgeScene;
+		public DtgeCore.SceneEditable dtgeScene;
 		public string path;
 		public bool saved;
 	}
@@ -232,7 +232,7 @@ public partial class Editor : Control
 		this.largeDialogInitialSize.Y = (int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
 	}
 
-	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	public void HandleTryOpenScene(DtgeCore.SceneId sceneId)
 	{
 		bool sceneFoundInTabs = false;
 
@@ -274,7 +274,7 @@ public partial class Editor : Control
 					if (sceneFile != null)
 					{
 						string sceneJson = sceneFile.GetAsText();
-						DtgeCore.Scene newScene = DtgeCore.Scene.Deserialize(sceneJson);
+						DtgeCore.SceneEditable newScene = new DtgeCore.SceneEditable(sceneJson);
 						if (newScene != null)
 						{
 							this.createOpenedSceneTab(newScene, sceneFilePath);
@@ -391,7 +391,8 @@ public partial class Editor : Control
 		case PopupMenuIds.GameRunCurrentScene:
 		{
 			this.runDebugGame();
-			this.gamePreviewScene.LoadScene(this.dtgeSceneEditContainer.DtgeScene);
+			DtgeCore.SceneReadOnly gameScene = new DtgeCore.SceneReadOnly(this.dtgeSceneEditContainer.DtgeScene.Serialize());
+			this.gamePreviewScene.LoadScene(gameScene);
 			break;
 		}
 		case PopupMenuIds.GameProjectSettings:
@@ -559,7 +560,7 @@ public partial class Editor : Control
 
 	private void createNewSceneTab()
 	{
-		DtgeCore.Scene newDtgeScene = new DtgeCore.Scene();
+		DtgeCore.SceneEditable newDtgeScene = new DtgeCore.SceneEditable();
 		DtgeSceneTabInfo newDtgeSceneTabInfo;
 		newDtgeSceneTabInfo.dtgeScene = newDtgeScene;
 		newDtgeSceneTabInfo.path = null;
@@ -580,7 +581,7 @@ public partial class Editor : Control
 		this.anyEditsMade = true;
 	}
 
-	private void createOpenedSceneTab(DtgeCore.Scene scene, string path)
+	private void createOpenedSceneTab(DtgeCore.SceneEditable scene, string path)
 	{
 		if (!this.anyEditsMade)
 		{
@@ -609,7 +610,7 @@ public partial class Editor : Control
 		return this.openDtgeSceneDictionary[tabKey];
 	}
 
-	private void setCurrentSceneTabInfoScene(DtgeCore.Scene scene)
+	private void setCurrentSceneTabInfoScene(DtgeCore.SceneEditable scene)
 	{
 		DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
 		currentDtgeSceneTabInfo.dtgeScene = scene;
@@ -685,7 +686,7 @@ public partial class Editor : Control
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 	}
 
-	private static void saveSceneToPath(DtgeCore.Scene scene, string path)
+	private static void saveSceneToPath(DtgeCore.SceneEditable scene, string path)
 	{
 		FileAccess sceneFile = FileAccess.Open(path, FileAccess.ModeFlags.Write);
 		if (sceneFile == null)

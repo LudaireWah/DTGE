@@ -7,7 +7,7 @@ public partial class SubscenePanelContainer : PanelContainer
 {
 	LineEdit nameLineEdit;
 
-	public Action OnSubsceneUpdated;
+	public Action OnSubsceneNameUpdated;
 	public Action<SubscenePanelContainer> OnSubsceneDeleted;
 
 	private string pendingSubsceneName;
@@ -47,6 +47,6 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public void _on_subscene_line_edit_text_changed(string newText)
 	{
-		this.OnSubsceneUpdated();
+		this.OnSubsceneNameUpdated();
 	}
 }

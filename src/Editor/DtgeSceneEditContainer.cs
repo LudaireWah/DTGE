@@ -40,8 +40,8 @@ public partial class DtgeSceneEditContainer : Control
 
 	private bool uiNeedsUpdate;
 
-	private DtgeCore.Scene dtgeScene;
-	public DtgeCore.Scene DtgeScene
+	private DtgeCore.SceneEditable dtgeScene;
+	public DtgeCore.SceneEditable DtgeScene
 	{
 		get { return dtgeScene; }
 		set
@@ -51,10 +51,10 @@ public partial class DtgeSceneEditContainer : Control
 		}
 	}
 
-	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.SceneId> OnTryOpenScene;
 	public Action OnSceneUpdated;
 
-	private DtgeCore.Scene.SubsceneId lastSelectedSubsceneIdForTextPreviewSubsceneSelector;
+	private DtgeCore.SubsceneId lastSelectedSubsceneIdForTextPreviewSubsceneSelector;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -92,7 +92,7 @@ public partial class DtgeSceneEditContainer : Control
 
 		this.snippetListContainer.OnSnippetListUpdated = this.HandleSnippetListUpdated;
 
-		this.DtgeScene = new DtgeCore.Scene();
+		this.DtgeScene = new DtgeCore.SceneEditable();
 		this.snippetListContainer.DtgeScene = this.DtgeScene;
 	}
 
@@ -135,7 +135,7 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void RestoreFromSerializedScene(string serializedScene)
 	{
-		this.dtgeScene = DtgeCore.Scene.Deserialize(serializedScene);
+		this.dtgeScene = new DtgeCore.SceneEditable(serializedScene);
 		this.UpdateUIFromScene();
 	}
 
@@ -150,12 +150,46 @@ public partial class DtgeSceneEditContainer : Control
 		this.OnSceneUpdated();
 	}
 
-	private void HandleSubscenesUpdated()
+	private void HandleSubsceneNameUpdated()
 	{
-		for (int subsceneIndex = 0; subsceneIndex < this.subsceneListHBoxContainer.GetChildCount();  subsceneIndex++)
+		this.updateSubsceneListFromDTGEScene();
+	}
+
+	private void HandleTryOpenScene(DtgeCore.SceneId sceneId)
+	{
+		this.OnTryOpenScene(sceneId);
+	}
+
+	public void HandleSnippetListUpdated()
+	{
+		this.updateSceneTextPreview();
+		this.OnSceneUpdated();
+	}
+
+	private void HandleSubsceneDeleted(SubscenePanelContainer subscenePanelContainer)
+	{
+		this.dtgeScene.RemoveSubsceneByIndex(subscenePanelContainer.GetIndex());
+		this.updateSubsceneListFromDTGEScene();
+		this.updateSceneTextPreview();
+		this.snippetListContainer.HandleSubsceneUpdate();
+		this.OnSceneUpdated();
+	}
+
+	private void updateSceneHeader()
+	{
+		this.dtgeSceneIdEntry.Text = this.dtgeScene.Id;
+		this.addSceneImageButton.Visible = !this.dtgeScene.RenderImage;
+		this.sceneImageHboxContainer.Visible = this.dtgeScene.RenderImage;
+		this.sceneImagePositionOptionButton.Selected = (int)this.dtgeScene.ImagePosition;
+		this.sceneImagePathLabel.Text = this.dtgeScene.ImagePath;
+	}
+
+	private void updateSubsceneNamesFromUI()
+	{
+		for (int subsceneIndex = 0; subsceneIndex < this.subsceneListHBoxContainer.GetChildCount(); subsceneIndex++)
 		{
 			SubscenePanelContainer currentSubscenePanelContainer = this.subsceneListHBoxContainer.GetChildOrNull<SubscenePanelContainer>(subsceneIndex);
-			if(currentSubscenePanelContainer != null)
+			if (currentSubscenePanelContainer != null)
 			{
 				string currentSubsceneName = currentSubscenePanelContainer.GetSubsceneName();
 				this.dtgeScene.SetSubsceneName(subsceneIndex, currentSubsceneName);
@@ -174,35 +208,6 @@ public partial class DtgeSceneEditContainer : Control
 
 		this.updateSceneTextPreview();
 		this.OnSceneUpdated();
-	}
-
-	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
-	{
-		this.OnTryOpenScene(sceneId);
-	}
-
-	public void HandleSnippetListUpdated()
-	{
-		this.updateSceneTextPreview();
-		this.OnSceneUpdated();
-	}
-
-	private void HandleDeleteSubscenePanelContainer(SubscenePanelContainer subscenePanelContainer)
-	{
-		this.dtgeScene.RemoveSubsceneByIndex(subscenePanelContainer.GetIndex());
-		this.updateSubsceneListFromDTGEScene();
-		this.updateSceneTextPreview();
-		this.snippetListContainer.HandleSubsceneUpdate();
-		this.OnSceneUpdated();
-	}
-
-	private void updateSceneHeader()
-	{
-		this.dtgeSceneIdEntry.Text = this.dtgeScene.Id;
-		this.addSceneImageButton.Visible = !this.dtgeScene.RenderImage;
-		this.sceneImageHboxContainer.Visible = this.dtgeScene.RenderImage;
-		this.sceneImagePositionOptionButton.Selected = (int)this.dtgeScene.ImagePosition;
-		this.sceneImagePathLabel.Text = this.dtgeScene.ImagePath;
 	}
 
 	private void updateSubsceneListFromDTGEScene()
@@ -247,7 +252,7 @@ public partial class DtgeSceneEditContainer : Control
 		{
 			for (int subsceneIndex = 0; subsceneIndex < this.dtgeScene.GetSubsceneCount(); subsceneIndex++)
 			{
-				DtgeCore.Scene.SubsceneId currentSubsceneId = this.dtgeScene.GetSubsceneId(subsceneIndex);
+				DtgeCore.SubsceneId currentSubsceneId = this.dtgeScene.GetSubsceneId(subsceneIndex);
 				if (dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount <= subsceneIndex)
 				{
 					this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.AddItem(currentSubsceneId.Name);
@@ -283,7 +288,7 @@ public partial class DtgeSceneEditContainer : Control
 		bool randomModeSnippetFound = false;
 		for (int snippetIndex = 0; snippetIndex < this.dtgeScene.GetSnippetCount(); snippetIndex++)
 		{
-			if (this.dtgeScene.SnippetList[snippetIndex].CurrentMode == DtgeCore.Snippet.Mode.Random)
+			if (this.dtgeScene.GetSnippetMode(snippetIndex) == DtgeCore.Snippet.Mode.Random)
 			{
 				randomModeSnippetFound = true;
 			}
@@ -294,6 +299,7 @@ public partial class DtgeSceneEditContainer : Control
 		setSceneTextPreviewText(true);
 	}
 
+
 	private void addNewSubscenePanelContainer(string subsceneName)
 	{
 		SubscenePanelContainer newSubscenePanelContainer =
@@ -302,8 +308,8 @@ public partial class DtgeSceneEditContainer : Control
 		if (newSubscenePanelContainer != null)
 		{
 			newSubscenePanelContainer.SetSubsceneName(subsceneName);
-			newSubscenePanelContainer.OnSubsceneDeleted = this.HandleDeleteSubscenePanelContainer;
-			newSubscenePanelContainer.OnSubsceneUpdated = this.HandleSubscenesUpdated;
+			newSubscenePanelContainer.OnSubsceneDeleted = this.HandleSubsceneDeleted;
+			newSubscenePanelContainer.OnSubsceneNameUpdated = this.HandleSubsceneNameUpdated;
 			this.subsceneListHBoxContainer.AddChild(newSubscenePanelContainer);
 		}
 	}
@@ -366,7 +372,6 @@ public partial class DtgeSceneEditContainer : Control
 	{
 		this.dtgeScene.AddSubscene("");
 		this.updateSubsceneListFromDTGEScene();
-		this.HandleSubscenesUpdated();
 	}
 
 	public void _on_scene_text_preview_subscene_selection_option_button_item_selected(int selected)
@@ -387,7 +392,6 @@ public partial class DtgeSceneEditContainer : Control
 			this.DtgeScene.DisableNullSubscene();
 		}
 		this.updateSubsceneListFromDTGEScene();
-		this.HandleSubscenesUpdated();
 	}
 
 	public void _on_add_scene_image_button_pressed()
@@ -405,14 +409,14 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void _on_image_position_option_button_item_selected(int indexSelected)
 	{
-		this.DtgeScene.ImagePosition = (DtgeCore.Scene.SceneImagePosition)indexSelected;
+		this.DtgeScene.ImagePosition = (DtgeCore.SceneImagePosition)indexSelected;
 	}
 
 	public void _on_remove_scene_image_button_pressed()
 	{
 		this.dtgeScene.RenderImage = false;
 		this.dtgeScene.ImagePath = null;
-		this.dtgeScene.ImagePosition = (DtgeCore.Scene.SceneImagePosition)0;
+		this.dtgeScene.ImagePosition = (DtgeCore.SceneImagePosition)0;
 		this.UpdateUIFromScene();
 	}
 

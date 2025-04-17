@@ -75,7 +75,7 @@ public partial class NavigationButtonGrid : GridContainer
 		}
 	}
 
-	public void BindSceneOptionsToButtons(DtgeCore.Scene scene)
+	public void BindSceneOptionsToButtons(DtgeCore.SceneReadOnly scene)
 	{
 		if (scene == null)
 		{

@@ -39,7 +39,7 @@ public partial class Game : Control
 
 	private GameSettings gameSettings;
 
-	private DtgeCore.Scene currentDtgeScene;
+	private DtgeCore.SceneReadOnly currentDtgeScene;
 
 	private bool manualViewportSizeOverride;
 	private Vector2 manualViewportSize;
@@ -88,8 +88,8 @@ public partial class Game : Control
 	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
-		DtgeCore.Scene dtgeScene;
+		DtgeCore.SceneId sceneId = new DtgeCore.SceneId(option.TargetSceneId);
+		DtgeCore.SceneReadOnly dtgeScene;
 		DtgeCore.SceneManager.GetSceneSuccessValue successValue = sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
 
 		switch (successValue)
@@ -200,7 +200,7 @@ public partial class Game : Control
 			return;
 		}
 
-		DtgeCore.Scene startScene = null;
+		DtgeCore.SceneReadOnly startScene = null;
 
 		string[] sceneFileNames = sceneDirectory.GetFiles();
 
@@ -213,7 +213,7 @@ public partial class Game : Control
 			if (sceneFile != null)
 			{
 				string sceneJson = sceneFile.GetAsText();
-				DtgeCore.Scene newScene = DtgeCore.Scene.Deserialize(sceneJson);
+				DtgeCore.SceneReadOnly newScene = new DtgeCore.SceneReadOnly(sceneJson);
 				if (newScene != null)
 				{
 					sceneManager.AddScene(newScene);
@@ -242,7 +242,7 @@ public partial class Game : Control
 		}
 	}
 
-	public void LoadScene(DtgeCore.Scene scene)
+	public void LoadScene(DtgeCore.SceneReadOnly scene)
 	{
 		this.currentDtgeScene = scene;
 		this.updateUIFromScene();
@@ -294,7 +294,7 @@ public partial class Game : Control
 		}
 	}
 
-	private void updateNodeVisibilityFromScene(DtgeCore.Scene scene)
+	private void updateNodeVisibilityFromScene(DtgeCore.SceneReadOnly scene)
 	{
 		if (scene == null || !scene.RenderImage)
 		{
@@ -313,7 +313,7 @@ public partial class Game : Control
 
 			switch (scene.ImagePosition)
 			{
-			case DtgeCore.Scene.SceneImagePosition.Left:
+			case DtgeCore.SceneImagePosition.Left:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = true;
 				this.leftTextureRect.Texture = sceneTexture;
@@ -324,7 +324,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.Scene.SceneImagePosition.Right:
+			case DtgeCore.SceneImagePosition.Right:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -335,7 +335,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.Scene.SceneImagePosition.Top:
+			case DtgeCore.SceneImagePosition.Top:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -346,7 +346,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.Scene.SceneImagePosition.Bottom:
+			case DtgeCore.SceneImagePosition.Bottom:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -357,7 +357,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = true;
 				this.bottomTextureRect.Texture = sceneTexture;
 				break;
-			case DtgeCore.Scene.SceneImagePosition.OnlyImage:
+			case DtgeCore.SceneImagePosition.OnlyImage:
 				this.sceneTextPanelContainer.Visible = false;
 				this.leftTextureRect.Visible = true;
 				this.leftTextureRect.Texture = sceneTexture;

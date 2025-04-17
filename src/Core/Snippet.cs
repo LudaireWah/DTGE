@@ -330,11 +330,11 @@ public class Snippet
 			{
 				string simpleTextToTransferToFirstSubsceneVariation = this.variations[SIMPLE_DICTIONARY_KEY].Text;
 				this.variations.Clear();
-				Scene.SubsceneId firstSubsceneId = this.subsceneContextProvider.GetSubsceneId(0);
+				SubsceneId firstSubsceneId = this.subsceneContextProvider.GetSubsceneId(0);
 				this.variations.Add(firstSubsceneId.Id, new VariationInfo(firstSubsceneId.Name, simpleTextToTransferToFirstSubsceneVariation));
 				for (int subsceneIndex = 1; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 				{
-					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+					SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
 					this.variations.Add(currentSubsceneId.Id, new VariationInfo(currentSubsceneId.Name, string.Empty));
 				}
 			}
@@ -366,7 +366,7 @@ public class Snippet
 			string[] cachedSubsceneTextsToTranslateToRandom = new string[this.subsceneContextProvider.GetSubsceneCount()];
 			for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 			{
-				Scene.SubsceneId subsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+				SubsceneId subsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
 				cachedSubsceneTextsToTranslateToRandom[subsceneIndex] = this.variations[subsceneId.Id].Text;
 			}
 			this.variations.Clear();
@@ -406,7 +406,7 @@ public class Snippet
 				this.variations.Clear();
 				for (int subsceneIndex = 0; subsceneIndex < this.subsceneContextProvider.GetSubsceneCount(); subsceneIndex++)
 				{
-					Scene.SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
+					SubsceneId currentSubsceneId = this.subsceneContextProvider.GetSubsceneId(subsceneIndex);
 					this.variations.Add(currentSubsceneId.Id, new VariationInfo(currentSubsceneId.Name, cachedRandomTextsToTranslateToSubscenes[subsceneIndex]));
 				}
 			}
@@ -437,7 +437,7 @@ public class Snippet
 		this.subsceneContextProvider.UnregisterOnSubsceneRenamed(this.handleSubsceneRenamed);
 	}
 
-	private void handleSubsceneAdded(Scene.SubsceneId subsceneId)
+	private void handleSubsceneAdded(SubsceneId subsceneId)
 	{
 		if (this.CurrentMode == Mode.Subscene)
 		{
@@ -445,7 +445,7 @@ public class Snippet
 		}
 	}
 
-	private void handleSubsceneRemoved(Scene.SubsceneId subsceneId)
+	private void handleSubsceneRemoved(SubsceneId subsceneId)
 	{
 		if (this.CurrentMode == Mode.Subscene)
 		{
@@ -460,7 +460,7 @@ public class Snippet
 		}
 	}
 
-	private void handleSubsceneRenamed(Scene.SubsceneId subsceneId, string newName)
+	private void handleSubsceneRenamed(SubsceneId subsceneId, string newName)
 	{
 		if (this.CurrentMode == Mode.Subscene)
 		{

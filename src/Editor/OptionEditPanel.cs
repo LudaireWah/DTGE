@@ -35,7 +35,7 @@ public partial class OptionEditPanel : PanelContainer
 	public Action<OptionEditPanel> OnOptionMovedUp;
 	public Action<OptionEditPanel> OnOptionMovedDown;
 	public Action<OptionEditPanel> OnOptionDeleted;
-	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -128,7 +128,7 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_navigate_to_target_scene_button_pressed()
 	{
-		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
+		DtgeCore.SceneId targetSceneId = new DtgeCore.SceneId(this.targetSceneLineEdit.Text);
 		this.OnTryOpenScene(targetSceneId);
 	}
 

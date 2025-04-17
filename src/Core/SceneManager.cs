@@ -16,11 +16,11 @@ public class SceneManager
 	}
 
 	private static SceneManager instance;
-	private readonly Dictionary<string, Scene> scenes;
+	private readonly Dictionary<string, SceneReadOnly> scenes;
 
 	private SceneManager()
 	{
-		this.scenes= new Dictionary<string, Scene>();
+		this.scenes= new Dictionary<string, SceneReadOnly>();
 	}
 
 	public static SceneManager GetSceneManager()
@@ -33,12 +33,12 @@ public class SceneManager
 		return SceneManager.instance;
 	}
 
-	public void AddScene(Scene newScene)
+	public void AddScene(SceneReadOnly newScene)
 	{
 		this.scenes[newScene.Id] = newScene;
 	}
 
-	public GetSceneSuccessValue GetSceneById(string id, out Scene outScene)
+	public GetSceneSuccessValue GetSceneById(string id, out SceneReadOnly outScene)
 	{
 		GetSceneSuccessValue successValue = GetSceneSuccessValue.Success;
 		bool foundScene = this.scenes.TryGetValue(id, out outScene);
@@ -51,12 +51,13 @@ public class SceneManager
 		return successValue;
 	}
 
-	public GetSceneSuccessValue GetSceneAndSubsceneById(Scene.SceneId id, out Scene outScene)
+	public GetSceneSuccessValue GetSceneAndSubsceneById(SceneId id, out SceneReadOnly outScene)
 	{
 		GetSceneSuccessValue successValue = this.GetSceneById(id.scene, out outScene);
 		
 		if (successValue == GetSceneSuccessValue.Success)
 		{
+			
 			bool subsceneSetSuccessfully = outScene.SetCurrentSubscene(id.subscene);
 			if (!subsceneSetSuccessfully)
 			{

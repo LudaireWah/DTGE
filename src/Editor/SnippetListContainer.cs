@@ -15,9 +15,9 @@ public partial class SnippetListContainer : VBoxContainer
 	bool firstSceneHasBeenSet;
 	bool uiNeedUpdate;
 
-	private DtgeCore.Scene dtgeScene;
+	private DtgeCore.SceneEditable dtgeScene;
 
-	public DtgeCore.Scene DtgeScene
+	public DtgeCore.SceneEditable DtgeScene
 	{
 		get { return dtgeScene; }
 		set
@@ -85,7 +85,7 @@ public partial class SnippetListContainer : VBoxContainer
 				aboveSnippetPanelContainer != null &&
 				currentSnippetPanelContainer == targetSnippet)
 			{
-				DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
+				DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
 				aboveSnippetCopy.CopyFrom(aboveSnippetPanelContainer.BoundSnippet);
 				aboveSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
 				currentSnippetPanelContainer.BoundSnippet.CopyFrom(aboveSnippetCopy);
@@ -119,7 +119,7 @@ public partial class SnippetListContainer : VBoxContainer
 				belowSnippetPanelContainer != null &&
 				currentSnippetPanelContainer == targetSnippet)
 			{
-				DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
+				DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
 				belowSnippetCopy.CopyFrom(belowSnippetPanelContainer.BoundSnippet);
 				belowSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
 				currentSnippetPanelContainer.BoundSnippet.CopyFrom(belowSnippetCopy);
@@ -161,7 +161,7 @@ public partial class SnippetListContainer : VBoxContainer
 
 	public void _on_add_snippet_button_pressed()
 	{
-		DtgeCore.Snippet newSnippet = new DtgeCore.Snippet(this.dtgeScene);
+		DtgeCore.Snippet newSnippet = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
 		this.DtgeScene.AddSnippet(newSnippet);
 		this.addNewSnippetPanelContainer(newSnippet);
 		this.OnSnippetListUpdated();
@@ -169,7 +169,7 @@ public partial class SnippetListContainer : VBoxContainer
 
 	private void updateSnippetPanelContainersFromSnippets()
 	{
-		List<DtgeCore.Snippet> updatedSnippets = this.dtgeScene.SnippetList;
+		List<DtgeCore.Snippet> updatedSnippets = this.dtgeScene.GetSnippetList();
 		int nonNullSnippetCount = 0;
 
 		for (int snippetIndex = 0; snippetIndex < updatedSnippets.Count; snippetIndex++)

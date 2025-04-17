@@ -11,78 +11,84 @@ namespace DtgeCore;
  * player is displayed via a scene. Thus, navigation through the game is navigating
  * through a set of scenes, each presenting the player with a description of the player's
  * situation and which options the player may choose to advance in the game.
+ * 
+ * The core of a scene is the SceneData class, which is in this file, but it shouldn't be
+ * utlized directly. Instead, either a SceneReadOnly or a SceneEditable should be used, which
+ * provide the appropriate wrappers for the given context.
  */
-public class Scene : ISubsceneContextProvider
+public enum SceneImagePosition
+{
+	Left,
+	Right,
+	Top,
+	Bottom,
+	OnlyImage
+}
+
+public struct SceneId
+{
+	public string scene;
+	public string subscene;
+
+	public SceneId(string sceneIdString)
+	{
+		string[] ids = sceneIdString.Split(".");
+		this.scene = ids[0];
+		if (ids.Length > 1)
+		{
+			this.subscene = ids[1];
+		}
+		else
+		{
+			this.subscene = null;
+		}
+		if (ids.Length > 2)
+		{
+			// error
+		}
+	}
+
+	public SceneId(string sceneName, string subsceneName)
+	{
+		this.scene = sceneName;
+		this.subscene = subsceneName;
+	}
+}
+
+public class SubsceneId
 {
 	private const string NULL_SUBSCENE_DISPLAY_NAME = "(None)";
+
+	public string Name { get; set; }
+	public uint Id { get; set; }
+	public static SubsceneId None = new SubsceneId(NULL_SUBSCENE_DISPLAY_NAME, 0);
+
+	private static uint nextIdNumber = 1;
+
+	public SubsceneId()
+	{
+		this.Name = "New Subscene";
+		this.Id = nextIdNumber++;
+	}
+
+	public SubsceneId(string name)
+	{
+		this.Name = name;
+		this.Id = nextIdNumber++;
+	}
+
+	private SubsceneId(string name, uint id)
+	{
+		this.Name = name;
+		this.Id = id;
+	}
+}
+
+public class SceneData : ISubsceneContextProvider
+{
 	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
 	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
 
-	public enum SceneImagePosition
-	{
-		Left,
-		Right,
-		Top,
-		Bottom,
-		OnlyImage
-	}
-
-	public struct SceneId
-	{
-		public string scene;
-		public string subscene;
-
-		public SceneId(string sceneIdString)
-		{
-			string[] ids = sceneIdString.Split(".");
-			this.scene = ids[0];
-			if (ids.Length > 1)
-			{
-				this.subscene = ids[1];
-			}
-			else
-			{
-				this.subscene = null;
-			}
-			if (ids.Length > 2)
-			{
-				// error
-			}
-		}
-
-		public SceneId(string sceneName, string subsceneName)
-		{
-			this.scene = sceneName;
-			this.subscene = subsceneName;
-		}
-	}
-
-	public class SubsceneId
-	{
-		public string Name { get; set; }
-		public uint Id { get; set; }
-		public static SubsceneId None = new SubsceneId(NULL_SUBSCENE_DISPLAY_NAME, 0);
-
-		private static uint nextIdNumber = 1;
-
-		public SubsceneId()
-		{
-			this.Name = "New Subscene";
-			this.Id = nextIdNumber++;
-		}
-
-		public SubsceneId(string name)
-		{
-			this.Name = name;
-			this.Id = nextIdNumber++;
-		}
-
-		private SubsceneId(string name, uint id)
-		{
-			this.Name = name;
-			this.Id = id;
-		}
-	}
 
 	public string Id { get; set; }
 	public List<Option> OptionList { get; set; }
@@ -102,7 +108,7 @@ public class Scene : ISubsceneContextProvider
 	private List<Action<SubsceneId>> OnSubsceneRemovedList;
 	private List<Action<SubsceneId, string>> OnSubsceneRenamedList;
 
-	public Scene()
+	public SceneData()
 	{
 		this.Id = "";
 		this.OptionList = new List<Option>();
@@ -120,7 +126,7 @@ public class Scene : ISubsceneContextProvider
 		this.AddSnippet(new Snippet(this));
 	}
 
-	public Scene(string id)
+	public SceneData(string id)
 	{
 		this.Id= id;
 		this.OptionList = new List<Option>();
@@ -144,9 +150,9 @@ public class Scene : ISubsceneContextProvider
 		return toReturn;
 	}
 
-	public static Scene Deserialize(string sceneJson)
+	public static SceneData Deserialize(string sceneJson)
 	{
-		Scene deserializedScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
+		SceneData deserializedScene = JsonSerializer.Deserialize<DtgeCore.SceneData>(sceneJson);
 		if (deserializedScene.SceneText != null && deserializedScene.SceneText.Length != 0)
 		{
 			Snippet snippetFromSceneText = new Snippet(deserializedScene);
