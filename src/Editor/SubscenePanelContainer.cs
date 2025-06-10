@@ -27,7 +27,10 @@ public partial class SubscenePanelContainer : PanelContainer
 	{
 		if (this.IsNodeReady())
 		{
-			this.nameLineEdit.Text = subsceneName;
+			if (this.nameLineEdit.Text != subsceneName)
+			{
+				this.nameLineEdit.Text = subsceneName;
+			}
 		}
 		else
 		{

@@ -8,22 +8,22 @@ namespace DtgeCore;
  */
 public class Option
 {
-	public string Id { get; set; }
+	public SUID Id { get; private set; }
 	public string TargetSceneId { get; set; }
 	public string DisplayName { get; set; }
 	public string Tooltip { get; set; }
 	public bool Enabled { get; set; }
 
-	public Option()
+	public Option(SceneData parentSceneData)
 	{
-		this.Id = "";
+		this.Id = parentSceneData.GetSUID();
 		this.TargetSceneId = "";
 		this.DisplayName = "";
 		this.Enabled = true;
 	}
-	public Option(string id, string targetSceneId, string displayName, bool enabled= true)
+	public Option(SceneData parentSceneData, string targetSceneId, string displayName, bool enabled= true)
 	{
-		this.Id= id;
+		this.Id= parentSceneData.GetSUID();
 		this.TargetSceneId= targetSceneId;
 		this.DisplayName= displayName;
 		this.Enabled= enabled;

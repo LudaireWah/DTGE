@@ -16,6 +16,7 @@ namespace DtgeCore;
  * utlized directly. Instead, either a SceneReadOnly or a SceneEditable should be used, which
  * provide the appropriate wrappers for the given context.
  */
+
 public enum SceneImagePosition
 {
 	Left,
@@ -55,32 +56,82 @@ public struct SceneId
 	}
 }
 
-public class SubsceneId
+/**
+ * A SUID, short for Scene Unique Identifier, is used to  identify elements within a scene.
+ * It's mainly used at edit time, allowing editing code to track and reference different
+ * elements of the scene instead of more fluid alternatives like indices or user-written
+ * names. SUIDs should only be obtained by the SceneData's GetNewSUID() function and never
+ * created manually with the constructor.
+ * 
+ * SUID.None is used for certain "elements" that are static in nature and thus don't need
+ * a proper SUID. As an example, null subscenes in many ways act like a regular subscene, but
+ * it shouldn't be allocated a SUID as if it's a true element. (This might be something to
+ * reconsider, but it's how the none subscene acted before the introduction of SUIDs, so
+ * to minimize churn, I'm going to maintain that behavior.)
+ */
+public class SUID
+{
+	private readonly int suid;
+	public static SUID None = new SUID(0);
+	public const int FIRST_VALID_SUID = 1;
+
+	public SUID(int suid)
+	{
+		this.suid = suid;
+	}
+
+	public static bool operator ==(SUID left, SUID right)
+	{
+		return left.suid == right.suid;
+	}
+
+	public static bool operator !=(SUID left, SUID right)
+	{
+		return !(left == right);
+	}
+
+	public override bool Equals(object other)
+	{
+		bool isEqual = false;
+
+		if (other.GetType() == typeof(SUID))
+		{
+			isEqual = this == (SUID)other;
+		}
+
+		return isEqual;
+	}
+
+	public override int GetHashCode()
+	{
+		return suid;
+	}
+}
+
+public class Subscene
 {
 	private const string NULL_SUBSCENE_DISPLAY_NAME = "(None)";
 
 	public string Name { get; set; }
-	public uint Id { get; set; }
-	public static SubsceneId None = new SubsceneId(NULL_SUBSCENE_DISPLAY_NAME, 0);
+	public SUID Id { get; set; }
+	public static Subscene None = new Subscene(SUID.None, NULL_SUBSCENE_DISPLAY_NAME);
 
-	private static uint nextIdNumber = 1;
-
-	public SubsceneId()
+	public Subscene(SceneData parentSceneData)
 	{
 		this.Name = "New Subscene";
-		this.Id = nextIdNumber++;
+		this.Id = parentSceneData.GetSUID();
 	}
 
-	public SubsceneId(string name)
+	public Subscene(SceneData parentSceneData, string name)
 	{
 		this.Name = name;
-		this.Id = nextIdNumber++;
+		this.Id = parentSceneData.GetSUID();
 	}
 
-	private SubsceneId(string name, uint id)
+	private Subscene(SUID suid, string name)
 	{
 		this.Name = name;
-		this.Id = id;
+		this.Id = suid;
 	}
 }
 
@@ -89,10 +140,9 @@ public class SceneData : ISubsceneContextProvider
 	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
 	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
 
-
 	public string Id { get; set; }
 	public List<Option> OptionList { get; set; }
-	public List<SubsceneId> Subscenes { get; set; }
+	public List<Subscene> Subscenes { get; set; }
 	public int CurrentSubsceneIndex { get; set; }
 	public bool AllowNullSubscene { get; set; }
 	public List<Snippet> SnippetList { get; set; }
@@ -104,25 +154,27 @@ public class SceneData : ISubsceneContextProvider
 	public Option[] optionList { get; set; }
 	public string SceneText { get; set; }
 
-	private List<Action<SubsceneId>> OnSubsceneAddedList;
-	private List<Action<SubsceneId>> OnSubsceneRemovedList;
-	private List<Action<SubsceneId, string>> OnSubsceneRenamedList;
+	private List<Action<Subscene>> OnSubsceneAddedList;
+	private List<Action<Subscene>> OnSubsceneRemovedList;
+	private List<Action<Subscene, string>> OnSubsceneRenamedList;
+
+	private int nextSUID = SUID.FIRST_VALID_SUID;
 
 	public SceneData()
 	{
 		this.Id = "";
 		this.OptionList = new List<Option>();
-		this.Subscenes = new List<SubsceneId>();
+		this.Subscenes = new List<Subscene>();
 		this.CurrentSubsceneIndex = 0;
 		this.AllowNullSubscene = false;
 		this.SnippetList = new List<Snippet>();
-		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
+		this.OnSubsceneAddedList = new List<Action<Subscene>>();
+		this.OnSubsceneRemovedList = new List<Action<Subscene>>();
+		this.OnSubsceneRenamedList = new List<Action<Subscene, string>>();
 		this.RenderImage = false;
 		this.ImagePath = null;
 
-		this.AddOption(new Option());
+		this.AddOption(new Option(this));
 		this.AddSnippet(new Snippet(this));
 	}
 
@@ -130,18 +182,23 @@ public class SceneData : ISubsceneContextProvider
 	{
 		this.Id= id;
 		this.OptionList = new List<Option>();
-		this.Subscenes = new List<SubsceneId>();
+		this.Subscenes = new List<Subscene>();
 		this.CurrentSubsceneIndex = 0;
 		this.AllowNullSubscene = false;
 		this.SnippetList = new List<Snippet>();
-		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
+		this.OnSubsceneAddedList = new List<Action<Subscene>>();
+		this.OnSubsceneRemovedList = new List<Action<Subscene>>();
+		this.OnSubsceneRenamedList = new List<Action<Subscene, string>>();
 		this.RenderImage = false;
 		this.ImagePath = null;
 
-		this.AddOption(new Option());
+		this.AddOption(new Option(this));
 		this.AddSnippet(new Snippet(this));
+	}
+
+	public SUID GetSUID()
+	{
+		return new SUID(this.nextSUID++);
 	}
 
 	public string Serialize()
@@ -301,7 +358,7 @@ public class SceneData : ISubsceneContextProvider
 		if (!this.AllowNullSubscene)
 		{
 			this.AllowNullSubscene = true;
-			this.OnSubsceneAdded(SubsceneId.None);
+			this.OnSubsceneAdded(Subscene.None);
 		}
 	}
 
@@ -310,20 +367,20 @@ public class SceneData : ISubsceneContextProvider
 		if (this.AllowNullSubscene)
 		{
 			this.AllowNullSubscene = false;
-			this.OnSubsceneRemoved(SubsceneId.None);
+			this.OnSubsceneRemoved(Subscene.None);
 		}
 	}
 
 	public void AddSubscene(string newSubsceneName)
 	{
-		SubsceneId newId = new SubsceneId(newSubsceneName);
+		Subscene newId = new Subscene(this, newSubsceneName);
 		this.Subscenes.Add(newId);
 		this.OnSubsceneAdded(newId);
 	}
 
 	public void RemoveSubsceneByIndex(int subsceneIndex)
 	{
-		SubsceneId toRemove = this.Subscenes[subsceneIndex];
+		Subscene toRemove = this.Subscenes[subsceneIndex];
 		this.OnSubsceneRemoved(toRemove);
 		this.Subscenes.RemoveAt(subsceneIndex);
 	}
@@ -373,14 +430,14 @@ public class SceneData : ISubsceneContextProvider
 		return success;
 	}
 
-	public bool SetCurrentSubscene(SubsceneId subsceneId)
+	public bool SetCurrentSubscene(Subscene subscene)
 	{
 		bool success = false;
 		int desiredSubsceneIndex = -1;
 
 		for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
 		{
-			if (Subscenes[subsceneIndex].Id == subsceneId.Id)
+			if (Subscenes[subsceneIndex].Id == subscene.Id)
 			{
 				desiredSubsceneIndex = subsceneIndex;
 				break;
@@ -429,30 +486,30 @@ public class SceneData : ISubsceneContextProvider
 		return this.Subscenes.Count;
 	}
 
-	public SubsceneId GetSubsceneId(int subsceneIndex)
+	public Subscene GetSubscene(int subsceneIndex)
 	{
-		SubsceneId subsceneId = null;
+		Subscene subscene = null;
 
 		if (this.AllowNullSubscene)
 		{
 			if (subsceneIndex == 0)
 			{
-				subsceneId = SubsceneId.None;
+				subscene = Subscene.None;
 			}
 			else
 			{
-				subsceneId = this.Subscenes[subsceneIndex - 1];
+				subscene = this.Subscenes[subsceneIndex - 1];
 			}
 		}
 		else
 		{
-			subsceneId = this.Subscenes[subsceneIndex];
+			subscene = this.Subscenes[subsceneIndex];
 		}
 
-		return subsceneId;
+		return subscene;
 	}
 
-	public SubsceneId GetEditableSubsceneId(int subsceneIndex)
+	public Subscene GetEditableSubscene(int subsceneIndex)
 	{
 		return this.Subscenes[subsceneIndex];
 	}
@@ -462,12 +519,12 @@ public class SceneData : ISubsceneContextProvider
 		return this.CurrentSubsceneIndex;
 	}
 
-	public SubsceneId GetCurrentSubsceneId()
+	public Subscene GetCurrentSubscene()
 	{
-		return this.GetSubsceneId(this.CurrentSubsceneIndex);
+		return this.GetSubscene(this.CurrentSubsceneIndex);
 	}
 
-	public void RegisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded)
+	public void RegisterOnSubsceneAdded(Action<Subscene> onSubsceneAdded)
 	{
 		if (onSubsceneAdded != null)
 		{
@@ -479,12 +536,12 @@ public class SceneData : ISubsceneContextProvider
 		}
 	}
 
-	public void UnregisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded)
+	public void UnregisterOnSubsceneAdded(Action<Subscene> onSubsceneAdded)
 	{
 		this.OnSubsceneAddedList.Remove(onSubsceneAdded);
 	}
 
-	public void RegisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved)
+	public void RegisterOnSubsceneRemoved(Action<Subscene> onSubsceneRemoved)
 	{
 		if (onSubsceneRemoved != null)
 		{
@@ -496,12 +553,12 @@ public class SceneData : ISubsceneContextProvider
 		}
 	}
 
-	public void UnregisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved)
+	public void UnregisterOnSubsceneRemoved(Action<Subscene> onSubsceneRemoved)
 	{
 		this.OnSubsceneRemovedList.Remove(onSubsceneRemoved);
 	}
 
-	public void RegisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed)
+	public void RegisterOnSubsceneRenamed(Action<Subscene, string> onSubsceneRenamed)
 	{
 		if (onSubsceneRenamed != null)
 		{
@@ -513,12 +570,12 @@ public class SceneData : ISubsceneContextProvider
 		}
 	}
 
-	public void UnregisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed)
+	public void UnregisterOnSubsceneRenamed(Action<Subscene, string> onSubsceneRenamed)
 	{
 		this.OnSubsceneRenamedList.Remove(onSubsceneRenamed);
 	}
 
-	private void OnSubsceneAdded(SubsceneId subsceneName)
+	private void OnSubsceneAdded(Subscene subsceneName)
 	{
 		// Temporarily hijacking this as a "changed" On/Handle
 		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneAddedList.Count; registrarIndex++)
@@ -528,7 +585,7 @@ public class SceneData : ISubsceneContextProvider
 
 	}
 
-	private void OnSubsceneRemoved(SubsceneId subsceneName)
+	private void OnSubsceneRemoved(Subscene subsceneName)
 	{
 		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneRemovedList.Count; registrarIndex++)
 		{
@@ -536,7 +593,7 @@ public class SceneData : ISubsceneContextProvider
 		}
 	}
 
-	private void OnSubsceneRenamed(SubsceneId oldName, string newName)
+	private void OnSubsceneRenamed(Subscene oldName, string newName)
 	{
 		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneRenamedList.Count; registrarIndex++)
 		{

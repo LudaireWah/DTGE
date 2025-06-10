@@ -91,10 +91,11 @@ public partial class OptionEditList : VBoxContainer
 				aboveOptionEditPanel != null &&
 				currentOptionEditPanel == targetOption)
 			{
-				DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
-				aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
-				aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
-				currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
+				// TODO: The adjustment to how options works means this needs to be totally redone.
+				//DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
+				//aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
+				//aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
+				//currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
 				break;
 			}
 			aboveOptionEditPanel = currentOptionEditPanel;

@@ -4,12 +4,12 @@ namespace DtgeCore;
 public interface ISubsceneContextProvider
 {
 	public int GetSubsceneCount();
-	public SubsceneId GetSubsceneId(int subsceneIndex);
-	public SubsceneId GetCurrentSubsceneId();
-	public void RegisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded);
-	public void UnregisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded);
-	public void RegisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved);
-	public void UnregisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved);
-	public void RegisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed);
-	public void UnregisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed);
+	public Subscene GetSubscene(int subsceneIndex);
+	public Subscene GetCurrentSubscene();
+	public void RegisterOnSubsceneAdded(Action<Subscene> onSubsceneAdded);
+	public void UnregisterOnSubsceneAdded(Action<Subscene> onSubsceneAdded);
+	public void RegisterOnSubsceneRemoved(Action<Subscene> onSubsceneRemoved);
+	public void UnregisterOnSubsceneRemoved(Action<Subscene> onSubsceneRemoved);
+	public void RegisterOnSubsceneRenamed(Action<Subscene, string> onSubsceneRenamed);
+	public void UnregisterOnSubsceneRenamed(Action<Subscene, string> onSubsceneRenamed);
 }

@@ -38,7 +38,7 @@ public class SceneReadOnly
 		return this.sceneData.SetCurrentSubscene(subsceneName);
 	}
 
-	public bool SetCurrentSubscene(SubsceneId subsceneId)
+	public bool SetCurrentSubscene(Subscene subsceneId)
 	{
 		return this.sceneData.SetCurrentSubscene(subsceneId);
 	}

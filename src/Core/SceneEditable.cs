@@ -104,16 +104,19 @@ public class SceneEditable
 
 	public bool RestoreFromPastedText(string pastedText)
 	{
+		this.NeedsUIUpdate = true;
 		return this.sceneData.RestoreFromPastedText(pastedText);
 	}
 
 	public void RemoveSubsceneByIndex(int subsceneIndex)
 	{
+		this.NeedsUIUpdate = true;
 		this.sceneData.RemoveSubsceneByIndex(subsceneIndex);
 	}
 
 	public void SetSubsceneName(int subsceneIndex, string subsceneName)
 	{
+		this.NeedsUIUpdate = true;
 		this.sceneData.SetSubsceneName(subsceneIndex, subsceneName);
 	}
 
@@ -122,18 +125,20 @@ public class SceneEditable
 		return this.sceneData.GetEditableSubsceneCount();
 	}
 
-	public SubsceneId GetEditableSubsceneId(int subsceneIndex)
+	public Subscene GetEditableSubscene(int subsceneIndex)
 	{
-		return this.sceneData.GetEditableSubsceneId(subsceneIndex);
+		return this.sceneData.GetEditableSubscene(subsceneIndex);
 	}
 
 	public void EnableNullSubscene()
 	{
+		this.NeedsUIUpdate = true;
 		this.sceneData.EnableNullSubscene();
 	}
 
 	public void DisableNullSubscene()
 	{
+		this.NeedsUIUpdate = true;
 		this.sceneData.DisableNullSubscene();
 	}
 
@@ -142,23 +147,26 @@ public class SceneEditable
 		return this.sceneData.GetSubsceneCount();
 	}
 
-	public SubsceneId GetSubsceneId(int subsceneIndex)
+	public Subscene GetSubscene(int subsceneIndex)
 	{
-		return this.sceneData.GetSubsceneId(subsceneIndex);
+		return this.sceneData.GetSubscene(subsceneIndex);
 	}
 
 	public bool SetCurrentSubsceneByIndex(int index)
 	{
+		this.NeedsUIUpdate = true;
 		return this.sceneData.SetCurrentSubsceneByIndex(index);
 	}
 
 	public bool SetCurrentSubscene(string subsceneName)
 	{
+		this.NeedsUIUpdate = true;
 		return this.sceneData.SetCurrentSubscene(subsceneName);
 	}
 
-	public bool SetCurrentSubscene(SubsceneId subsceneId)
+	public bool SetCurrentSubscene(Subscene subsceneId)
 	{
+		this.NeedsUIUpdate = true;
 		return this.sceneData.SetCurrentSubscene(subsceneId);
 	}
 
@@ -167,9 +175,9 @@ public class SceneEditable
 		return this.sceneData.GetCurrentSubsceneIndex();
 	}
 
-	public SubsceneId GetCurrentSubsceneId()
+	public Subscene GetCurrentSubscene()
 	{
-		return this.sceneData.GetCurrentSubsceneId();
+		return this.sceneData.GetCurrentSubscene();
 	}
 
 	public int GetSnippetCount()
