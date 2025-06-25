@@ -7,40 +7,29 @@ public partial class SubscenePanelContainer : PanelContainer
 {
 	LineEdit nameLineEdit;
 
-	public Action OnSubsceneNameUpdated;
 	public Action<SubscenePanelContainer> OnSubsceneDeleted;
 
-	private string pendingSubsceneName;
+	private DtgeCore.SubsceneEditable subsceneEditable;
+	public DtgeCore.SubsceneEditable SubsceneEditable
+	{
+		get { return this.subsceneEditable; }
+		set
+		{
+			this.subsceneEditable = value;
+			this.UiNeedsUpdate = true;
+		}
+	}
+	public bool UiNeedsUpdate;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.nameLineEdit = GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
-		if (this.pendingSubsceneName != null)
+		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
+		if (this.UiNeedsUpdate)
 		{
-			nameLineEdit.Text = pendingSubsceneName;
-			pendingSubsceneName = null;
+			this.nameLineEdit.Text = this.subsceneEditable.Name;
+			this.UiNeedsUpdate = false;
 		}
-	}
-
-	public void SetSubsceneName(string subsceneName)
-	{
-		if (this.IsNodeReady())
-		{
-			if (this.nameLineEdit.Text != subsceneName)
-			{
-				this.nameLineEdit.Text = subsceneName;
-			}
-		}
-		else
-		{
-			this.pendingSubsceneName = subsceneName;
-		}
-	}
-
-	public string GetSubsceneName()
-	{
-		return this.nameLineEdit.Text;
 	}
 
 	public void _on_subscene_delete_button_pressed()
@@ -50,6 +39,9 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public void _on_subscene_line_edit_text_changed(string newText)
 	{
-		this.OnSubsceneNameUpdated();
+		if (newText != this.subsceneEditable.Name)
+		{
+			this.subsceneEditable.Name = newText;
+		}
 	}
 }

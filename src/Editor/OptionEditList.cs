@@ -15,22 +15,21 @@ public partial class OptionEditList : VBoxContainer
 	VBoxContainer optionEditListVBoxContainer;
 	Label tooManyOptionsLabel;
 
-	private bool uiNeedsUpdate;
+	public bool UiNeedsUpdate;
 
-	private DtgeCore.SceneEditable dtgeScene;
-	public DtgeCore.SceneEditable DtgeScene
+	private DtgeCore.SceneEditable dtgeSceneEditable;
+	public DtgeCore.SceneEditable DtgeSceneEditable
 	{
-		get { return dtgeScene; }
+		get { return this.dtgeSceneEditable; }
 		set
 		{
-			this.dtgeScene = value;
-			this.uiNeedsUpdate = true;
+			this.dtgeSceneEditable = value;
+			this.UiNeedsUpdate = true;
 		}
 	}
 
 	public int MaximumSupportedOptions;
 	public Action<DtgeCore.SceneId> OnTryOpenScene;
-	public Action OnOptionListUpdated;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -44,11 +43,43 @@ public partial class OptionEditList : VBoxContainer
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (this.uiNeedsUpdate)
+		if (this.UiNeedsUpdate)
 		{
-			this.updateOptionEditPanelsFromScene();
-			this.uiNeedsUpdate = false;
+			this.updateUiFromEditables();
+			this.UiNeedsUpdate = false;
 		}
+	}
+
+	private void updateEditablesFromUi()
+	{
+
+	}
+
+	private void updateUiFromEditables()
+	{
+		for (int optionIndex = 0; optionIndex < this.dtgeSceneEditable.GetOptionCount(); optionIndex++)
+		{
+			DtgeCore.OptionEditable currentOptionEditable = this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
+			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
+			if (currentOptionEditPanel != null)
+			{
+				currentOptionEditPanel.OptionEditable = currentOptionEditable;
+			}
+			else
+			{
+				this.addNewOptionEditPanel(currentOptionEditable);
+			}
+		}
+
+		while (this.dtgeSceneEditable.GetOptionCount() < this.optionEditListVBoxContainer.GetChildCount())
+		{
+			OptionEditPanel excessOptionEditPanel
+				= this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(
+					this.optionEditListVBoxContainer.GetChildCount() - 1);
+			this.optionEditListVBoxContainer.RemoveChild(excessOptionEditPanel);
+		}
+
+		this.updateOptionLabelsAndTooManyWarning();
 	}
 
 	public void FlushChangesForSave()
@@ -59,95 +90,10 @@ public partial class OptionEditList : VBoxContainer
 		}
 	}
 
-	public void HandleOptionUpdated(bool countChanged)
-	{
-		if (countChanged)
-		{
-			this.dtgeScene.ClearAllOptions();
-			for (int optionPanelIndex = 0; optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelIndex++)
-			{
-				OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
-				this.dtgeScene.AddOption(currentOptionEditPanel.BoundOption);
-			}
-
-			this.updateOptionLabelsAndTooManyWarning();
-		}
-
-		if (this.OnOptionListUpdated != null)
-		{
-			this.OnOptionListUpdated();
-		}
-	}
-
-	public void MoveOptionUp(OptionEditPanel targetOption)
-	{
-		OptionEditPanel currentOptionEditPanel = null;
-		OptionEditPanel aboveOptionEditPanel = null;
-
-		for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
-		{
-			currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
-			if (currentOptionEditPanel != null &&
-				aboveOptionEditPanel != null &&
-				currentOptionEditPanel == targetOption)
-			{
-				// TODO: The adjustment to how options works means this needs to be totally redone.
-				//DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
-				//aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
-				//aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
-				//currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
-				break;
-			}
-			aboveOptionEditPanel = currentOptionEditPanel;
-		}
-
-		if (currentOptionEditPanel != null)
-		{
-			currentOptionEditPanel.UpdateUIFromOption();
-		}
-		
-		if (aboveOptionEditPanel != null)
-		{
-			aboveOptionEditPanel.UpdateUIFromOption();
-		}
-	}
-
-	public void MoveOptionDown(OptionEditPanel targetOption)
-	{
-		OptionEditPanel currentOptionEditPanel = null;
-		OptionEditPanel belowOptionEditPanel = null;
-		for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
-		{
-			currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
-			belowOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex + 1);
-			if (currentOptionEditPanel != null &&
-				belowOptionEditPanel != null &&
-				currentOptionEditPanel == targetOption)
-			{
-				DtgeCore.Option belowOptionCopy = new DtgeCore.Option();
-				belowOptionCopy.CopyFrom(belowOptionEditPanel.BoundOption);
-				belowOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
-				currentOptionEditPanel.BoundOption.CopyFrom(belowOptionCopy);
-
-				break;
-			}
-		}
-
-		if (currentOptionEditPanel != null)
-		{
-			currentOptionEditPanel.UpdateUIFromOption();
-		}
-
-		if (belowOptionEditPanel != null)
-		{
-			belowOptionEditPanel.UpdateUIFromOption();
-		}
-	}
-
 	public void HandleOptionDeleted(OptionEditPanel toRemove)
 	{
 		this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.HandleOptionUpdated(true);
+		this.dtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
 	}
 
 	public void HandleTryOpenScene(DtgeCore.SceneId sceneId)
@@ -157,10 +103,8 @@ public partial class OptionEditList : VBoxContainer
 
 	public void _on_add_option_button_pressed()
 	{
-		DtgeCore.Option newOption = new DtgeCore.Option();
-		this.DtgeScene.AddOption(newOption);
+		DtgeCore.OptionEditable newOption = this.dtgeSceneEditable.AllocateNewOption();
 		this.addNewOptionEditPanel(newOption);
-		this.OnOptionListUpdated();
 	}
 
 	private void updateOptionLabelsAndTooManyWarning()
@@ -185,42 +129,16 @@ public partial class OptionEditList : VBoxContainer
 
 	private void updateOptionEditPanelsFromScene()
 	{
-		List<DtgeCore.Option> updatedOptions = this.dtgeScene.GetOptionList();
-
-		for (int optionIndex = 0; optionIndex < updatedOptions.Count; optionIndex++)
-		{
-			DtgeCore.Option currentOption = updatedOptions[optionIndex];
-			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
-			if (currentOptionEditPanel != null)
-			{
-				currentOptionEditPanel.BoundOption = updatedOptions[optionIndex];
-			}
-			else
-			{
-				this.addNewOptionEditPanel(updatedOptions[optionIndex]);
-			}
-		}
-
-		while (updatedOptions.Count < this.optionEditListVBoxContainer.GetChildCount())
-		{
-			OptionEditPanel excessOptionEditPanel
-				= this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(
-					this.optionEditListVBoxContainer.GetChildCount() - 1);
-			this.optionEditListVBoxContainer.RemoveChild(excessOptionEditPanel);
-		}
-
-		this.updateOptionLabelsAndTooManyWarning();
 	}
 
-	private void addNewOptionEditPanel(DtgeCore.Option option)
+	private void addNewOptionEditPanel(DtgeCore.OptionEditable optionEditable)
 	{
 		OptionEditPanel newOptionEditPanel =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH)).Instantiate<OptionEditPanel>();
 
 		if (newOptionEditPanel != null)
 		{
-			newOptionEditPanel.BoundOption = option;
-			newOptionEditPanel.OnOptionUpdated = this.HandleOptionUpdated;
+			newOptionEditPanel.OptionEditable = optionEditable;
 			newOptionEditPanel.OnOptionMovedUp = this.MoveOptionUp;
 			newOptionEditPanel.OnOptionMovedDown = this.MoveOptionDown;
 			newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
@@ -229,5 +147,70 @@ public partial class OptionEditList : VBoxContainer
 		}
 
 		this.updateOptionLabelsAndTooManyWarning();
+	}
+
+	private void MoveOptionUp(OptionEditPanel targetOption)
+	{
+		//OptionEditPanel currentOptionEditPanel = null;
+		//OptionEditPanel aboveOptionEditPanel = null;
+
+		//for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
+		//{
+		//	currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
+		//	if (currentOptionEditPanel != null &&
+		//		aboveOptionEditPanel != null &&
+		//		currentOptionEditPanel == targetOption)
+		//	{
+		//		// TODO: The adjustment to how options works means this needs to be totally redone.
+		//		//DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
+		//		//aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
+		//		//aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
+		//		//currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
+		//		break;
+		//	}
+		//	aboveOptionEditPanel = currentOptionEditPanel;
+		//}
+
+		//if (currentOptionEditPanel != null)
+		//{
+		//	currentOptionEditPanel.UpdateUIFromOption();
+		//}
+
+		//if (aboveOptionEditPanel != null)
+		//{
+		//	aboveOptionEditPanel.UpdateUIFromOption();
+		//}
+	}
+
+	private void MoveOptionDown(OptionEditPanel targetOption)
+	{
+		//OptionEditPanel currentOptionEditPanel = null;
+		//OptionEditPanel belowOptionEditPanel = null;
+		//for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
+		//{
+		//	currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
+		//	belowOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex + 1);
+		//	if (currentOptionEditPanel != null &&
+		//		belowOptionEditPanel != null &&
+		//		currentOptionEditPanel == targetOption)
+		//	{
+		//		DtgeCore.Option belowOptionCopy = new DtgeCore.Option();
+		//		belowOptionCopy.CopyFrom(belowOptionEditPanel.BoundOption);
+		//		belowOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
+		//		currentOptionEditPanel.BoundOption.CopyFrom(belowOptionCopy);
+
+		//		break;
+		//	}
+		//}
+
+		//if (currentOptionEditPanel != null)
+		//{
+		//	currentOptionEditPanel.UpdateUIFromOption();
+		//}
+
+		//if (belowOptionEditPanel != null)
+		//{
+		//	belowOptionEditPanel.UpdateUIFromOption();
+		//}
 	}
 }

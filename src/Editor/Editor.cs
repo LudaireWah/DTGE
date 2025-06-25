@@ -98,25 +98,25 @@ public partial class Editor : Control
 	{
 		base._Ready();
 
-		this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-		this.dtgeSceneTabBar = GetNode<TabBar>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar");
-		this.addNewDtgeSceneButton = GetNode<Button>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton");
-		this.dtgeSceneEditContainer = GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
-		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
-		this.gamePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
-		this.helpPopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
-		this.openFileDialog = GetNode<FileDialog>("OpenFileDialog");
-		this.saveAsFileDialog = GetNode<FileDialog>("SaveAsFileDialog");
-		this.saveAsAndCloseFileDialog = GetNode<FileDialog>("SaveAsAndCloseFileDialog");
-		this.aboutAcceptDialog = GetNode<AcceptDialog>("AboutAcceptDialog");
-		this.tutorialAcceptDialog = GetNode<AcceptDialog>("TutorialAcceptDialog");
-		this.licenseAcceptDialog = GetNode<AcceptDialog>("LicenseAcceptDialog");
-		this.gamePreviewAcceptDialog = GetNode<AcceptDialog>("GamePreviewAcceptDialog");
-		this.saveYesNoCancelDialog = GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
-		this.createNewSceneFromOptionConfirmationDialog = GetNode<ConfirmationDialog>("CreateNewSceneFromOptionConfirmationDialog");
-		this.createNewSubsceneFromOptionConfirmationDialog = GetNode<ConfirmationDialog>("CreateNewSubsceneFromOptionConfirmationDialog");
-		this.enableNullSubsceneOptionConfirmationDialog = GetNode<ConfirmationDialog>("EnableNullSubsceneConfirmationDialog");
-		this.projectSettingsConfirmationDialog = GetNode<ProjectSettingsConfirmationDialog>("ProjectSettingsConfirmationDialog");
+		this.marginContainer = this.GetNode<MarginContainer>("MarginContainer");
+		this.dtgeSceneTabBar = this.GetNode<TabBar>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar");
+		this.addNewDtgeSceneButton = this.GetNode<Button>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton");
+		this.dtgeSceneEditContainer = this.GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
+		this.filePopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
+		this.gamePopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
+		this.helpPopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
+		this.openFileDialog = this.GetNode<FileDialog>("OpenFileDialog");
+		this.saveAsFileDialog = this.GetNode<FileDialog>("SaveAsFileDialog");
+		this.saveAsAndCloseFileDialog = this.GetNode<FileDialog>("SaveAsAndCloseFileDialog");
+		this.aboutAcceptDialog = this.GetNode<AcceptDialog>("AboutAcceptDialog");
+		this.tutorialAcceptDialog = this.GetNode<AcceptDialog>("TutorialAcceptDialog");
+		this.licenseAcceptDialog = this.GetNode<AcceptDialog>("LicenseAcceptDialog");
+		this.gamePreviewAcceptDialog = this.GetNode<AcceptDialog>("GamePreviewAcceptDialog");
+		this.saveYesNoCancelDialog = this.GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
+		this.createNewSceneFromOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("CreateNewSceneFromOptionConfirmationDialog");
+		this.createNewSubsceneFromOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("CreateNewSubsceneFromOptionConfirmationDialog");
+		this.enableNullSubsceneOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("EnableNullSubsceneConfirmationDialog");
+		this.projectSettingsConfirmationDialog = this.GetNode<ProjectSettingsConfirmationDialog>("ProjectSettingsConfirmationDialog");
 
 		Editor.initializeGameDataFromFile();
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
@@ -163,10 +163,10 @@ public partial class Editor : Control
 		this.createNewSceneTab();
 
 		this.GetTree().Root.SizeChanged += this.HandleWindowSizeChanged;
-		HandleWindowSizeChanged();
+		this.HandleWindowSizeChanged();
 
 		this.currentState = EditorState.Active;
-		GetTree().AutoAcceptQuit = false;
+		this.GetTree().AutoAcceptQuit = false;
 
 		this.anyEditsMade = false;
 	}
@@ -289,7 +289,7 @@ public partial class Editor : Control
 
 		if (sceneFoundInTabs || sceneFoundInFiles)
 		{
-			bool subsceneSuccessfullySet = this.dtgeSceneEditContainer.DtgeScene.SetCurrentSubscene(sceneId.subscene);
+			bool subsceneSuccessfullySet = this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subscene);
 			if (!subsceneSuccessfullySet)
 			{
 				if (sceneId.subscene != null)
@@ -354,14 +354,14 @@ public partial class Editor : Control
 			}
 			else
 			{
-				this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
+				this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeSceneEditable.Id;
 				this.saveAsFileDialog.Popup();
 			}
 			break;
 		}
 		case PopupMenuIds.FileSaveAs:
 		{
-			this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeScene.Id;
+			this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeSceneEditable.Id;
 			this.saveAsFileDialog.Popup();
 			break;
 		}
@@ -391,7 +391,7 @@ public partial class Editor : Control
 		case PopupMenuIds.GameRunCurrentScene:
 		{
 			this.runDebugGame();
-			DtgeCore.SceneReadOnly gameScene = new DtgeCore.SceneReadOnly(this.dtgeSceneEditContainer.DtgeScene.Serialize());
+			DtgeCore.Scene gameScene = this.dtgeSceneEditContainer.DtgeSceneEditable;
 			this.gamePreviewScene.LoadScene(gameScene);
 			break;
 		}
@@ -434,7 +434,7 @@ public partial class Editor : Control
 		{
 			string sceneJson = sceneFile.GetAsText();
 			this.dtgeSceneEditContainer.RestoreFromSerializedScene(sceneJson);
-			this.createOpenedSceneTab(this.dtgeSceneEditContainer.DtgeScene, path);
+			this.createOpenedSceneTab(this.dtgeSceneEditContainer.DtgeSceneEditable, path);
 			this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 
 			sceneFile.Close();
@@ -477,7 +477,7 @@ public partial class Editor : Control
 		if (this.openDtgeSceneDictionary.Count > 0)
 		{
 			DtgeSceneTabInfo selectedTabInfo = this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
-			this.dtgeSceneEditContainer.DtgeScene = selectedTabInfo.dtgeScene;
+			this.dtgeSceneEditContainer.DtgeSceneEditable = selectedTabInfo.dtgeScene;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
@@ -521,12 +521,12 @@ public partial class Editor : Control
 		{
 			this.createNewSceneTab();
 		}
-		this.dtgeSceneEditContainer.DtgeScene.Id = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
+		this.dtgeSceneEditContainer.DtgeSceneEditable.Id = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
 		bool subsceneIsNonNull = (bool)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL);
 		if (subsceneIsNonNull)
 		{
 			string subsceneName = (string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
-			this.dtgeSceneEditContainer.DtgeScene.AddSubscene(subsceneName);
+			this.dtgeSceneEditContainer.AddSubscene(subsceneName);
 		}
 		this.setCurrentSceneTabInfoSaved(false);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
@@ -536,14 +536,14 @@ public partial class Editor : Control
 
 	public void _on_create_new_subscene_from_option_confirmation_dialog_confirmed()
 	{
-		this.dtgeSceneEditContainer.DtgeScene.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
+		this.dtgeSceneEditContainer.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
 
 	public void _on_enable_null_subscene_confirmation_dialog_confirmed()
 	{
-		this.dtgeSceneEditContainer.DtgeScene.EnableNullSubscene();
+		this.dtgeSceneEditContainer.DtgeSceneEditable.EnableNullSubscene();
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
@@ -576,7 +576,7 @@ public partial class Editor : Control
 			this.dtgeSceneTabBar.CurrentTab = newTabIndex;
 		}
 
-		this.dtgeSceneEditContainer.DtgeScene = newDtgeSceneTabInfo.dtgeScene;
+		this.dtgeSceneEditContainer.DtgeSceneEditable = newDtgeSceneTabInfo.dtgeScene;
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.anyEditsMade = true;
 	}
@@ -599,7 +599,7 @@ public partial class Editor : Control
 		this.nextKeyforOpenDtgeSceneDictionary++;
 		this.dtgeSceneTabBar.CurrentTab = newTabIndex;
 
-		this.dtgeSceneEditContainer.DtgeScene = openedDtgeSceneTabInfo.dtgeScene;
+		this.dtgeSceneEditContainer.DtgeSceneEditable = openedDtgeSceneTabInfo.dtgeScene;
 		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.anyEditsMade = true;
 	}
@@ -667,12 +667,12 @@ public partial class Editor : Control
 		if (this.dtgeSceneTabBar.TabCount > 0)
 		{
 			DtgeSceneTabInfo newActiveDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
-			this.dtgeSceneEditContainer.DtgeScene = newActiveDtgeSceneTabInfo.dtgeScene;
+			this.dtgeSceneEditContainer.DtgeSceneEditable = newActiveDtgeSceneTabInfo.dtgeScene;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 		else
 		{
-			this.dtgeSceneEditContainer.DtgeScene = null;
+			this.dtgeSceneEditContainer.DtgeSceneEditable = null;
 			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
@@ -680,9 +680,9 @@ public partial class Editor : Control
 	private void saveCurrentSceneToPath(string path)
 	{
 		this.dtgeSceneEditContainer.FlushChangesForSave();
-		Editor.saveSceneToPath(this.dtgeSceneEditContainer.DtgeScene, path);
-		setCurrentSceneTabInfoPath(path);
-		setCurrentSceneTabInfoSaved(true);
+		Editor.saveSceneToPath(this.dtgeSceneEditContainer.DtgeSceneEditable, path);
+		this.setCurrentSceneTabInfoPath(path);
+		this.setCurrentSceneTabInfoSaved(true);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 	}
 

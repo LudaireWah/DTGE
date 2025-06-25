@@ -39,24 +39,24 @@ public partial class Game : Control
 
 	private GameSettings gameSettings;
 
-	private DtgeCore.SceneReadOnly currentDtgeScene;
+	private DtgeCore.Scene currentDtgeScene;
 
 	private bool manualViewportSizeOverride;
 	private Vector2 manualViewportSize;
 
 	public override void _Ready()
 	{
-		this.marginContainer = GetNode<MarginContainer>("MarginContainer");
-		this.sceneTextPanelContainer = GetNode<PanelContainer>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer");
-		this.sceneTextDisplay = GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer/SceneTextMarginContainer/SceneTextDisplay");
-		this.leftTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/LeftTextureRect");
-		this.rightTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/RightTextureRect");
-		this.topTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/TopTextureRect");
-		this.bottomTextureRect = GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/BottomTextureRect");
-		this.navigationButtonGrid = GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
-		this.errorAcceptDialog = GetNode<AcceptDialog>("ErrorAcceptDialog");
-		this.filePopupMenu = GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
-		this.gameSettingsWindow = GetNode<GameSettingsWindow>("GameSettingsWindow");
+		this.marginContainer = this.GetNode<MarginContainer>("MarginContainer");
+		this.sceneTextPanelContainer = this.GetNode<PanelContainer>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer");
+		this.sceneTextDisplay = this.GetNode<RichTextLabel>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/SceneTextPanelContainer/SceneTextMarginContainer/SceneTextDisplay");
+		this.leftTextureRect = this.GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/LeftTextureRect");
+		this.rightTextureRect = this.GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/SceneBodyHBoxContainer/RightTextureRect");
+		this.topTextureRect = this.GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/TopTextureRect");
+		this.bottomTextureRect = this.GetNode<TextureRect>("MarginContainer/VBoxContainer/SceneBodyVBoxContainer/BottomTextureRect");
+		this.navigationButtonGrid = this.GetNode<NavigationButtonGrid>("MarginContainer/VBoxContainer/NavigationButtonGridContainer");
+		this.errorAcceptDialog = this.GetNode<AcceptDialog>("ErrorAcceptDialog");
+		this.filePopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
+		this.gameSettingsWindow = this.GetNode<GameSettingsWindow>("GameSettingsWindow");
 
 		Game.initializeGameDataFromFile();
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
@@ -89,7 +89,7 @@ public partial class Game : Control
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
 		DtgeCore.SceneId sceneId = new DtgeCore.SceneId(option.TargetSceneId);
-		DtgeCore.SceneReadOnly dtgeScene;
+		DtgeCore.Scene dtgeScene;
 		DtgeCore.SceneManager.GetSceneSuccessValue successValue = sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
 
 		switch (successValue)
@@ -121,7 +121,7 @@ public partial class Game : Control
 	{
 		if (this.currentDtgeScene != null)
 		{
-			this.sceneTextDisplay.Text = currentDtgeScene.CalculateSceneText();
+			this.sceneTextDisplay.Text = this.currentDtgeScene.CalculateSceneText();
 			this.sceneTextDisplay.ScrollToLine(0);
 			this.navigationButtonGrid.BindSceneOptionsToButtons(this.currentDtgeScene);
 			this.updateNodeVisibilityFromScene(this.currentDtgeScene);
@@ -146,7 +146,7 @@ public partial class Game : Control
 	{
 		this.manualViewportSizeOverride = true;
 		this.manualViewportSize = manualSize;
-		HandleWindowSizeChanged();
+		this.HandleWindowSizeChanged();
 	}
 
 	public void PopupErrorDialog(string errorText)
@@ -200,7 +200,7 @@ public partial class Game : Control
 			return;
 		}
 
-		DtgeCore.SceneReadOnly startScene = null;
+		DtgeCore.Scene startScene = null;
 
 		string[] sceneFileNames = sceneDirectory.GetFiles();
 
@@ -213,7 +213,7 @@ public partial class Game : Control
 			if (sceneFile != null)
 			{
 				string sceneJson = sceneFile.GetAsText();
-				DtgeCore.SceneReadOnly newScene = new DtgeCore.SceneReadOnly(sceneJson);
+				DtgeCore.Scene newScene = new DtgeCore.Scene(sceneJson);
 				if (newScene != null)
 				{
 					sceneManager.AddScene(newScene);
@@ -242,7 +242,7 @@ public partial class Game : Control
 		}
 	}
 
-	public void LoadScene(DtgeCore.SceneReadOnly scene)
+	public void LoadScene(DtgeCore.Scene scene)
 	{
 		this.currentDtgeScene = scene;
 		this.updateUIFromScene();
@@ -294,7 +294,7 @@ public partial class Game : Control
 		}
 	}
 
-	private void updateNodeVisibilityFromScene(DtgeCore.SceneReadOnly scene)
+	private void updateNodeVisibilityFromScene(DtgeCore.Scene scene)
 	{
 		if (scene == null || !scene.RenderImage)
 		{

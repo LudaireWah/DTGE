@@ -12,169 +12,47 @@ namespace DtgeEditor;
 public partial class SnippetListContainer : VBoxContainer
 {
 	VBoxContainer snippetListVBoxContainer;
-	bool firstSceneHasBeenSet;
-	bool uiNeedUpdate;
 
-	private DtgeCore.SceneEditable dtgeScene;
-
-	public DtgeCore.SceneEditable DtgeScene
+	public bool UiNeedsUpdate;
+	private DtgeCore.SceneEditable dtgeSceneEditable;
+	public DtgeCore.SceneEditable DtgeSceneEditable
 	{
-		get { return dtgeScene; }
+		get { return this.dtgeSceneEditable; }
 		set
 		{
-			this.dtgeScene = value;
-			this.uiNeedUpdate = true;
+			this.dtgeSceneEditable = value;
+			this.UiNeedsUpdate = true;
 		}
 	}
-
-	public Action OnSnippetListUpdated;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		this.snippetListVBoxContainer = this.GetNode<VBoxContainer>("SnippetListScrollContainer/SnippetListVBoxContainer");
-
-		this.firstSceneHasBeenSet = false;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (this.uiNeedUpdate)
+		if (this.UiNeedsUpdate)
 		{
-			this.updateSnippetPanelContainersFromSnippets();
-			this.uiNeedUpdate = false;
+			this.updateUIFromEditables();
+			this.UiNeedsUpdate = false;
 		}
 	}
 
-	public void FlushChangesForSave()
+	private void updateEditablesFromUI()
 	{
-		for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
-		{
-			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex).FlushChangesForSave();
-		}
+
 	}
 
-	public void HandleSnippetUpdated(bool countChanged)
+	private void updateUIFromEditables()
 	{
-		if (countChanged)
-		{
-			this.dtgeScene.ClearAllSnippets();
-			for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
-			{
-				SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex);
-				this.dtgeScene.AddSnippet(currentSnippetPanelContainer.BoundSnippet);
-			}
-		}
-
-		if (this.OnSnippetListUpdated != null)
-		{
-			this.OnSnippetListUpdated();
-		}
-	}
-
-	public void HandleMoveSnippetUp(SnippetPanelContainer targetSnippet)
-	{
-		SnippetPanelContainer currentSnippetPanelContainer = null;
-		SnippetPanelContainer aboveSnippetPanelContainer = null;
-
-		for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
-		{
-			currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
-			if (currentSnippetPanelContainer != null &&
-				aboveSnippetPanelContainer != null &&
-				currentSnippetPanelContainer == targetSnippet)
-			{
-				DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
-				aboveSnippetCopy.CopyFrom(aboveSnippetPanelContainer.BoundSnippet);
-				aboveSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
-				currentSnippetPanelContainer.BoundSnippet.CopyFrom(aboveSnippetCopy);
-				break;
-			}
-			aboveSnippetPanelContainer = currentSnippetPanelContainer;
-		}
-
-		if (currentSnippetPanelContainer != null)
-		{
-			currentSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		if (aboveSnippetPanelContainer != null)
-		{
-			aboveSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		this.OnSnippetListUpdated();
-	}
-
-	public void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
-	{
-		SnippetPanelContainer currentSnippetPanelContainer = null;
-		SnippetPanelContainer belowSnippetPanelContainer = null;
-		for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
-		{
-			currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
-			belowSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex + 1);
-			if (currentSnippetPanelContainer != null &&
-				belowSnippetPanelContainer != null &&
-				currentSnippetPanelContainer == targetSnippet)
-			{
-				DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
-				belowSnippetCopy.CopyFrom(belowSnippetPanelContainer.BoundSnippet);
-				belowSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
-				currentSnippetPanelContainer.BoundSnippet.CopyFrom(belowSnippetCopy);
-
-				break;
-			}
-		}
-
-		if (currentSnippetPanelContainer != null)
-		{
-			currentSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		if (belowSnippetPanelContainer != null)
-		{
-			belowSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		this.OnSnippetListUpdated();
-	}
-
-	public void HandleSnippetDeleted(SnippetPanelContainer toRemove)
-	{
-		this.snippetListVBoxContainer.RemoveChild(toRemove);
-		this.HandleSnippetUpdated(true);
-	}
-
-	public void HandleSubsceneUpdate()
-	{
-		for (int subsceneIndex = 0; subsceneIndex < this.snippetListVBoxContainer.GetChildCount(); subsceneIndex++)
-		{
-			SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(subsceneIndex);
-			if (currentSnippetPanelContainer != null)
-			{
-				currentSnippetPanelContainer.UpdateUIFromSnippet();
-			}
-		}
-	}
-
-	public void _on_add_snippet_button_pressed()
-	{
-		DtgeCore.Snippet newSnippet = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
-		this.DtgeScene.AddSnippet(newSnippet);
-		this.addNewSnippetPanelContainer(newSnippet);
-		this.OnSnippetListUpdated();
-	}
-
-	private void updateSnippetPanelContainersFromSnippets()
-	{
-		List<DtgeCore.Snippet> updatedSnippets = this.dtgeScene.GetSnippetList();
 		int nonNullSnippetCount = 0;
 
-		for (int snippetIndex = 0; snippetIndex < updatedSnippets.Count; snippetIndex++)
+		for (int snippetIndex = 0; snippetIndex < this.dtgeSceneEditable.GetSnippetCount(); snippetIndex++)
 		{
-			DtgeCore.Snippet currentSnippet = updatedSnippets[snippetIndex];
+			DtgeCore.SnippetEditable currentSnippet = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
 			if (currentSnippet == null)
 			{
 				break;
@@ -185,11 +63,11 @@ public partial class SnippetListContainer : VBoxContainer
 				SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
 				if (currentSnippetPanelContainer != null)
 				{
-					currentSnippetPanelContainer.BoundSnippet = updatedSnippets[snippetIndex];
+					currentSnippetPanelContainer.SnippetEditable = currentSnippet;
 				}
 				else
 				{
-					this.addNewSnippetPanelContainer(updatedSnippets[snippetIndex]);
+					this.addNewSnippetPanelContainer(currentSnippet);
 				}
 			}
 		}
@@ -203,19 +81,106 @@ public partial class SnippetListContainer : VBoxContainer
 		}
 	}
 
-	private void addNewSnippetPanelContainer(DtgeCore.Snippet snippet)
+	public void FlushChangesForSave()
+	{
+		for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
+		{
+			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex).FlushChangesForSave();
+		}
+	}
+
+	public void HandleSnippetDeleted(SnippetPanelContainer toRemove)
+	{
+		this.snippetListVBoxContainer.RemoveChild(toRemove);
+		this.dtgeSceneEditable.RemoveSnippet(toRemove.SnippetEditable);
+	}
+
+	public void _on_add_snippet_button_pressed()
+	{
+		DtgeCore.SnippetEditable newSnippetEditable = this.dtgeSceneEditable.AllocateNewSnippet();
+		this.addNewSnippetPanelContainer(newSnippetEditable);
+	}
+
+	private void addNewSnippetPanelContainer(DtgeCore.SnippetEditable snippetEditable)
 	{
 		SnippetPanelContainer newSnippetPanelContainer =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH)).Instantiate<SnippetPanelContainer>();
 
 		if (newSnippetPanelContainer != null)
 		{
-			newSnippetPanelContainer.BoundSnippet = snippet;
-			newSnippetPanelContainer.OnSnippetUpdated = this.HandleSnippetUpdated;
+			newSnippetPanelContainer.SnippetEditable = snippetEditable;
 			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleMoveSnippetUp;
 			newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
 			newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
 			this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
 		}
+	}
+
+	public void HandleMoveSnippetUp(SnippetPanelContainer targetSnippet)
+	{
+		//SnippetPanelContainer currentSnippetPanelContainer = null;
+		//SnippetPanelContainer aboveSnippetPanelContainer = null;
+
+		//for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
+		//{
+		//	currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
+		//	if (currentSnippetPanelContainer != null &&
+		//		aboveSnippetPanelContainer != null &&
+		//		currentSnippetPanelContainer == targetSnippet)
+		//	{
+		//		DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
+		//		aboveSnippetCopy.CopyFrom(aboveSnippetPanelContainer.BoundSnippet);
+		//		aboveSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
+		//		currentSnippetPanelContainer.BoundSnippet.CopyFrom(aboveSnippetCopy);
+		//		break;
+		//	}
+		//	aboveSnippetPanelContainer = currentSnippetPanelContainer;
+		//}
+
+		//if (currentSnippetPanelContainer != null)
+		//{
+		//	currentSnippetPanelContainer.UpdateUIFromSnippet();
+		//}
+
+		//if (aboveSnippetPanelContainer != null)
+		//{
+		//	aboveSnippetPanelContainer.UpdateUIFromSnippet();
+		//}
+
+		//this.OnSnippetListUpdated();
+	}
+
+	public void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
+	{
+		//SnippetPanelContainer currentSnippetPanelContainer = null;
+		//SnippetPanelContainer belowSnippetPanelContainer = null;
+		//for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
+		//{
+		//	currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
+		//	belowSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex + 1);
+		//	if (currentSnippetPanelContainer != null &&
+		//		belowSnippetPanelContainer != null &&
+		//		currentSnippetPanelContainer == targetSnippet)
+		//	{
+		//		DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene.GetSubsceneContextProvider());
+		//		belowSnippetCopy.CopyFrom(belowSnippetPanelContainer.BoundSnippet);
+		//		belowSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
+		//		currentSnippetPanelContainer.BoundSnippet.CopyFrom(belowSnippetCopy);
+
+		//		break;
+		//	}
+		//}
+
+		//if (currentSnippetPanelContainer != null)
+		//{
+		//	currentSnippetPanelContainer.UpdateUIFromSnippet();
+		//}
+
+		//if (belowSnippetPanelContainer != null)
+		//{
+		//	belowSnippetPanelContainer.UpdateUIFromSnippet();
+		//}
+
+		//this.OnSnippetListUpdated();
 	}
 }

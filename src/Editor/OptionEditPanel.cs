@@ -15,23 +15,21 @@ public partial class OptionEditPanel : PanelContainer
 	LineEdit displayNameLineEdit;
 	CheckButton optionEnabledCheckButton;
 
-	private DtgeCore.Option boundOption;
-	private bool uiNeedsUpdate;
-
-	public DtgeCore.Option BoundOption
+	private DtgeCore.OptionEditable optionEditable;
+	public DtgeCore.OptionEditable OptionEditable
 	{
 		get
 		{
-			return this.boundOption;
+			return this.optionEditable;
 		}
 		set
 		{
-			this.boundOption = value;
-			this.uiNeedsUpdate = true;
+			this.optionEditable = value;
+			this.UiNeedsUpdate = true;
 		}
 	}
+	public bool UiNeedsUpdate;
 	
-	public Action<bool> OnOptionUpdated;
 	public Action<OptionEditPanel> OnOptionMovedUp;
 	public Action<OptionEditPanel> OnOptionMovedDown;
 	public Action<OptionEditPanel> OnOptionDeleted;
@@ -40,59 +38,44 @@ public partial class OptionEditPanel : PanelContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.optionLocationLabel = GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
-		this.idLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
-		this.targetSceneLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
-		this.displayNameLineEdit = GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
-		this.optionEnabledCheckButton = GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
+		this.optionLocationLabel = this.GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
+		this.idLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
+		this.targetSceneLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
+		this.displayNameLineEdit =this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
+		this.optionEnabledCheckButton = this.GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
 
-		if (this.boundOption == null)
-		{
-			this.BoundOption = new DtgeCore.Option();
-		}
-		this.UpdateUIFromOption();
+		this.UpdateUIFromEditables();
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (this.uiNeedsUpdate)
+		if (this.UiNeedsUpdate)
 		{
-			this.UpdateUIFromOption();
-			this.uiNeedsUpdate = false;
+			this.UpdateUIFromEditables();
+			this.UiNeedsUpdate = false;
 		}
+	}
+
+	private void updateEditablesFromUI()
+	{
+		this.OptionEditable.Name = this.idLineEdit.Text;
+		this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
+		this.OptionEditable.DisplayName = this.displayNameLineEdit.Text;
+		this.OptionEditable.Enabled = this.optionEnabledCheckButton.ButtonPressed;
+	}
+
+	private void UpdateUIFromEditables()
+	{
+		this.idLineEdit.Text = this.OptionEditable.Name;
+		this.targetSceneLineEdit.Text = this.OptionEditable.TargetSceneId;
+		this.displayNameLineEdit.Text = this.OptionEditable.DisplayName;
+		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
 	}
 
 	public void FlushChangesForSave()
 	{
-		this.updateOptionFromUI();
-	}
-
-	private void updateOptionFromUI()
-	{
-		bool newOptionAdded = false;
-		if (this.boundOption == null)
-		{
-			this.boundOption = new DtgeCore.Option();
-			newOptionAdded = true;
-		}
-		this.boundOption.Id = this.idLineEdit.Text;
-		this.boundOption.TargetSceneId = this.targetSceneLineEdit.Text;
-		this.boundOption.DisplayName = this.displayNameLineEdit.Text;
-		this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-		this.OnOptionUpdated(newOptionAdded);
-	}
-
-	public void UpdateUIFromOption()
-	{
-		if (this.boundOption == null)
-		{
-			this.boundOption = new DtgeCore.Option();
-		}
-		this.idLineEdit.Text = this.boundOption.Id;
-		this.targetSceneLineEdit.Text = this.boundOption.TargetSceneId;
-		this.displayNameLineEdit.Text = this.boundOption.DisplayName;
-		this.optionEnabledCheckButton.ButtonPressed = this.boundOption.Enabled;
+		this.updateEditablesFromUI();
 	}
 
 	public void UpdateOptionLocationLabel(int optionIndex)
@@ -102,29 +85,23 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_option_enabled_check_button_pressed()
 	{
-		if (this.boundOption == null)
-		{
-			this.boundOption = new DtgeCore.Option();
-		}
-		this.boundOption.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-		this.OnOptionUpdated(true);
+		this.updateEditablesFromUI();
 	}
 
 	public void _on_id_line_edit_text_changed(string newText)
 	{
-		this.updateOptionFromUI();
+		this.updateEditablesFromUI();
 	}
 
 	public void _on_target_scene_line_edit_text_changed(string newText)
 	{
-		this.updateOptionFromUI();
+		this.updateEditablesFromUI();
 	}
 
 	public void _on_display_name_line_edit_text_changed(string newText)
 	{
-		this.updateOptionFromUI();
+		this.updateEditablesFromUI();
 	}
-
 
 	public void _on_navigate_to_target_scene_button_pressed()
 	{

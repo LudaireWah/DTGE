@@ -15,10 +15,10 @@ public partial class ProjectSettingsConfirmationDialog : ConfirmationDialog
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.startSceneNameLineEdit = GetNode<LineEdit>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/StartSceneNameLineEdit");
-		this.navigationButtonGridShortcutModeOptionButton = GetNode<OptionButton>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridShortcutModeOptionButton");
-		this.navigationButtonGridColumnCountSpinBox = GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridColumnCountSpinBox");
-		this.navigationButtonGridRowCountSpinBox = GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridRowCountSpinBox");
+		this.startSceneNameLineEdit = this.GetNode<LineEdit>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/StartSceneNameLineEdit");
+		this.navigationButtonGridShortcutModeOptionButton = this.GetNode<OptionButton>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridShortcutModeOptionButton");
+		this.navigationButtonGridColumnCountSpinBox = this.GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridColumnCountSpinBox");
+		this.navigationButtonGridRowCountSpinBox = this.GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridRowCountSpinBox");
 
 		this.navigationButtonGridShortcutModeOptionButton.SetItemTooltip((int)DtgeCore.GameData.NavigationGridShortcutMode.Keyboard, "The navigation grid will be mapped to the keyboard grid with 1 in the top left corner. Limits columns to 10 and rows to 4.");
 		this.navigationButtonGridShortcutModeOptionButton.SetItemTooltip((int)DtgeCore.GameData.NavigationGridShortcutMode.Numeric, "The first 10 buttons in the navigation grid will be mapped to 1-0 on the keyboard. Limits columns and rows to 10.");

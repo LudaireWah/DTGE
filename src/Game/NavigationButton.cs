@@ -26,10 +26,10 @@ public partial class NavigationButton : MarginContainer
 
 	public override void _Ready()
 	{
-		this.button = GetNode<Button>("MainButton");
-		this.shortcutMarginContainer = GetNode<MarginContainer>("ShortcutContainer");
-		this.shortcutLabel = GetNode<Label>("ShortcutContainer/ShortcutLabel");
-		this.navigationButtonPlaceholderColorRect = GetNode<ColorRect>("NavigationButtonPlaceholderColorRect");
+		this.button = this.GetNode<Button>("MainButton");
+		this.shortcutMarginContainer = this.GetNode<MarginContainer>("ShortcutContainer");
+		this.shortcutLabel = this.GetNode<Label>("ShortcutContainer/ShortcutLabel");
+		this.navigationButtonPlaceholderColorRect = this.GetNode<ColorRect>("NavigationButtonPlaceholderColorRect");
 		if (this.shortcutNeedsUpdate)
 		{
 			this.SetOptionShortcut(this.desiredShortcutText, this.desiredShortcutKey);
@@ -95,7 +95,7 @@ public partial class NavigationButton : MarginContainer
 
 	private void _on_navigation_button_pressed()
 	{
-		if (boundOption != null && this.OnOptionSelected != null)
+		if (this.boundOption != null && this.OnOptionSelected != null)
 		{
 			this.OnOptionSelected(this.boundOption);
 		}

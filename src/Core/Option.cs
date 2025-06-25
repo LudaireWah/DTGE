@@ -6,51 +6,32 @@ namespace DtgeCore;
  * Options are how players move from scene to scene, providing the main form of
  * interactivity for the engine.
  */
-public class Option
+public class Option : SceneElement
 {
-	public SUID Id { get; private set; }
-	public string TargetSceneId { get; set; }
-	public string DisplayName { get; set; }
-	public string Tooltip { get; set; }
-	public bool Enabled { get; set; }
+	public string Name { get; protected set; }
+	public string TargetSceneId { get; protected set; }
+	public string DisplayName { get; protected set; }
+	public string Tooltip { get; protected set; }
+	public bool Enabled { get; protected set; }
 
-	public Option(SceneData parentSceneData)
+	public Option(Scene parentScene)
+		: base(parentScene)
 	{
-		this.Id = parentSceneData.GetSUID();
+		this.Name = "";
 		this.TargetSceneId = "";
 		this.DisplayName = "";
+		this.Tooltip = null;
 		this.Enabled = true;
-	}
-	public Option(SceneData parentSceneData, string targetSceneId, string displayName, bool enabled= true)
-	{
-		this.Id= parentSceneData.GetSUID();
-		this.TargetSceneId= targetSceneId;
-		this.DisplayName= displayName;
-		this.Enabled= enabled;
 	}
 
 	public void CopyFrom(Option other)
 	{
-		this.Id = other.Id;
+		base.CopyFrom(other);
+
+		this.Name = other.Name;
 		this.TargetSceneId = other.TargetSceneId;
 		this.DisplayName = other.DisplayName;
+		this.Tooltip = other.Tooltip;
 		this.Enabled = other.Enabled;
-	}
-
-	public override string ToString()
-	{
-		string optionString = 
-			"Option:\n" +
-			"  Id: " + this.Id + "\n" +
-			"  Target Scene: " + this.TargetSceneId + "\n" +
-			"  Display Name: " + this.DisplayName + "\n" +
-			"  Enabled: " + this.Enabled +"\n";
-		return optionString;
-	}
-
-	public string Serialize()
-	{
-		string toReturn = JsonSerializer.Serialize(this);
-		return toReturn;
 	}
 }
