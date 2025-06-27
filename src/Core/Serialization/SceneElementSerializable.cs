@@ -2,6 +2,11 @@
 
 namespace DtgeCore.Serialization;
 
+/**
+ * SceneElementSerializable is used for easy and consistent serialization and deserialization of
+ * SceneElements, including providing backwards compatibility. This class follows the Serializable
+ * pattern, which is explained in detail in SceneSerializable.cs.
+ */
 public class SceneElementSerializable
 {
 	[JsonIgnore]

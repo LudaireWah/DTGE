@@ -4,9 +4,9 @@ namespace DtgeGodotCommon;
 
 
 /**
- * This class contains a variety of utility functions for working with Godot. In most
- * cases, these functions represent best practices when doing an operation on Godot
- * nodes when working in DtgeEditor or DtgeGame.
+ * This class contains a variety of utility functions for working with Godot. In most cases, these
+ * functions represent best practices when doing an operation on Godot nodes when working in
+ * DtgeEditor or DtgeGame.
  */
 public class GodotUtilities
 {

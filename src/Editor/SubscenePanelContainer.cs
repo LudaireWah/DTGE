@@ -1,9 +1,14 @@
-using DtgeGodotCommon;
-using Godot;
 using System;
+
+using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
+/**
+ * The root node for the Godot scene responsible for authoring DTGE Subscenes.
+ */
 public partial class SubscenePanelContainer : PanelContainer
 {
 	LineEdit nameLineEdit;

@@ -1,13 +1,13 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeGame;
 
 /**
- * The NavigationButton collects together a Godot button plus a few
- * other things to display a few things like keyboard shortcuts,
- * placeholders for options that don't exist, and similar stuff. The
- * bulk of the button logic is handled by the Godot Button.
+ * The NavigationButton collects together a Godot button plus a few other things to display a few
+ * things like keyboard shortcuts, placeholders for options that don't exist, and similar stuff.
+ * The bulk of the button logic is handled by the Godot Button.
  */
 public partial class NavigationButton : MarginContainer
 {

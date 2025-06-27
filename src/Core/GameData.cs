@@ -5,15 +5,18 @@ using System.Text.Json.Serialization;
 namespace DtgeCore;
 
 /**
- * GameData is the class containing the high level information used to run
- * the game as a whole rather than used only in the context of a single scene.
+ * GameData is the class containing the high level information used to run the game as a whole
+ * rather than used only in the context of a single scene.
+ * 
+ * It'll likely be heavily reworked in the future as part of DTGE-135.
  */
 public class GameData
 {
 	public const string GAME_DATA_FILE_PATH = "dtge.gamedata";
 	private const string DEFAULT_SCENE_DIRECTORY_PATH = "DTGEScenes";
 	private const string DEFAULT_START_SCENE_NAME = "startscene";
-	private const NavigationGridShortcutMode DEFAULT_NAVIGATION_GRID_SHORTCUT_MODE = NavigationGridShortcutMode.Keyboard;
+	private const NavigationGridShortcutMode DEFAULT_NAVIGATION_GRID_SHORTCUT_MODE =
+		NavigationGridShortcutMode.Keyboard;
 	private const int DEFAULT_NAVIGATION_GRID_COLUMNS = 5;
 	private const int DEFAULT_NAVIGATION_GRID_ROWS = 3;
 
@@ -30,7 +33,8 @@ public class GameData
 	public NavigationGridShortcutMode ActiveNavigationGridShortcutMode {  get; set; }
 	public int NavigationGridColumns {  get; set; }
 	public int NavigationGridRows { get; set; }
-	public int MaximumSupportedOptions { get { return this.NavigationGridColumns * this.NavigationGridRows; } }
+	public int MaximumSupportedOptions
+		{ get { return this.NavigationGridColumns * this.NavigationGridRows; } }
 
 	private static GameData instance;
 
@@ -50,7 +54,6 @@ public class GameData
 
 	public GameData()
 	{
-		// TODO, DTGE-98: Once we move to custom serialization, we should move this back to private to seal off the singleton pattern, but it needs to be public until we can do that.
 		this.SceneDirectoryPath = DEFAULT_SCENE_DIRECTORY_PATH;
 		this.StartSceneName = DEFAULT_START_SCENE_NAME;
 		this.ActiveNavigationGridShortcutMode = DEFAULT_NAVIGATION_GRID_SHORTCUT_MODE;

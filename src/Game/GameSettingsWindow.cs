@@ -1,8 +1,12 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeGame;
 
+/**
+ * The root Godot control for the window that allows players to change their game settings.
+ */
 public partial class GameSettingsWindow : Window
 {
 	MarginContainer rootMarginContainer;

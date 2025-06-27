@@ -1,16 +1,15 @@
-﻿using DtgeCore.Serialization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
 /**
- * DTGE's Scenes are made up of a sequence of snippets, with each snippet containing
- * the desired text and any business logic of how the scene should unfold and change
- * in response to various kinds of state within the game.
+ * DTGE's Scenes are made up of a sequence of snippets, with each snippet containing the desired
+ * text and any business logic of how the scene should unfold and change in response to various
+ * kinds of state within the game.
  */
 public class Snippet : SceneElement
 {
@@ -40,7 +39,8 @@ public class Snippet : SceneElement
 		Random seedGenerator = new Random();
 		this.snippetRandomizerSeed = seedGenerator.Next();
 		this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
-		this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
+		this.currentRandomizedVariationIndex =
+			(int)this.snippetRandomizer.Next(this.Variations.Count);
 	}
 
 	public Snippet(Scene parentScene, SnippetSerializable serializable)
@@ -53,7 +53,9 @@ public class Snippet : SceneElement
 			this.Variations.Add(id, new Variation(this.ParentScene, serializable.Variations[id]));
 		}
 		this.OrderedVariationIds = new List<SUID>();
-		for (int variationIndex = 0; variationIndex < serializable.OrderedVariationIds.Count; variationIndex++)
+		for (int variationIndex = 0; 
+			variationIndex < serializable.OrderedVariationIds.Count;
+			variationIndex++)
 		{
 			this.OrderedVariationIds.Add(serializable.OrderedVariationIds[variationIndex]);
 		}
@@ -61,7 +63,8 @@ public class Snippet : SceneElement
 		Random seedGenerator = new Random();
 		this.snippetRandomizerSeed = seedGenerator.Next();
 		this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
-		this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
+		this.currentRandomizedVariationIndex =
+			(int)this.snippetRandomizer.Next(this.Variations.Count);
 	}
 
 	public string CalculateText()
@@ -77,8 +80,11 @@ public class Snippet : SceneElement
 			calculatedText = this.Variations[this.ParentScene.CurrentSubscene.Id].Text;
 			break;
 		case SnippetMode.Random:
-			this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
-			calculatedText = this.Variations[this.OrderedVariationIds[this.currentRandomizedVariationIndex]].Text;
+			this.currentRandomizedVariationIndex =
+				(int)this.snippetRandomizer.Next(this.Variations.Count);
+			Variation randomizedVariation =
+				this.Variations[this.OrderedVariationIds[this.currentRandomizedVariationIndex]];
+			calculatedText = randomizedVariation.Text;
 			break;
 		default:
 			throw new NotImplementedException();

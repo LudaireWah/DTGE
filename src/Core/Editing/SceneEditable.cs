@@ -1,17 +1,20 @@
-﻿using System;
-using System.Text.Json;
-using DtgeCore.Serialization;
+﻿using DtgeCore.Serialization;
 
 namespace DtgeCore.Editing;
 
 /**
- * A wrapper for a DTGE Scene that encapsulates a scene and provides editor-time functionality
- * used during scene creation.
+ * SceneEditable is the editable version of the Scene to be used in editors for authoring DTGE
+ * games. It provides editing functionality, access to editable versions of the Scene's components
+ * such as Options, and tracks when changes have been made to the scene. This allows editors to
+ * distribute the specific pieces of the scene through their code but still be able to see if
+ * edits have been made in a single place.
  */
 public class SceneEditable : Scene
 {
-	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
-	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
+	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER =
+		">>>\r\n[DTGESnippetBoundary]\r\n<<<";
+	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER =
+		">>>\r\n[DTGEVariationBoundary]\r\n<<<";
 
 	public const string NULL_SUBSCENE_NAME = "(None)";
 
@@ -94,19 +97,28 @@ public class SceneEditable : Scene
 		this.RenderImage = serializable.RenderImage;
 		this.ImagePath = serializable.ImagePath;
 
-		for (int optionIndex = 0; optionIndex < serializable.OptionList.Count; optionIndex++)
+		for (int optionIndex = 0;
+			optionIndex < serializable.OptionList.Count;
+			optionIndex++)
 		{
-			this.OptionList.Add(new OptionEditable(this, serializable.OptionList[optionIndex]));
+			this.OptionList.Add(
+				new OptionEditable(this, serializable.OptionList[optionIndex]));
 		}
 
-		for (int subsceneIndex = 0; subsceneIndex < serializable.SubsceneList.Count; subsceneIndex++)
+		for (int subsceneIndex = 0; 
+			subsceneIndex < serializable.SubsceneList.Count;
+			subsceneIndex++)
 		{
-			this.SubsceneList.Add(new SubsceneEditable(this, serializable.SubsceneList[subsceneIndex]));
+			this.SubsceneList.Add(
+				new SubsceneEditable(this, serializable.SubsceneList[subsceneIndex]));
 		}
 
-		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
+		for (int snippetIndex = 0;
+			snippetIndex < serializable.SnippetList.Count;
+			snippetIndex++)
 		{
-			this.SnippetList.Add(new SnippetEditable(this, serializable.SnippetList[snippetIndex]));
+			this.SnippetList.Add(
+				new SnippetEditable(this, serializable.SnippetList[snippetIndex]));
 		}
 
 		this.nextSUID = serializable.NextSUID;
@@ -130,7 +142,8 @@ public class SceneEditable : Scene
 
 		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 		{
-			SubsceneEditable subsceneEditable = this.SubsceneList[subsceneIndex] as SubsceneEditable;
+			SubsceneEditable subsceneEditable =
+				this.SubsceneList[subsceneIndex] as SubsceneEditable;
 			serializable.SubsceneList.Add(subsceneEditable.ToSerializable());
 		}
 
@@ -145,28 +158,18 @@ public class SceneEditable : Scene
 		return serializable;
 	}
 
-	public static new SceneEditable DeserializeFromJsonString(string jsonString)
-	{
-		SceneSerializable sceneSerializable = JsonSerializer.Deserialize<SceneSerializable>(jsonString);
-
-		return new SceneEditable(sceneSerializable);
-	}
-
 	public string SerializeToJsonString()
 	{
-		JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions();
-		jsonSerializerOptions.Converters.Add(new SUIDConverter());
 		SceneSerializable sceneSerializable = this.ToSerializable();
-		string jsonString = "";
-		try
-		{
-			jsonString = JsonSerializer.Serialize(sceneSerializable);
-		}
-		catch(Exception exception)
-		{
-			GlobalErrorHandler.InvokeError("An exception was hit during serialization. Exception message: " + exception.Message);
-		}
+		string jsonString = sceneSerializable.SerializeToString();
 		return jsonString;
+	}
+
+	public static new SceneEditable DeserializeFromJsonString(string jsonString)
+	{
+		SceneSerializable sceneSerializable = SceneSerializable.DeserializeFromString(jsonString);
+
+		return new SceneEditable(sceneSerializable);
 	}
 
 	public void NotifyUIUpdateDone()
@@ -207,8 +210,10 @@ public class SceneEditable : Scene
 		string copyableText = "";
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; snippetIndex++)
 		{
-			SnippetEditable currentSnippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
-			string snippetCopyableText = currentSnippetEditable.GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
+			SnippetEditable currentSnippetEditable =
+				this.SnippetList[snippetIndex] as SnippetEditable;
+			string snippetCopyableText =
+				currentSnippetEditable.GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
 			copyableText += snippetCopyableText;
 			if (snippetIndex != this.SnippetList.Count - 1)
 			{
@@ -221,7 +226,8 @@ public class SceneEditable : Scene
 	public bool RestoreFromPastedText(string pastedText)
 	{
 		bool canRestoreFromPastedText = true;
-		string[] pastedTextSplitIntoSnippets = pastedText.Split(COPYPASTE_SNIPPET_BOUNDARY_MARKER);
+		string[] pastedTextSplitIntoSnippets =
+			pastedText.Split(COPYPASTE_SNIPPET_BOUNDARY_MARKER);
 
 		if (pastedTextSplitIntoSnippets.Length != this.SnippetList.Count)
 		{
@@ -230,12 +236,19 @@ public class SceneEditable : Scene
 		else
 		{
 
-			string[][] pastedTextSplitIntoVariations = new string[pastedTextSplitIntoSnippets.Length][];
-			for (int snippetIndex = 0; snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText; snippetIndex++)
+			string[][] pastedTextSplitIntoVariations =
+				new string[pastedTextSplitIntoSnippets.Length][];
+			for (int snippetIndex = 0;
+				snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText;
+				snippetIndex++)
 			{
-				SnippetEditable currentSnippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
-				pastedTextSplitIntoVariations[snippetIndex] = pastedTextSplitIntoSnippets[snippetIndex].Split(COPYPASTE_VARIATION_BOUNDARY_MARKER);
-				if (pastedTextSplitIntoVariations[snippetIndex].Length != currentSnippetEditable.GetVariationCount())
+				SnippetEditable currentSnippetEditable =
+					this.SnippetList[snippetIndex] as SnippetEditable;
+				pastedTextSplitIntoVariations[snippetIndex] =
+					pastedTextSplitIntoSnippets[snippetIndex].Split(
+						COPYPASTE_VARIATION_BOUNDARY_MARKER);
+				if (pastedTextSplitIntoVariations[snippetIndex].Length
+					!= currentSnippetEditable.GetVariationCount())
 				{
 					canRestoreFromPastedText = false;
 				}
@@ -243,10 +256,14 @@ public class SceneEditable : Scene
 
 			if (canRestoreFromPastedText)
 			{
-				for (int snippetIndex = 0; snippetIndex < pastedTextSplitIntoSnippets.Length; snippetIndex++)
+				for (int snippetIndex = 0;
+					snippetIndex < pastedTextSplitIntoSnippets.Length;
+					snippetIndex++)
 				{
-					SnippetEditable currentSnippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
-					currentSnippetEditable.RestoreFromPastedText(pastedTextSplitIntoVariations[snippetIndex]);
+					SnippetEditable currentSnippetEditable =
+						this.SnippetList[snippetIndex] as SnippetEditable;
+					currentSnippetEditable.RestoreFromPastedText(
+						pastedTextSplitIntoVariations[snippetIndex]);
 				}
 			}
 		}
@@ -278,7 +295,8 @@ public class SceneEditable : Scene
 	{
 		if (!this.NullSubsceneEnabled)
 		{
-			SubsceneEditable nullSubscene = new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME);
+			SubsceneEditable nullSubscene =
+				new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME);
 			this.SubsceneList.Insert(0, nullSubscene);
 			this.NullSubsceneEnabled = true;
 			this.NeedsUIUpdate = true;

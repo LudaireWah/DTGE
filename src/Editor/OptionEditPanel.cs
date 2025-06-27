@@ -1,12 +1,13 @@
-using DtgeGodotCommon;
-using Godot;
 using System;
+
+using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene responsible for authoring
- * DTGE Options.
+ * The root node for the Godot scene responsible for authoring DTGE Options.
  */
 public partial class OptionEditPanel : PanelContainer
 {
@@ -34,7 +35,7 @@ public partial class OptionEditPanel : PanelContainer
 	public Action<OptionEditPanel> OnOptionMovedUp;
 	public Action<OptionEditPanel> OnOptionMovedDown;
 	public Action<OptionEditPanel> OnOptionDeleted;
-	public Action<DtgeCore.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -111,7 +112,7 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_navigate_to_target_scene_button_pressed()
 	{
-		DtgeCore.SceneId targetSceneId = new DtgeCore.SceneId(this.targetSceneLineEdit.Text);
+		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
 		this.OnTryOpenScene(targetSceneId);
 	}
 

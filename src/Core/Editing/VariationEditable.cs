@@ -2,6 +2,10 @@
 
 namespace DtgeCore.Editing;
 
+/**
+ * VariationEditable is the editable version of the Variation to be used in editors for authoring
+ * DTGE games. For more detailed information on how Editables work, see SceneEditable.cs.
+ */
 public class VariationEditable : Variation
 {
 	private SceneEditable parentSceneEditable;
@@ -31,7 +35,9 @@ public class VariationEditable : Variation
 		this.parentSceneEditable = parentSceneEditable;
 	}
 
-	public VariationEditable(SceneEditable parentSceneEditable, VariationSerializable serializable)
+	public VariationEditable(
+		SceneEditable parentSceneEditable,
+		VariationSerializable serializable)
 		:base(parentSceneEditable, serializable)
 	{
 		this.parentSceneEditable = parentSceneEditable;

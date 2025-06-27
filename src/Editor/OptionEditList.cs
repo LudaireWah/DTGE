@@ -1,13 +1,13 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene that manages the set of
- * OptionEditPanels used to author DTGE Options. It maintains
- * the list and coordinates between the options for things like
- * which navigation button the option will slot into.
+ * The root node for the Godot scene that manages the set of OptionEditPanels used to author DTGE
+ * Options. It maintains the list and coordinates between the options for things like which
+ * navigation button the option will slot into.
  */
 public partial class OptionEditList : VBoxContainer
 {
@@ -28,7 +28,7 @@ public partial class OptionEditList : VBoxContainer
 	}
 
 	public int MaximumSupportedOptions;
-	public Action<DtgeCore.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -56,10 +56,14 @@ public partial class OptionEditList : VBoxContainer
 
 	private void updateUiFromEditables()
 	{
-		for (int optionIndex = 0; optionIndex < this.dtgeSceneEditable.GetOptionCount(); optionIndex++)
+		for (int optionIndex = 0;
+			optionIndex < this.dtgeSceneEditable.GetOptionCount();
+			optionIndex++)
 		{
-			DtgeCore.Editing.OptionEditable currentOptionEditable = this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
-			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
+			DtgeCore.Editing.OptionEditable currentOptionEditable =
+				this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
+			OptionEditPanel currentOptionEditPanel =
+				this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
 			if (currentOptionEditPanel != null)
 			{
 				currentOptionEditPanel.OptionEditable = currentOptionEditable;
@@ -70,7 +74,8 @@ public partial class OptionEditList : VBoxContainer
 			}
 		}
 
-		while (this.dtgeSceneEditable.GetOptionCount() < this.optionEditListVBoxContainer.GetChildCount())
+		while (this.dtgeSceneEditable.GetOptionCount() <
+			this.optionEditListVBoxContainer.GetChildCount())
 		{
 			OptionEditPanel excessOptionEditPanel
 				= this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(
@@ -83,9 +88,12 @@ public partial class OptionEditList : VBoxContainer
 
 	public void FlushChangesForSave()
 	{
-		for (int optionPanelIndex = 0; optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelIndex++)
+		for (int optionPanelIndex = 0;
+			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
+			optionPanelIndex++)
 		{
-			this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex).FlushChangesForSave();
+			this.optionEditListVBoxContainer
+				.GetChild<OptionEditPanel>(optionPanelIndex).FlushChangesForSave();
 		}
 	}
 
@@ -95,7 +103,7 @@ public partial class OptionEditList : VBoxContainer
 		this.dtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
 	}
 
-	public void HandleTryOpenScene(DtgeCore.SceneId sceneId)
+	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
 	{
 		this.OnTryOpenScene(sceneId);
 	}
@@ -112,11 +120,13 @@ public partial class OptionEditList : VBoxContainer
 			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
 			optionPanelIndex++, optionlocationLabelIndex++)
 		{
-			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
+			OptionEditPanel currentOptionEditPanel =
+				this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
 			currentOptionEditPanel.UpdateOptionLocationLabel(optionPanelIndex);
 		}
 
-		if (this.optionEditListVBoxContainer.GetChildCount() > DtgeCore.GameData.GetGameData().MaximumSupportedOptions)
+		if (this.optionEditListVBoxContainer.GetChildCount() >
+			DtgeCore.GameData.GetGameData().MaximumSupportedOptions)
 		{
 			this.tooManyOptionsLabel.Visible = true;
 		}
@@ -133,7 +143,8 @@ public partial class OptionEditList : VBoxContainer
 	private void addNewOptionEditPanel(DtgeCore.Editing.OptionEditable optionEditable)
 	{
 		OptionEditPanel newOptionEditPanel =
-			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH)).Instantiate<OptionEditPanel>();
+			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH))
+			.Instantiate<OptionEditPanel>();
 
 		if (newOptionEditPanel != null)
 		{

@@ -1,11 +1,10 @@
 using DtgeCore.Serialization;
-using System.Text.Json;
 
 namespace DtgeCore;
 
 /**
- * Options are how players move from scene to scene, providing the main form of
- * interactivity for the engine.
+ * Options are how players move from scene to scene, providing the main form of interactivity for
+ * the engine.
  */
 public class Option : SceneElement
 {

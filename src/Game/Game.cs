@@ -1,6 +1,7 @@
-using Godot;
 using System;
 using System.Text.Json;
+
+using Godot;
 
 namespace DtgeGame;
 
@@ -61,9 +62,13 @@ public partial class Game : Control
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 
 		this.navigationButtonGrid.OnOptionSelected = this.handleOptionSelected;
-		this.navigationButtonGrid.NavigationGridShortcutMode = gameData.ActiveNavigationGridShortcutMode;
-		this.navigationButtonGrid.ChangeGridDimensions(gameData.NavigationGridColumns, gameData.NavigationGridRows);
-		this.navigationButtonGrid.SizeFlagsStretchRatio = ((float)gameData.NavigationGridRows) / 10.0f;
+		this.navigationButtonGrid.NavigationGridShortcutMode =
+			gameData.ActiveNavigationGridShortcutMode;
+		this.navigationButtonGrid.ChangeGridDimensions(
+			gameData.NavigationGridColumns,
+			gameData.NavigationGridRows);
+		this.navigationButtonGrid.SizeFlagsStretchRatio =
+			((float)gameData.NavigationGridRows) / 10.0f;
 
 		this.filePopupMenu.AddItem("Settings", (int)PopupMenuIds.FileSettings);
 
@@ -87,9 +92,10 @@ public partial class Game : Control
 	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		DtgeCore.SceneId sceneId = new DtgeCore.SceneId(option.TargetSceneId);
+		DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
 		DtgeCore.Scene dtgeScene;
-		DtgeCore.SceneManager.GetSceneSuccessValue successValue = sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
+		DtgeCore.SceneManager.GetSceneSuccessValue successValue =
+			sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
 
 		switch (successValue)
 		{
@@ -167,7 +173,8 @@ public partial class Game : Control
 
 	private static void initializeGameDataFromFile()
 	{
-		FileAccess gameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Read);
+		FileAccess gameDataFile =
+			FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Read);
 
 		if (gameDataFile != null)
 		{
@@ -177,10 +184,12 @@ public partial class Game : Control
 		}
 		else
 		{
-			FileAccess newGameDataFile = FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
+			FileAccess newGameDataFile =
+				FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
 			if (newGameDataFile != null)
 			{
-				string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(DtgeCore.GameData.GetGameData());
+				string gameDataString =
+					JsonSerializer.Serialize<DtgeCore.GameData>(DtgeCore.GameData.GetGameData());
 				newGameDataFile.StoreString(gameDataString);
 				newGameDataFile.Close();
 			}
@@ -256,7 +265,9 @@ public partial class Game : Control
 
 	private void updateUIFromSettings()
 	{
-		this.sceneTextDisplay.AddThemeFontSizeOverride("normal_font_size", this.gameSettings.SceneTextSize);
+		this.sceneTextDisplay.AddThemeFontSizeOverride(
+			"normal_font_size",
+			this.gameSettings.SceneTextSize);
 	}
 
 	private bool tryLoadSettingsFromFile(string filePath)
@@ -267,7 +278,8 @@ public partial class Game : Control
 		if (settingsFile != null)
 		{
 			string settingsJson = settingsFile.GetAsText();
-			GameSettings loadedGameSettings = JsonSerializer.Deserialize<GameSettings>(settingsJson);
+			GameSettings loadedGameSettings =
+				JsonSerializer.Deserialize<GameSettings>(settingsJson);
 			if (loadedGameSettings != null)
 			{
 				this.gameSettings = loadedGameSettings;
@@ -312,7 +324,7 @@ public partial class Game : Control
 
 			switch (scene.ImagePosition)
 			{
-			case DtgeCore.SceneImagePosition.Left:
+			case DtgeCore.Scene.SceneImagePosition.Left:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = true;
 				this.leftTextureRect.Texture = sceneTexture;
@@ -323,7 +335,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.SceneImagePosition.Right:
+			case DtgeCore.Scene.SceneImagePosition.Right:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -334,7 +346,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.SceneImagePosition.Top:
+			case DtgeCore.Scene.SceneImagePosition.Top:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -345,7 +357,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = false;
 				this.bottomTextureRect.Texture = null;
 				break;
-			case DtgeCore.SceneImagePosition.Bottom:
+			case DtgeCore.Scene.SceneImagePosition.Bottom:
 				this.sceneTextPanelContainer.Visible = true;
 				this.leftTextureRect.Visible = false;
 				this.leftTextureRect.Texture = null;
@@ -356,7 +368,7 @@ public partial class Game : Control
 				this.bottomTextureRect.Visible = true;
 				this.bottomTextureRect.Texture = sceneTexture;
 				break;
-			case DtgeCore.SceneImagePosition.OnlyImage:
+			case DtgeCore.Scene.SceneImagePosition.OnlyImage:
 				this.sceneTextPanelContainer.Visible = false;
 				this.leftTextureRect.Visible = true;
 				this.leftTextureRect.Texture = sceneTexture;

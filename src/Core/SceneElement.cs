@@ -1,8 +1,14 @@
-﻿using DtgeCore.Serialization;
-using System;
+﻿using System;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
+/**
+ * SceneElement is the base class for almost all elements within a Scene. It centralizes the
+ * tracking of the ParentScene (while keeping it encapsulated within the element) as well as
+ * holding the element's Id, which is a SUID or Scene Unique Identifier.
+ */
 public abstract class SceneElement
 {
     public SUID Id { get; private set; }
@@ -15,7 +21,7 @@ public abstract class SceneElement
         this.ParentScene = parentScene;
     }
 
-	protected SceneElement(Scene parentScene, SceneElementSerializable sceneElementSerializable)
+	protected SceneElement(Scene parentScene, SceneElementSerializable sceneElementSerializable)           
 	{
 		this.Id = sceneElementSerializable.Id;
 		this.ParentScene = parentScene;

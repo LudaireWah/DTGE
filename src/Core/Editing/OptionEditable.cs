@@ -1,8 +1,11 @@
 ﻿using DtgeCore.Serialization;
-using System.Text.Json;
 
 namespace DtgeCore.Editing;
 
+/**
+ * OptionEditable is the editable version of the Option to be used in editors for authoring DTGE
+ * games. For more detailed information on how Editables work, see SceneEditable.cs.
+ */
 public class OptionEditable : Option
 {
     public new string Name
@@ -95,12 +98,6 @@ public class OptionEditable : Option
 			"  Tooltip: " + tooltipText + "\n" +
 			"  Enabled: " + this.Enabled + "\n";
 		return optionString;
-	}
-
-	public string Serialize()
-	{
-		string toReturn = JsonSerializer.Serialize(this);
-		return toReturn;
 	}
 
 	private void notifyParentOfEdit()

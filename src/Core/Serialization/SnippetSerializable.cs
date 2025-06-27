@@ -4,6 +4,11 @@ using System.Text.Json.Serialization;
 
 namespace DtgeCore.Serialization;
 
+/**
+ * SnippetSerializable is used for easy and consistent serialization and deserialization of
+ * Snippets, including providing backwards compatibility. This class follows the Serializable
+ * pattern, which is explained in detail in SceneSerializable.cs.
+ */
 public class SnippetSerializable : SceneElementSerializable
 {
 	[JsonIgnore]

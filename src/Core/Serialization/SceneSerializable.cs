@@ -1,10 +1,36 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace DtgeCore.Serialization;
 
-public struct SceneSerializable
+/**
+ * SceneSerializable and the rest of the classes ending in "Serializable" are used for easy and
+ * consistent serialization and deserialization of DTGE classes, including providing backwards
+ * compatibility. This class and all of the other Serializables follow a consistent pattern to
+ * make it as easy as possible to use and maintain them over time.
+ * 
+ * There are several components to the Serializable pattern:
+ *   - A set of Properties ignored by Json used for easy access by the rest of DtgeCore, keeping
+ *     the complexity of serialization and backwards compatibility encapsulated within this class.
+ *     These should always point to the most recent version of the data.
+ *   - Classes for both the current and past versions of the Serializable data. Each one contains
+ *     all the data needed to serialize and deserialize the Serializable. The most current
+ *     released version can have things added to it, but you should never remove or rename
+ *     anything from a released version. Generally, anything older than the most recently released
+ *     version shouldn't be touched. In development versions are, of course, freely changeable.
+ *   - Instances of each version of the data. Upon Deserialization, the Serializable should create
+ *     the new version of the data from whatever old version exists. From then on, only the new
+ *     version should be used, though the old version should be left intact in case bugs are
+ *     discovered in the update code which requires access to the old, unmodified data. It's
+ *     possible that if DTGE projects/Scene files start to get too large, we could null out
+ *     sufficiently old data, though the class and instance should remain.
+ *   - For any Serializable meant to be serialized or deserialized on its own, functions for
+ *     serializing and deserializing will be provided. As an example, Scenes are often serialized
+ *     on their own, but Options should only ever be serialized when part of a Scene.
+ */
+public class SceneSerializable
 {
 	[JsonIgnore]
 	public string Id
@@ -25,7 +51,7 @@ public struct SceneSerializable
 		set { this.sceneVersion0Data.RenderImage = value; }
 	}
 	[JsonIgnore]
-	public SceneImagePosition ImagePosition
+	public Scene.SceneImagePosition ImagePosition
 	{
 		get { return this.sceneVersion0Data.ImagePosition; }
 		set { this.sceneVersion0Data.ImagePosition = value; }
@@ -66,7 +92,7 @@ public struct SceneSerializable
 		public string Id { get; set; }
 		public bool NullSubsceneEnabled { get; set; }
 		public bool RenderImage { get; set; }
-		public SceneImagePosition ImagePosition { get; set; }
+		public Scene.SceneImagePosition ImagePosition { get; set; }
 		public string ImagePath { get; set; }
 		public List<OptionSerializable> OptionList { get; set; }
 		public List<SubsceneSerializable> SubsceneList { get; set; }
@@ -88,13 +114,25 @@ public struct SceneSerializable
 	{
 		this.sceneVersion0Data = new SceneVersion0();
 	}
+
 	public string SerializeToString()
 	{
-		string stringSerialization = JsonSerializer.Serialize(this);
-		return stringSerialization;
+		JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions();
+		jsonSerializerOptions.Converters.Add(new SUIDConverter());
+		string jsonString = "";
+		try
+		{
+			jsonString = JsonSerializer.Serialize(this);
+		}
+		catch (Exception exception)
+		{
+			GlobalErrorHandler.InvokeError("An exception was hit during serialization. Exception message: " + exception.Message);
+		}
+
+		return jsonString;
 	}
 
-	public static SceneSerializable Deserialize(string sceneJson)
+	public static SceneSerializable DeserializeFromString(string sceneJson)
 	{
 		SceneSerializable sceneSerializable = JsonSerializer.Deserialize<SceneSerializable>(sceneJson);
 		return sceneSerializable;

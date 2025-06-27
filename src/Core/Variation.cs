@@ -2,6 +2,11 @@
 
 namespace DtgeCore;
 
+/**
+ * Variations are used by Snippets to house the different variations of that Snippet's text. The
+ * heavy lifting is done by the Snippets, and this class just houses the text, an author-readable
+ * name, and an Id (inherited from SceneElement).
+ */
 public class Variation : SceneElement
 {
     public string Name { get; protected set; }

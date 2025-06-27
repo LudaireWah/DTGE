@@ -3,9 +3,8 @@ using Godot;
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene that manages the set of
- * SnipetPanels used to author DTGE snippets. It maintains
- * the list and coordinates updates to and from the snippets.
+ * The root node for the Godot scene that manages the set of SnipetPanels used to author DTGE
+ * snippets. It maintains the list and coordinates updates to and from the snippets.
  */
 public partial class SnippetListContainer : VBoxContainer
 {
@@ -48,9 +47,12 @@ public partial class SnippetListContainer : VBoxContainer
 	{
 		int nonNullSnippetCount = 0;
 
-		for (int snippetIndex = 0; snippetIndex < this.dtgeSceneEditable.GetSnippetCount(); snippetIndex++)
+		for (int snippetIndex = 0;
+			snippetIndex < this.dtgeSceneEditable.GetSnippetCount();
+			snippetIndex++)
 		{
-			DtgeCore.Editing.SnippetEditable currentSnippet = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
+			DtgeCore.Editing.SnippetEditable currentSnippet =
+				this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
 			if (currentSnippet == null)
 			{
 				break;
@@ -58,7 +60,9 @@ public partial class SnippetListContainer : VBoxContainer
 			else
 			{
 				nonNullSnippetCount++;
-				SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
+				SnippetPanelContainer currentSnippetPanelContainer =
+					this.snippetListVBoxContainer
+					.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
 				if (currentSnippetPanelContainer != null)
 				{
 					currentSnippetPanelContainer.SnippetEditable = currentSnippet;
@@ -81,9 +85,12 @@ public partial class SnippetListContainer : VBoxContainer
 
 	public void FlushChangesForSave()
 	{
-		for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
+		for (int snippetPanelIndex = 0;
+			snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount();
+			snippetPanelIndex++)
 		{
-			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex).FlushChangesForSave();
+			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex)
+				.FlushChangesForSave();
 		}
 	}
 
@@ -95,14 +102,16 @@ public partial class SnippetListContainer : VBoxContainer
 
 	public void _on_add_snippet_button_pressed()
 	{
-		DtgeCore.Editing.SnippetEditable newSnippetEditable = this.dtgeSceneEditable.AllocateNewSnippet();
+		DtgeCore.Editing.SnippetEditable newSnippetEditable =
+			this.dtgeSceneEditable.AllocateNewSnippet();
 		this.addNewSnippetPanelContainer(newSnippetEditable);
 	}
 
 	private void addNewSnippetPanelContainer(DtgeCore.Editing.SnippetEditable snippetEditable)
 	{
 		SnippetPanelContainer newSnippetPanelContainer =
-			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH)).Instantiate<SnippetPanelContainer>();
+			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
+			.Instantiate<SnippetPanelContainer>();
 
 		if (newSnippetPanelContainer != null)
 		{

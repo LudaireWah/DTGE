@@ -1,5 +1,9 @@
 ﻿namespace DtgeGame;
 
+/**
+ * GameSettings contains the settings for running the game, modified by the player. This is likely
+ * to be overhauled as part of DTGE-135
+ */
 public class GameSettings
 {
 	public int SceneTextSize { get; set; }

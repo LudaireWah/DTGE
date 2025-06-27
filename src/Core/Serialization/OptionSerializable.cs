@@ -2,6 +2,11 @@
 
 namespace DtgeCore.Serialization;
 
+/**
+ * OptionSerializable is used for easy and consistent serialization and deserialization of
+ * Options, including providing backwards compatibility. This class follows the Serializable
+ * pattern, which is explained in detail in SceneSerializable.cs.
+ */
 public class OptionSerializable : SceneElementSerializable
 {
 	[JsonIgnore]

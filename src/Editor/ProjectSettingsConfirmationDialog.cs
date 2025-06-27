@@ -1,5 +1,6 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeEditor;
 
@@ -33,7 +34,8 @@ public partial class ProjectSettingsConfirmationDialog : ConfirmationDialog
 	{
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 		this.startSceneNameLineEdit.Text = gameData.StartSceneName;
-		this.navigationButtonGridShortcutModeOptionButton.Selected = (int)gameData.ActiveNavigationGridShortcutMode;
+		this.navigationButtonGridShortcutModeOptionButton.Selected =
+			(int)gameData.ActiveNavigationGridShortcutMode;
 		this.navigationButtonGridColumnCountSpinBox.Value = gameData.NavigationGridColumns;
 		this.navigationButtonGridRowCountSpinBox.Value = gameData.NavigationGridRows;
 	}
@@ -42,7 +44,9 @@ public partial class ProjectSettingsConfirmationDialog : ConfirmationDialog
 	{
 		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 		gameData.StartSceneName = this.startSceneNameLineEdit.Text;
-		gameData.ActiveNavigationGridShortcutMode = (DtgeCore.GameData.NavigationGridShortcutMode)this.navigationButtonGridShortcutModeOptionButton.Selected;
+		gameData.ActiveNavigationGridShortcutMode =
+			(DtgeCore.GameData.NavigationGridShortcutMode)
+			this.navigationButtonGridShortcutModeOptionButton.Selected;
 		gameData.NavigationGridColumns = (int)this.navigationButtonGridColumnCountSpinBox.Value;
 		gameData.NavigationGridRows = (int)this.navigationButtonGridRowCountSpinBox.Value;
 	}

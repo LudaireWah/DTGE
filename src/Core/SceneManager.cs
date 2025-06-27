@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 
 namespace DtgeCore;
 /**
- * The SceneManager is a singleton class responsible for having all Scenes
- * within the game based on their scene id.
+ * The SceneManager is a singleton class responsible for holding onto all scenes within the game
+ * and providing navigation between scenes.
  */
 public class SceneManager
 {
@@ -51,7 +50,7 @@ public class SceneManager
 		return successValue;
 	}
 
-	public GetSceneSuccessValue GetSceneAndSubsceneById(SceneId id, out Scene outScene)
+	public GetSceneSuccessValue GetSceneAndSubsceneById(Scene.SceneId id, out Scene outScene)
 	{
 		GetSceneSuccessValue successValue = this.GetSceneById(id.scene, out outScene);
 		

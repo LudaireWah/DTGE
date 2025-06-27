@@ -1,6 +1,8 @@
-using DtgeGodotCommon;
-using Godot;
 using System;
+
+using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
@@ -70,7 +72,8 @@ public partial class SnippetPanelContainer : PanelContainer
 
 	private void updateEditablesFromUI()
 	{
-		this.SnippetEditable.SetVariationText(this.snippetTabBar.CurrentTab, this.snippetTextEdit.Text);
+		this.SnippetEditable.SetVariationText(
+			this.snippetTabBar.CurrentTab, this.snippetTextEdit.Text);
 	}
 
 	private void UpdateUIFromEditables()
@@ -83,29 +86,43 @@ public partial class SnippetPanelContainer : PanelContainer
 		{
 			this.conditionalModeOptionButton.Selected = (int)(this.snippetEditable.Mode);
 
-			this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.SnippetMode.Simple, this.snippetEditable.IsSimpleModeDisabled());
+			this.conditionalModeOptionButton.SetItemDisabled(
+				(int)DtgeCore.Snippet.SnippetMode.Simple,
+				this.snippetEditable.IsSimpleModeDisabled());
 			if (this.snippetEditable.IsSimpleModeDisabled())
 			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.SnippetMode.Simple, "Returning to simple mode requires that you have only one variation");
+				this.conditionalModeOptionButton.SetItemTooltip(
+					(int)DtgeCore.Snippet.SnippetMode.Simple,
+					"Returning to simple mode requires that you have only one variation");
 			}
 			else
 			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.SnippetMode.Simple, null);
+				this.conditionalModeOptionButton.SetItemTooltip(
+					(int)DtgeCore.Snippet.SnippetMode.Simple,
+					null);
 			}
 
-			this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.SnippetMode.Subscene, this.SnippetEditable.IsSubsceneModeDisabled());
+			this.conditionalModeOptionButton.SetItemDisabled(
+				(int)DtgeCore.Snippet.SnippetMode.Subscene,
+				this.SnippetEditable.IsSubsceneModeDisabled());
 			if (this.SnippetEditable.IsSubsceneModeDisabled())
 			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.SnippetMode.Subscene, "Subscene mode requires that the scene has implemented subscenes");
+				this.conditionalModeOptionButton.SetItemTooltip(
+					(int)DtgeCore.Snippet.SnippetMode.Subscene,
+					"Subscene mode requires that the scene has implemented subscenes");
 			}
 			else
 			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.SnippetMode.Subscene, null);
+				this.conditionalModeOptionButton.SetItemTooltip(
+					(int)DtgeCore.Snippet.SnippetMode.Subscene,
+					null);
 			}
 
 			this.updateVariationTabsFromSnippet();
 
-			GodotUtilities.UpdateNodeText(this.snippetTextEdit, this.SnippetEditable.GetVariationTextByIndex(this.snippetTabBar.CurrentTab));
+			GodotUtilities.UpdateNodeText(
+				this.snippetTextEdit,
+				this.SnippetEditable.GetVariationTextByIndex(this.snippetTabBar.CurrentTab));
 		}
 	}
 
@@ -153,7 +170,9 @@ public partial class SnippetPanelContainer : PanelContainer
 
 	public void _on_snippet_tab_bar_tab_selected(int tabIndex)
 	{
-		GodotUtilities.UpdateNodeText(this.snippetTextEdit, this.SnippetEditable.GetVariationTextByIndex(tabIndex));
+		GodotUtilities.UpdateNodeText(
+			this.snippetTextEdit,
+			this.SnippetEditable.GetVariationTextByIndex(tabIndex));
 		this.lastVariationSelectedByTab = this.SnippetEditable.GetVariationEditable(tabIndex);
 		this.snippetTextEdit.GrabFocus();
 	}
@@ -176,22 +195,28 @@ public partial class SnippetPanelContainer : PanelContainer
 			this.newTabButton.Visible = true;
 			if (this.snippetTabBar.TabCount > 1)
 			{
-				this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
 			}
 			else
 			{
-				this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowNever;
 			}
 			break;
 		default:
 			throw new NotImplementedException();
 		}
 
-		for (int variationIndex = 0; variationIndex < this.SnippetEditable.GetVariationCount(); variationIndex++)
+		for (int variationIndex = 0;
+			variationIndex < this.SnippetEditable.GetVariationCount();
+			variationIndex++)
 		{
 			if (this.snippetTabBar.TabCount > variationIndex)
 			{
-				this.snippetTabBar.SetTabTitle(variationIndex, this.SnippetEditable.GetVariationName(variationIndex));
+				this.snippetTabBar.SetTabTitle(
+					variationIndex,
+					this.SnippetEditable.GetVariationName(variationIndex));
 			}
 			else
 			{
@@ -206,9 +231,12 @@ public partial class SnippetPanelContainer : PanelContainer
 
 		if (this.lastVariationSelectedByTab != null)
 		{
-			for (int variationIndex = 0; variationIndex < this.SnippetEditable.GetVariationCount(); variationIndex++)
+			for (int variationIndex = 0;
+				variationIndex < this.SnippetEditable.GetVariationCount();
+				variationIndex++)
 			{
-				DtgeCore.Editing.VariationEditable currentVariation = this.SnippetEditable.GetVariationEditable(variationIndex);
+				DtgeCore.Editing.VariationEditable currentVariation =
+					this.SnippetEditable.GetVariationEditable(variationIndex);
 				if (currentVariation.Id == this.lastVariationSelectedByTab.Id &&
 					variationIndex != this.snippetTabBar.CurrentTab)
 				{
@@ -218,7 +246,8 @@ public partial class SnippetPanelContainer : PanelContainer
 			}
 		}
 
-		this.lastVariationSelectedByTab = this.SnippetEditable.GetVariationEditable(this.snippetTabBar.CurrentTab);
+		this.lastVariationSelectedByTab =
+			this.SnippetEditable.GetVariationEditable(this.snippetTabBar.CurrentTab);
 	}
 
 	private void createNewSnippetVariation()

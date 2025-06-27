@@ -2,6 +2,10 @@
 
 namespace DtgeCore.Editing;
 
+/**
+ * SubsceneEditable is the editable version of the Subscene to be used in editors for authoring
+ * DTGE games. For more detailed information on how Editables work, see SceneEditable.cs.
+ */
 public class SubsceneEditable : Subscene
 {
 	public const string DEFAULT_NEW_SUBSCENE_NAME = "New Subscene";

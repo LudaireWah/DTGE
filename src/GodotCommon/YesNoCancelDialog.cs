@@ -13,8 +13,8 @@ public partial class YesNoCancelDialog : Window
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.rootMarginContainer = GetNode<MarginContainer>("RootMarginContainer");
-		this.dialogText = GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
+		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
+		this.dialogText = this.GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
 
 		this.SizeChanged += this.HandleWindowSizeChanged;
 	}

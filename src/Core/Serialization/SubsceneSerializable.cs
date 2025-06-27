@@ -2,6 +2,11 @@
 
 namespace DtgeCore.Serialization;
 
+/**
+ * SubsceneSerializable is used for easy and consistent serialization and deserialization of
+ * Subscenes, including providing backwards compatibility. This class follows the Serializable
+ * pattern, which is explained in detail in SceneSerializable.cs.
+ */
 public class SubsceneSerializable : SceneElementSerializable
 {
 	[JsonIgnore]
