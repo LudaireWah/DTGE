@@ -1,9 +1,9 @@
+using DtgeCore.Serialization;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Runtime.CompilerServices;
 
 namespace DtgeCore;
 
@@ -72,6 +72,7 @@ public struct SceneId
  * to minimize churn, I'm going to maintain that behavior. If I do reconsider this, I should
  * remove SUID.None entirely.)
  */
+[JsonConverter(typeof(SUIDConverter))]
 public class SUID
 {
 	private readonly int suid;
@@ -109,6 +110,37 @@ public class SUID
 	{
 		return this.suid;
 	}
+
+	public int ToInt()
+	{
+		return this.suid;
+	}
+}
+
+public class SUIDConverter : JsonConverter<SUID>
+{
+	public override SUID Read(
+		ref Utf8JsonReader reader,
+		Type typeToConvert,
+		JsonSerializerOptions options)
+	{
+		return new SUID(reader.GetInt32());
+	}
+
+	public override void Write(Utf8JsonWriter writer, SUID value, JsonSerializerOptions options)
+	{
+		JsonSerializer.Serialize(writer, value.ToInt(), options);
+	}
+
+	public override SUID ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	{
+		return new SUID(Int32.Parse(reader.GetString()));
+	}
+
+	public override void WriteAsPropertyName(Utf8JsonWriter writer, [DisallowNull] SUID value, JsonSerializerOptions options)
+	{
+		writer.WritePropertyName(value.ToInt().ToString());
+	}
 }
 
 public class Scene
@@ -116,56 +148,77 @@ public class Scene
 	public string Id { get; protected set; }
 	public bool NullSubsceneEnabled { get; protected set; }
 	public int CurrentSubsceneIndex { get; set; }
-	public Subscene CurrentSubscene { get { return this.Subscenes[this.CurrentSubsceneIndex]; } }
+	public Subscene CurrentSubscene
+	{
+		get
+		{
+			Subscene currentSubscene = null; 
+			if (this.SubsceneList.Count > 0)
+			{
+				currentSubscene = this.SubsceneList[this.CurrentSubsceneIndex];
+			}
+			return currentSubscene;
+		}
+	}
 	public bool RenderImage { get; protected set; }
 	public SceneImagePosition ImagePosition {  get; protected set; }
 	public string ImagePath {  get; protected set; }
 
 	protected List<Option> OptionList { get; private set; }
-	protected List<Subscene> Subscenes { get; private set; }
+	protected List<Subscene> SubsceneList { get; private set; }
 	protected List<Snippet> SnippetList { get; private set; }
 
-	private int nextSUID = SUID.FIRST_VALID_SUID;
+	protected int nextSUID = SUID.FIRST_VALID_SUID;
 
 	public Scene()
 	{
 		this.Id = "";
-		this.OptionList = new List<Option>();
-		this.Subscenes = new List<Subscene>();
 		this.NullSubsceneEnabled = false;
 		this.CurrentSubsceneIndex = 0;
-		this.SnippetList = new List<Snippet>();
 		this.RenderImage = false;
 		this.ImagePath = null;
+		this.OptionList = new List<Option>();
+		this.SubsceneList = new List<Subscene>();
+		this.SnippetList = new List<Snippet>();
 	}
 
-	public Scene(string id)
+	protected Scene(SceneSerializable serializable)
 	{
-		this.Id= id;
-		this.OptionList = new List<Option>();
-		this.Subscenes = new List<Subscene>();
-		this.NullSubsceneEnabled = false;
+		this.Id = serializable.Id;
+		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
 		this.CurrentSubsceneIndex = 0;
+		this.RenderImage= serializable.RenderImage;
+		this.ImagePath= serializable.ImagePath;
+
+		this.OptionList = new List<Option>();
+		for (int optionIndex = 0; optionIndex < serializable.OptionList.Count; optionIndex++)
+		{
+			this.OptionList.Add(new Option(this, serializable.OptionList[optionIndex]));
+		}
+
+		this.SubsceneList = new List<Subscene>();
+		for (int subsceneIndex = 0; subsceneIndex < serializable.SubsceneList.Count; subsceneIndex++)
+		{
+			this.SubsceneList.Add(new Subscene(this, serializable.SubsceneList[subsceneIndex]));
+		}
+
 		this.SnippetList = new List<Snippet>();
-		this.RenderImage = false;
-		this.ImagePath = null;
+		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
+		{
+			this.SnippetList.Add(new Snippet(this, serializable.SnippetList[snippetIndex]));
+		}
+	}
+
+	public static Scene DeserializeFromJsonString(string jsonString)
+	{
+		SceneSerializable sceneSerializable = JsonSerializer.Deserialize<SceneSerializable>(jsonString);
+
+		return new Scene(sceneSerializable);
 	}
 
 	public SUID GetSUID()
 	{
 		return new SUID(this.nextSUID++);
-	}
-
-	public string Serialize()
-	{   
-		string toReturn = JsonSerializer.Serialize(this);
-		return toReturn;
-	}
-
-	public static Scene Deserialize(string sceneJson)
-	{
-		Scene deserializedScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
-		return deserializedScene;
 	}
 
 	public string CalculateSceneText()
@@ -194,7 +247,7 @@ public class Scene
 	public bool SetCurrentSubsceneByIndex(int index)
 	{
 		bool success = false;
-		if (index < this.Subscenes.Count)
+		if (index < this.SubsceneList.Count)
 		{
 			this.CurrentSubsceneIndex = index;
 			success = true;
@@ -214,9 +267,9 @@ public class Scene
 		{
 			int desiredSubsceneIndex = -1;
 
-			for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
+			for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 			{
-				if (Subscenes[subsceneIndex].Name == subsceneName)
+				if (SubsceneList[subsceneIndex].Name == subsceneName)
 				{
 					desiredSubsceneIndex = subsceneIndex;
 					break;
@@ -238,9 +291,9 @@ public class Scene
 		bool success = false;
 		int desiredSubsceneIndex = -1;
 
-		for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
+		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 		{
-			if (Subscenes[subsceneIndex].Id == subscene.Id)
+			if (SubsceneList[subsceneIndex].Id == subscene.Id)
 			{
 				desiredSubsceneIndex = subsceneIndex;
 				break;

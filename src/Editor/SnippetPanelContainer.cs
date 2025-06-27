@@ -1,3 +1,4 @@
+using DtgeGodotCommon;
 using Godot;
 using System;
 
@@ -23,8 +24,8 @@ public partial class SnippetPanelContainer : PanelContainer
 	Button newTabButton;
 
 	private bool uiNeedsUpdate;
-	private DtgeCore.SnippetEditable snippetEditable;
-	public DtgeCore.SnippetEditable SnippetEditable
+	private DtgeCore.Editing.SnippetEditable snippetEditable;
+	public DtgeCore.Editing.SnippetEditable SnippetEditable
 	{
 		get
 		{
@@ -41,7 +42,7 @@ public partial class SnippetPanelContainer : PanelContainer
 	public Action<SnippetPanelContainer> OnSnippetMovedDown;
 	public Action<SnippetPanelContainer> OnSnippetDeleted;
 
-	private DtgeCore.VariationEditable lastVariationSelectedByTab;
+	private DtgeCore.Editing.VariationEditable lastVariationSelectedByTab;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -104,7 +105,7 @@ public partial class SnippetPanelContainer : PanelContainer
 
 			this.updateVariationTabsFromSnippet();
 
-			this.snippetTextEdit.Text = this.SnippetEditable.GetVariationTextByIndex(this.snippetTabBar.CurrentTab);
+			GodotUtilities.UpdateNodeText(this.snippetTextEdit, this.SnippetEditable.GetVariationTextByIndex(this.snippetTabBar.CurrentTab));
 		}
 	}
 
@@ -152,7 +153,7 @@ public partial class SnippetPanelContainer : PanelContainer
 
 	public void _on_snippet_tab_bar_tab_selected(int tabIndex)
 	{
-		this.snippetTextEdit.Text = this.SnippetEditable.GetVariationTextByIndex(tabIndex);
+		GodotUtilities.UpdateNodeText(this.snippetTextEdit, this.SnippetEditable.GetVariationTextByIndex(tabIndex));
 		this.lastVariationSelectedByTab = this.SnippetEditable.GetVariationEditable(tabIndex);
 		this.snippetTextEdit.GrabFocus();
 	}
@@ -207,7 +208,7 @@ public partial class SnippetPanelContainer : PanelContainer
 		{
 			for (int variationIndex = 0; variationIndex < this.SnippetEditable.GetVariationCount(); variationIndex++)
 			{
-				DtgeCore.VariationEditable currentVariation = this.SnippetEditable.GetVariationEditable(variationIndex);
+				DtgeCore.Editing.VariationEditable currentVariation = this.SnippetEditable.GetVariationEditable(variationIndex);
 				if (currentVariation.Id == this.lastVariationSelectedByTab.Id &&
 					variationIndex != this.snippetTabBar.CurrentTab)
 				{

@@ -1,3 +1,4 @@
+using DtgeCore.Serialization;
 using System.Text.Json;
 
 namespace DtgeCore;
@@ -22,6 +23,16 @@ public class Option : SceneElement
 		this.DisplayName = "";
 		this.Tooltip = null;
 		this.Enabled = true;
+	}
+
+	public Option(Scene parentScene, OptionSerializable optionSerializable)
+		:base(parentScene, optionSerializable)
+	{
+		this.Name = optionSerializable.Name;
+		this.TargetSceneId= optionSerializable.TargetSceneId;
+		this.DisplayName = optionSerializable.DisplayName;
+		this.Tooltip = optionSerializable.Tooltip;
+		this.Enabled= optionSerializable.Enabled;
 	}
 
 	public void CopyFrom(Option other)

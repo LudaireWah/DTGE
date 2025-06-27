@@ -1,7 +1,8 @@
-﻿using System;
+﻿using DtgeCore.Serialization;
+using System;
 using System.Linq;
 
-namespace DtgeCore;
+namespace DtgeCore.Editing;
 
 /**
  * The class responsible for editing logic for Snippets.
@@ -43,6 +44,45 @@ public class SnippetEditable : Snippet
 		this.OrderedVariationIds.Add(newVariation.Id);
 	}
 
+	public SnippetEditable(SceneEditable parentSceneEditable, SnippetSerializable serializable)
+		: base(parentSceneEditable)
+	{
+		this.parentSceneEditable = parentSceneEditable;
+
+		this.Mode = serializable.Mode;
+		foreach (SUID id in serializable.Variations.Keys)
+		{
+			this.Variations.Add(id, new VariationEditable(parentSceneEditable, serializable.Variations[id]));
+		}
+		for (int variationIndex = 0; variationIndex < serializable.OrderedVariationIds.Count; variationIndex++)
+		{
+			this.OrderedVariationIds.Add(serializable.OrderedVariationIds[variationIndex]);
+		}
+
+		Random seedGenerator = new Random();
+		this.snippetRandomizerSeed = seedGenerator.Next();
+		this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
+		this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
+	}
+
+	public SnippetSerializable ToSerializable()
+	{
+		SnippetSerializable serializable = this.CreateSerializable<SnippetSerializable>();
+
+		serializable.Mode = this.Mode;
+		foreach (SUID key in this.Variations.Keys)
+		{
+			VariationEditable variationEditable = this.Variations[key] as VariationEditable;
+			serializable.Variations.Add(key, variationEditable.ToSerializable());
+		}
+		for (int variationIdIndex = 0; variationIdIndex < this.OrderedVariationIds.Count; variationIdIndex++)
+		{
+			serializable.OrderedVariationIds.Add(this.OrderedVariationIds[variationIdIndex]);
+		}
+
+		return serializable;
+	}
+
 	public void CopyFrom(SnippetEditable other)
 	{
 		base.CopyFrom(other);
@@ -59,6 +99,8 @@ public class SnippetEditable : Snippet
 			this.OrderedVariationIds[orderedVariationIdIndex] = other.OrderedVariationIds[orderedVariationIdIndex];
 		}
 		this.parentSceneEditable = other.parentSceneEditable;
+
+		this.notifyParentOfEdit();
 	}
 
 	public string CalculateTextWithoutRandomization()
@@ -103,6 +145,8 @@ public class SnippetEditable : Snippet
 		default:
 			throw new NotImplementedException();
 		}
+
+		this.notifyParentOfEdit();
 	}
 
 	public void RemoveVariation(SUID variationId)
@@ -122,6 +166,8 @@ public class SnippetEditable : Snippet
 		default:
 			throw new NotImplementedException();
 		}
+
+		this.notifyParentOfEdit();
 	}
 
 	public void RemoveVariationByIndex(int variationIndex)
@@ -147,6 +193,7 @@ public class SnippetEditable : Snippet
 		}
 
 		this.Mode = newMode;
+		this.notifyParentOfEdit();
 	}
 
 	public int GetVariationCount()
@@ -278,6 +325,7 @@ public class SnippetEditable : Snippet
 		{
 			VariationEditable newSubsceneVariationEditable = new VariationEditable(this.parentSceneEditable, subscene.Name, string.Empty);
 			this.Variations.Add(newSubsceneVariationEditable.Id, newSubsceneVariationEditable);
+			this.OrderedVariationIds.Add(newSubsceneVariationEditable.Id);
 		}
 	}
 
@@ -291,7 +339,7 @@ public class SnippetEditable : Snippet
 			}
 			else
 			{
-				Variation removedVariation = this.Variations[subscene.Id];
+				VariationEditable removedVariation = this.Variations[subscene.Id] as VariationEditable;
 				this.removeVariationFromOrderedListAndShift(removedVariation.Id);
 			}
 		}
@@ -322,20 +370,24 @@ public class SnippetEditable : Snippet
 			{
 				string simpleTextToTransferToFirstSubsceneVariation = this.Variations[this.OrderedVariationIds.First()].Text;
 				this.Variations.Clear();
+				this.OrderedVariationIds.Clear();
 				Subscene firstSubscene = this.parentSceneEditable.GetSubscene(0);
 				this.Variations.Add(firstSubscene.Id, new VariationEditable(this.parentSceneEditable, firstSubscene.Name, simpleTextToTransferToFirstSubsceneVariation));
 				for (int subsceneIndex = 1; subsceneIndex < this.parentSceneEditable.GetSubsceneCount(); subsceneIndex++)
 				{
 					Subscene nextSubscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
 					this.Variations.Add(nextSubscene.Id, new VariationEditable(this.parentSceneEditable, nextSubscene.Name, string.Empty));
+					this.OrderedVariationIds.Add(nextSubscene.Id);
 				}
 			}
 			break;
 		case SnippetMode.Random:
 			string simpleTextToTransferToFirstRandomVariation = this.Variations[this.OrderedVariationIds.First()].Text;
 			this.Variations.Clear();
+			this.OrderedVariationIds.Clear();
 			VariationEditable newVariationEditable = new VariationEditable(this.parentSceneEditable, translateIndexToKeyForRandomVariation(0), simpleTextToTransferToFirstRandomVariation);
 			this.Variations.Add(newVariationEditable.Id, newVariationEditable);
+			this.OrderedVariationIds.Add(newVariationEditable.Id);
 			break;
 		default:
 			throw new NotImplementedException();
@@ -349,8 +401,10 @@ public class SnippetEditable : Snippet
 		case SnippetMode.Simple:
 			string firstSubsceneTextToTransferToSimpleVariation = this.Variations[this.parentSceneEditable.GetSubscene(0).Id].Text;
 			this.Variations.Clear();
+			this.OrderedVariationIds.Clear();
 			VariationEditable newSimpleVariationEditable = new VariationEditable(this.parentSceneEditable, SIMPLE_VARIATION_NAME, firstSubsceneTextToTransferToSimpleVariation);
 			this.Variations.Add(newSimpleVariationEditable.Id, newSimpleVariationEditable);
+			this.OrderedVariationIds.Add(newSimpleVariationEditable.Id);
 			break;
 		case SnippetMode.Subscene:
 			// No-op
@@ -363,10 +417,12 @@ public class SnippetEditable : Snippet
 				cachedSubsceneTextsToTranslateToRandom[subsceneIndex] = this.Variations[subscene.Id].Text;
 			}
 			this.Variations.Clear();
+			this.OrderedVariationIds.Clear();
 			for (int variationIndex = 0; variationIndex < cachedSubsceneTextsToTranslateToRandom.Length; variationIndex++)
 			{
 				VariationEditable newRandomVariationEditable = new VariationEditable(this.parentSceneEditable, getNextNewRandomName(), cachedSubsceneTextsToTranslateToRandom[variationIndex]);
 				this.Variations.Add(newRandomVariationEditable.Id, newRandomVariationEditable);
+				this.OrderedVariationIds.Add(newRandomVariationEditable.Id);
 			}
 			break;
 		default:
@@ -381,8 +437,10 @@ public class SnippetEditable : Snippet
 		case SnippetMode.Simple:
 			string firstRandomTextToTransferToSimpleVariation = this.Variations[this.OrderedVariationIds.First()].Text;
 			this.Variations.Clear();
+			this.OrderedVariationIds.Clear();
 			VariationEditable newSimpleVariation = new VariationEditable(this.parentSceneEditable, SIMPLE_VARIATION_NAME, firstRandomTextToTransferToSimpleVariation);
 			this.Variations.Add(newSimpleVariation.Id, newSimpleVariation);
+			this.OrderedVariationIds.Add(newSimpleVariation.Id);
 			break;
 		case SnippetMode.Subscene:
 			if (this.parentSceneEditable.GetSubsceneCount() < 1)
@@ -397,11 +455,13 @@ public class SnippetEditable : Snippet
 					cachedRandomTextsToTranslateToSubscenes[variationIndex] = this.Variations[this.OrderedVariationIds[variationIndex]].Text;
 				}
 				this.Variations.Clear();
+				this.OrderedVariationIds.Clear();
 				for (int subsceneIndex = 0; subsceneIndex < this.parentSceneEditable.GetSubsceneCount(); subsceneIndex++)
 				{
 					Subscene currentSubscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
 					VariationEditable newRandomVariationEditable = new VariationEditable(this.parentSceneEditable, currentSubscene.Name, cachedRandomTextsToTranslateToSubscenes[subsceneIndex]);
 					this.Variations.Add(newRandomVariationEditable.Id, newRandomVariationEditable);
+					this.OrderedVariationIds.Add(newRandomVariationEditable.Id);
 				}
 			}
 			break;
@@ -420,7 +480,7 @@ public class SnippetEditable : Snippet
 
 	private void notifyParentOfEdit()
 	{
-		if (this.parentSceneEditable == null)
+		if (this.parentSceneEditable != null)
 		{
 			this.parentSceneEditable.NotifyUIUpdateNeeded();
 		}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DtgeCore.Serialization;
+using System;
 
 namespace DtgeCore;
 
@@ -14,6 +15,19 @@ public abstract class SceneElement
         this.ParentScene = parentScene;
     }
 
+	protected SceneElement(Scene parentScene, SceneElementSerializable sceneElementSerializable)
+	{
+		this.Id = sceneElementSerializable.Id;
+		this.ParentScene = parentScene;
+	}
+
+	protected T CreateSerializable<T>() where T : SceneElementSerializable, new()
+	{
+		T serializable = new T();
+		serializable.Id = this.Id;
+		return serializable;
+	}
+
     protected void CopyFrom(SceneElement other)
     {
         this.Id = other.Id;
@@ -21,7 +35,17 @@ public abstract class SceneElement
 
 	public static bool operator ==(SceneElement left, SceneElement right)
 	{
-		return left.Id == right.Id;
+		bool isEqual = false;
+		if (Object.Equals(left, null) && Object.Equals(right, null))
+		{
+			isEqual = true;
+		}
+		else if (!Object.Equals(left, null) && !Object.Equals(right, null))
+		{
+			isEqual = left.Id == right.Id;
+		}
+
+		return isEqual;
 	}
 
 	public static bool operator !=(SceneElement left, SceneElement right)
@@ -32,11 +56,11 @@ public abstract class SceneElement
 	public override bool Equals(object other)
 	{
 		bool isEqual = false;
-		SceneElement sceneElement = other as SceneElement;
+		SceneElement otherSceneElement = other as SceneElement;
 
-		if (sceneElement != null)
+		if (otherSceneElement != null)
 		{
-			isEqual = this == (SceneElement)other;
+			isEqual = this == otherSceneElement;
 		}
 
 		return isEqual;

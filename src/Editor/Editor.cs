@@ -81,7 +81,7 @@ public partial class Editor : Control
 
 	private struct DtgeSceneTabInfo
 	{
-		public DtgeCore.SceneEditable dtgeScene;
+		public DtgeCore.Editing.SceneEditable dtgeScene;
 		public string path;
 		public bool saved;
 	}
@@ -254,10 +254,7 @@ public partial class Editor : Control
 			DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 
 			DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
-			if (sceneDirectory == null)
-			{
-				return;
-			}
+			DtgeCore.GlobalErrorHandler.InvokeErrorIf(sceneDirectory == null, "No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
 
 			string[] sceneFileNames = sceneDirectory.GetFiles();
 			string targetSceneFileName = sceneId.scene + ".dscn";
@@ -274,7 +271,7 @@ public partial class Editor : Control
 					if (sceneFile != null)
 					{
 						string sceneJson = sceneFile.GetAsText();
-						DtgeCore.SceneEditable newScene = new DtgeCore.SceneEditable(sceneJson);
+						DtgeCore.Editing.SceneEditable newScene = DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(sceneJson);
 						if (newScene != null)
 						{
 							this.createOpenedSceneTab(newScene, sceneFilePath);
@@ -433,7 +430,7 @@ public partial class Editor : Control
 		else
 		{
 			string sceneJson = sceneFile.GetAsText();
-			this.dtgeSceneEditContainer.RestoreFromSerializedScene(sceneJson);
+			this.dtgeSceneEditContainer.RestoreFromSerializedSceneJson(sceneJson);
 			this.createOpenedSceneTab(this.dtgeSceneEditContainer.DtgeSceneEditable, path);
 			this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 
@@ -560,7 +557,7 @@ public partial class Editor : Control
 
 	private void createNewSceneTab()
 	{
-		DtgeCore.SceneEditable newDtgeScene = new DtgeCore.SceneEditable();
+		DtgeCore.Editing.SceneEditable newDtgeScene = new DtgeCore.Editing.SceneEditable();
 		DtgeSceneTabInfo newDtgeSceneTabInfo;
 		newDtgeSceneTabInfo.dtgeScene = newDtgeScene;
 		newDtgeSceneTabInfo.path = null;
@@ -581,7 +578,7 @@ public partial class Editor : Control
 		this.anyEditsMade = true;
 	}
 
-	private void createOpenedSceneTab(DtgeCore.SceneEditable scene, string path)
+	private void createOpenedSceneTab(DtgeCore.Editing.SceneEditable scene, string path)
 	{
 		if (!this.anyEditsMade)
 		{
@@ -610,7 +607,7 @@ public partial class Editor : Control
 		return this.openDtgeSceneDictionary[tabKey];
 	}
 
-	private void setCurrentSceneTabInfoScene(DtgeCore.SceneEditable scene)
+	private void setCurrentSceneTabInfoScene(DtgeCore.Editing.SceneEditable scene)
 	{
 		DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
 		currentDtgeSceneTabInfo.dtgeScene = scene;
@@ -686,7 +683,7 @@ public partial class Editor : Control
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 	}
 
-	private static void saveSceneToPath(DtgeCore.SceneEditable scene, string path)
+	private static void saveSceneToPath(DtgeCore.Editing.SceneEditable scene, string path)
 	{
 		FileAccess sceneFile = FileAccess.Open(path, FileAccess.ModeFlags.Write);
 		if (sceneFile == null)
@@ -695,7 +692,7 @@ public partial class Editor : Control
 		}
 		else
 		{
-			string serializedScene = scene.Serialize();
+			string serializedScene = scene.SerializeToJsonString();
 			sceneFile.StoreString(serializedScene);
 
 			sceneFile.Close();

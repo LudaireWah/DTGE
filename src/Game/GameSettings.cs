@@ -1,7 +1,4 @@
-﻿using Godot;
-using System.Text.Json;
-
-namespace DtgeGame;
+﻿namespace DtgeGame;
 
 public class GameSettings
 {
@@ -11,7 +8,7 @@ public class GameSettings
 
 	public GameSettings()
 	{
-		SceneTextSize = SCENE_TEXT_SIZE_DEFAULT;
+		this.SceneTextSize = SCENE_TEXT_SIZE_DEFAULT;
 	}
 
 	public GameSettings(GameSettings other)

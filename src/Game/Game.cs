@@ -1,7 +1,6 @@
 using Godot;
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DtgeGame;
 
@@ -213,7 +212,7 @@ public partial class Game : Control
 			if (sceneFile != null)
 			{
 				string sceneJson = sceneFile.GetAsText();
-				DtgeCore.Scene newScene = new DtgeCore.Scene(sceneJson);
+				DtgeCore.Scene newScene = DtgeCore.Scene.DeserializeFromJsonString(sceneJson);
 				if (newScene != null)
 				{
 					sceneManager.AddScene(newScene);

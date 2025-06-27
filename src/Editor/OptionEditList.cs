@@ -1,6 +1,5 @@
 using Godot;
 using System;
-using System.Collections.Generic;
 
 namespace DtgeEditor;
 
@@ -17,8 +16,8 @@ public partial class OptionEditList : VBoxContainer
 
 	public bool UiNeedsUpdate;
 
-	private DtgeCore.SceneEditable dtgeSceneEditable;
-	public DtgeCore.SceneEditable DtgeSceneEditable
+	private DtgeCore.Editing.SceneEditable dtgeSceneEditable;
+	public DtgeCore.Editing.SceneEditable DtgeSceneEditable
 	{
 		get { return this.dtgeSceneEditable; }
 		set
@@ -59,7 +58,7 @@ public partial class OptionEditList : VBoxContainer
 	{
 		for (int optionIndex = 0; optionIndex < this.dtgeSceneEditable.GetOptionCount(); optionIndex++)
 		{
-			DtgeCore.OptionEditable currentOptionEditable = this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
+			DtgeCore.Editing.OptionEditable currentOptionEditable = this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
 			OptionEditPanel currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
 			if (currentOptionEditPanel != null)
 			{
@@ -103,7 +102,7 @@ public partial class OptionEditList : VBoxContainer
 
 	public void _on_add_option_button_pressed()
 	{
-		DtgeCore.OptionEditable newOption = this.dtgeSceneEditable.AllocateNewOption();
+		DtgeCore.Editing.OptionEditable newOption = this.dtgeSceneEditable.AllocateNewOption();
 		this.addNewOptionEditPanel(newOption);
 	}
 
@@ -131,7 +130,7 @@ public partial class OptionEditList : VBoxContainer
 	{
 	}
 
-	private void addNewOptionEditPanel(DtgeCore.OptionEditable optionEditable)
+	private void addNewOptionEditPanel(DtgeCore.Editing.OptionEditable optionEditable)
 	{
 		OptionEditPanel newOptionEditPanel =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH)).Instantiate<OptionEditPanel>();

@@ -1,7 +1,5 @@
 using Godot;
 using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DtgeGame;
 
@@ -17,8 +15,8 @@ public partial class GameSettingsWindow : Window
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.rootMarginContainer = GetNode<MarginContainer>("RootMarginContainer");
-		this.sceneTextSizeLineEdit = GetNode<LineEdit>("RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit");
+		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
+		this.sceneTextSizeLineEdit = this.GetNode<LineEdit>("RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit");
 
 		this.SizeChanged += this.HandleWindowSizeChanged;
 	}

@@ -1,4 +1,6 @@
-﻿namespace DtgeCore;
+﻿using DtgeCore.Serialization;
+
+namespace DtgeCore.Editing;
 
 public class SubsceneEditable : Subscene
 {
@@ -22,6 +24,21 @@ public class SubsceneEditable : Subscene
 		this.parentSceneEditable = parentSceneEditable;
 	}
 
+	public SubsceneEditable(SceneEditable parentSceneEditable, SubsceneSerializable serializable)
+		: base(parentSceneEditable, serializable)
+	{
+		this.parentSceneEditable = parentSceneEditable;
+	}
+
+	public SubsceneSerializable ToSerializable()
+	{
+		SubsceneSerializable serializable = this.CreateSerializable<SubsceneSerializable>();
+
+		serializable.Name = this.Name;
+
+		return serializable;
+	}
+
 	public SubsceneEditable(SceneEditable parentSceneEditable, string name)
 		: base(parentSceneEditable, name)
 	{
@@ -30,7 +47,7 @@ public class SubsceneEditable : Subscene
 
 	private void notifyParentOfEdit()
 	{
-		if (this.parentSceneEditable == null)
+		if (this.parentSceneEditable != null)
 		{
 			this.parentSceneEditable.NotifyUIUpdateNeeded();
 		}

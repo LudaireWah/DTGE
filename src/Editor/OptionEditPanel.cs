@@ -1,3 +1,4 @@
+using DtgeGodotCommon;
 using Godot;
 using System;
 
@@ -15,8 +16,8 @@ public partial class OptionEditPanel : PanelContainer
 	LineEdit displayNameLineEdit;
 	CheckButton optionEnabledCheckButton;
 
-	private DtgeCore.OptionEditable optionEditable;
-	public DtgeCore.OptionEditable OptionEditable
+	private DtgeCore.Editing.OptionEditable optionEditable;
+	public DtgeCore.Editing.OptionEditable OptionEditable
 	{
 		get
 		{
@@ -67,10 +68,15 @@ public partial class OptionEditPanel : PanelContainer
 
 	private void UpdateUIFromEditables()
 	{
-		this.idLineEdit.Text = this.OptionEditable.Name;
-		this.targetSceneLineEdit.Text = this.OptionEditable.TargetSceneId;
-		this.displayNameLineEdit.Text = this.OptionEditable.DisplayName;
+		GodotUtilities.UpdateNodeText(this.idLineEdit, this.OptionEditable.Name);
+		GodotUtilities.UpdateNodeText(this.targetSceneLineEdit, this.OptionEditable.TargetSceneId);
+		GodotUtilities.UpdateNodeText(this.displayNameLineEdit, this.OptionEditable.DisplayName);
 		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
+	}
+
+	public class Test
+	{
+		public string Text {  get; set; }
 	}
 
 	public void FlushChangesForSave()

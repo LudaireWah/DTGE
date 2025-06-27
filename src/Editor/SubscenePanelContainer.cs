@@ -1,3 +1,4 @@
+using DtgeGodotCommon;
 using Godot;
 using System;
 
@@ -9,8 +10,8 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public Action<SubscenePanelContainer> OnSubsceneDeleted;
 
-	private DtgeCore.SubsceneEditable subsceneEditable;
-	public DtgeCore.SubsceneEditable SubsceneEditable
+	private DtgeCore.Editing.SubsceneEditable subsceneEditable;
+	public DtgeCore.Editing.SubsceneEditable SubsceneEditable
 	{
 		get { return this.subsceneEditable; }
 		set
@@ -27,7 +28,7 @@ public partial class SubscenePanelContainer : PanelContainer
 		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
 		if (this.UiNeedsUpdate)
 		{
-			this.nameLineEdit.Text = this.subsceneEditable.Name;
+			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.subsceneEditable.Name);
 			this.UiNeedsUpdate = false;
 		}
 	}

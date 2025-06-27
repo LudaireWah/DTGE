@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using DtgeCore.Serialization;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace DtgeCore;
+namespace DtgeCore.Editing;
 
 public class OptionEditable : Option
 {
@@ -63,6 +59,25 @@ public class OptionEditable : Option
         this.parentSceneEditable = parentSceneEditable;
 	}
 
+    public OptionEditable(SceneEditable parentSceneEditable, OptionSerializable optionSerializable)
+        : base(parentSceneEditable, optionSerializable)
+    {
+        this.parentSceneEditable = parentSceneEditable;
+    }
+
+    public OptionSerializable ToSerializable()
+    {
+        OptionSerializable serializable = this.CreateSerializable<OptionSerializable>();
+
+        serializable.Name = this.Name;
+        serializable.TargetSceneId = this.TargetSceneId;
+        serializable.DisplayName = this.DisplayName;
+        serializable.Tooltip = this.Tooltip;
+        serializable.Enabled = this.Enabled;
+
+        return serializable;
+    }
+
 	public override string ToString()
 	{
 		string tooltipText = "(None)";
@@ -90,7 +105,7 @@ public class OptionEditable : Option
 
 	private void notifyParentOfEdit()
     {
-        if (this.parentSceneEditable == null)
+        if (this.parentSceneEditable != null)
         {
             this.parentSceneEditable.NotifyUIUpdateNeeded();
         }

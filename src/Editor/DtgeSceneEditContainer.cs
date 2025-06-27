@@ -1,8 +1,5 @@
-using DtgeCore;
 using Godot;
 using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DtgeEditor;
 
@@ -41,8 +38,8 @@ public partial class DtgeSceneEditContainer : Control
 
 	private bool uiNeedsUpdate;
 
-	private DtgeCore.SceneEditable dtgeSceneEditable;
-	public DtgeCore.SceneEditable DtgeSceneEditable
+	private DtgeCore.Editing.SceneEditable dtgeSceneEditable;
+	public DtgeCore.Editing.SceneEditable DtgeSceneEditable
 	{
 		get { return this.dtgeSceneEditable; }
 		set
@@ -55,7 +52,7 @@ public partial class DtgeSceneEditContainer : Control
 	public Action<DtgeCore.SceneId> OnTryOpenScene;
 	public Action OnSceneUpdated;
 
-	private DtgeCore.SubsceneEditable lastSelectedSubsceneForTextPreviewSubsceneSelector;
+	private DtgeCore.Editing.SubsceneEditable lastSelectedSubsceneForTextPreviewSubsceneSelector;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -87,19 +84,17 @@ public partial class DtgeSceneEditContainer : Control
 		this.pasteSnippetAcceptDialog = this.GetNode<AcceptDialog>("PasteSnippetsFailedAcceptDialog");
 		this.chooseImageFileDialog = this.GetNode<FileDialog>("ChooseImageFileDialog");
 
-		this.DtgeSceneEditable = new DtgeCore.SceneEditable();
+		this.DtgeSceneEditable = new DtgeCore.Editing.SceneEditable();
 
-		//this.optionEditList.OnOptionListUpdated = this.HandleOptionListUpdated;
-		//this.optionEditList.OnTryOpenScene = this.HandleTryOpenScene;
-		//this.optionEditList.DtgeSceneEditable = this.DtgeSceneEditable;
-		//this.snippetListContainer.OnSnippetListUpdated = this.HandleSnippetListUpdated;
-		//this.snippetListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
+		this.optionEditList.OnTryOpenScene = this.HandleTryOpenScene;
+		this.optionEditList.DtgeSceneEditable = this.DtgeSceneEditable;
+		this.snippetListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (this.dtgeSceneEditable.NeedsUIUpdate)
+		if (this.DtgeSceneEditable != null && this.dtgeSceneEditable.NeedsUIUpdate)
 		{
 			this.UpdateUIFromScene();
 			this.dtgeSceneEditable.NotifyUIUpdateDone();
@@ -132,9 +127,9 @@ public partial class DtgeSceneEditContainer : Control
 		}
 	}
 
-	public void RestoreFromSerializedScene(string serializedScene)
+	public void RestoreFromSerializedSceneJson(string serializedSceneJson)
 	{
-		this.dtgeSceneEditable = new DtgeCore.SceneEditable(serializedScene);
+		this.dtgeSceneEditable = DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(serializedSceneJson);
 		this.UpdateUIFromScene();
 	}
 
@@ -150,7 +145,7 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void AddSubscene(string subsceneName)
 	{
-		SubsceneEditable newSubscene = this.dtgeSceneEditable.AllocateNewSubscene();
+		DtgeCore.Editing.SubsceneEditable newSubscene = this.dtgeSceneEditable.AllocateNewSubscene();
 		newSubscene.Name = subsceneName;
 		this.addNewSubscenePanelContainer(newSubscene);
 	}
@@ -163,7 +158,10 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void updateSceneHeader()
 	{
-		this.dtgeSceneIdEntry.Text = this.dtgeSceneEditable.Id;
+		if (this.dtgeSceneIdEntry.Text != this.dtgeSceneEditable.Id)
+		{
+			this.dtgeSceneIdEntry.Text = this.dtgeSceneEditable.Id;
+		}
 		this.addSceneImageButton.Visible = !this.dtgeSceneEditable.RenderImage;
 		this.sceneImageHboxContainer.Visible = this.dtgeSceneEditable.RenderImage;
 		this.sceneImagePositionOptionButton.Selected = (int)this.dtgeSceneEditable.ImagePosition;
@@ -212,7 +210,7 @@ public partial class DtgeSceneEditContainer : Control
 		{
 			for (int subsceneIndex = 0; subsceneIndex < this.dtgeSceneEditable.GetSubsceneCount(); subsceneIndex++)
 			{
-				DtgeCore.SubsceneEditable subsceneEditable = this.dtgeSceneEditable.GetSubscene(subsceneIndex);
+				DtgeCore.Editing.SubsceneEditable subsceneEditable = this.dtgeSceneEditable.GetSubscene(subsceneIndex);
 				if (this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount <= subsceneIndex)
 				{
 					this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.AddItem(subsceneEditable.Name);
@@ -248,7 +246,7 @@ public partial class DtgeSceneEditContainer : Control
 		bool randomModeSnippetFound = false;
 		for (int snippetIndex = 0; snippetIndex < this.dtgeSceneEditable.GetSnippetCount(); snippetIndex++)
 		{
-			SnippetEditable snippetEditable = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
+			DtgeCore.Editing.SnippetEditable snippetEditable = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
 			if (snippetEditable.Mode == DtgeCore.Snippet.SnippetMode.Random)
 			{
 				randomModeSnippetFound = true;
@@ -261,7 +259,7 @@ public partial class DtgeSceneEditContainer : Control
 	}
 
 
-	private void addNewSubscenePanelContainer(SubsceneEditable subsceneEditable)
+	private void addNewSubscenePanelContainer(DtgeCore.Editing.SubsceneEditable subsceneEditable)
 	{
 		SubscenePanelContainer newSubscenePanelContainer =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SUBSCENE_PANEL_CONTAINER_PATH)).Instantiate<SubscenePanelContainer>();
@@ -313,7 +311,7 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void _on_scene_text_preview_randomize_button_pressed()
 	{
-		setSceneTextPreviewText(false);
+		this.setSceneTextPreviewText(false);
 	}
 
 	public void _on_show_preview_check_button_toggled(bool toggled_on)

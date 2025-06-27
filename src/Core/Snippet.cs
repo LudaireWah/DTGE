@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DtgeCore.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -26,20 +27,39 @@ public class Snippet : SceneElement
 	protected List<SUID> OrderedVariationIds { get; private set; }
 
 	protected Random snippetRandomizer;
-	protected readonly int snippetRandomizerSeed;
+	protected int snippetRandomizerSeed; // I'd like to make this readonly in some way, but that'll require some refactoring of the constructor, since SnippetEditable's constructor can't set this if it's readonly.
 	protected int currentRandomizedVariationIndex;
 
 	public Snippet(Scene parentScene)
 		: base(parentScene)
     {
-        Random seedGenerator = new Random();
-        this.snippetRandomizerSeed = seedGenerator.Next();
-
 		this.Mode = SnippetMode.Simple;
-
 		this.Variations = new Dictionary<SUID, Variation>();
 		this.OrderedVariationIds = new List<SUID>();
 
+		Random seedGenerator = new Random();
+		this.snippetRandomizerSeed = seedGenerator.Next();
+		this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
+		this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
+	}
+
+	public Snippet(Scene parentScene, SnippetSerializable serializable)
+		: base(parentScene, serializable)
+	{
+		this.Mode = serializable.Mode;
+		this.Variations = new Dictionary<SUID, Variation>();
+		foreach (SUID id in serializable.Variations.Keys)
+		{
+			this.Variations.Add(id, new Variation(this.ParentScene, serializable.Variations[id]));
+		}
+		this.OrderedVariationIds = new List<SUID>();
+		for (int variationIndex = 0; variationIndex < serializable.OrderedVariationIds.Count; variationIndex++)
+		{
+			this.OrderedVariationIds.Add(serializable.OrderedVariationIds[variationIndex]);
+		}
+
+		Random seedGenerator = new Random();
+		this.snippetRandomizerSeed = seedGenerator.Next();
 		this.snippetRandomizer = new Random(this.snippetRandomizerSeed);
 		this.currentRandomizedVariationIndex = (int)this.snippetRandomizer.Next(this.Variations.Count);
 	}

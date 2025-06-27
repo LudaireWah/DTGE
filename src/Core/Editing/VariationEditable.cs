@@ -1,4 +1,6 @@
-﻿namespace DtgeCore;
+﻿using DtgeCore.Serialization;
+
+namespace DtgeCore.Editing;
 
 public class VariationEditable : Variation
 {
@@ -29,15 +31,31 @@ public class VariationEditable : Variation
 		this.parentSceneEditable = parentSceneEditable;
 	}
 
+	public VariationEditable(SceneEditable parentSceneEditable, VariationSerializable serializable)
+		:base(parentSceneEditable, serializable)
+	{
+		this.parentSceneEditable = parentSceneEditable;
+	}
+
 	public VariationEditable(SceneEditable parentSceneEditable, string name, string text)
 		: base(parentSceneEditable, name, text)
 	{
 		this.parentSceneEditable = parentSceneEditable;
 	}
 
+	public VariationSerializable ToSerializable()
+	{
+		VariationSerializable serializable = this.CreateSerializable<VariationSerializable>();
+
+		serializable.Name = this.Name;
+		serializable.Text = this.Text;
+
+		return serializable;
+	}
+
 	private void notifyParentOfEdit()
 	{
-		if (this.parentSceneEditable == null)
+		if (this.parentSceneEditable != null)
 		{
 			this.parentSceneEditable.NotifyUIUpdateNeeded();
 		}

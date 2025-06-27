@@ -1,6 +1,4 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
 namespace DtgeEditor;
 
@@ -14,8 +12,8 @@ public partial class SnippetListContainer : VBoxContainer
 	VBoxContainer snippetListVBoxContainer;
 
 	public bool UiNeedsUpdate;
-	private DtgeCore.SceneEditable dtgeSceneEditable;
-	public DtgeCore.SceneEditable DtgeSceneEditable
+	private DtgeCore.Editing.SceneEditable dtgeSceneEditable;
+	public DtgeCore.Editing.SceneEditable DtgeSceneEditable
 	{
 		get { return this.dtgeSceneEditable; }
 		set
@@ -52,7 +50,7 @@ public partial class SnippetListContainer : VBoxContainer
 
 		for (int snippetIndex = 0; snippetIndex < this.dtgeSceneEditable.GetSnippetCount(); snippetIndex++)
 		{
-			DtgeCore.SnippetEditable currentSnippet = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
+			DtgeCore.Editing.SnippetEditable currentSnippet = this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
 			if (currentSnippet == null)
 			{
 				break;
@@ -97,11 +95,11 @@ public partial class SnippetListContainer : VBoxContainer
 
 	public void _on_add_snippet_button_pressed()
 	{
-		DtgeCore.SnippetEditable newSnippetEditable = this.dtgeSceneEditable.AllocateNewSnippet();
+		DtgeCore.Editing.SnippetEditable newSnippetEditable = this.dtgeSceneEditable.AllocateNewSnippet();
 		this.addNewSnippetPanelContainer(newSnippetEditable);
 	}
 
-	private void addNewSnippetPanelContainer(DtgeCore.SnippetEditable snippetEditable)
+	private void addNewSnippetPanelContainer(DtgeCore.Editing.SnippetEditable snippetEditable)
 	{
 		SnippetPanelContainer newSnippetPanelContainer =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH)).Instantiate<SnippetPanelContainer>();

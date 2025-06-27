@@ -7,4 +7,7 @@
     <Compile Remove="addons\**" />
     <EmbeddedResource Remove="addons\**" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+  </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
-﻿namespace DtgeCore;
+﻿using DtgeCore.Serialization;
+
+namespace DtgeCore;
 
 public class Variation : SceneElement
 {
@@ -10,6 +12,13 @@ public class Variation : SceneElement
     {
         this.Name = "";
         this.Text = "";
+    }
+
+    public Variation(Scene parentScene, VariationSerializable variationSerializable)
+        : base(parentScene, variationSerializable)
+    {
+        this.Name = variationSerializable.Name;
+        this.Text = variationSerializable.Text;
     }
 
     public Variation(Scene parentScene, string name, string text)

@@ -1,4 +1,6 @@
-﻿namespace DtgeCore;
+﻿using DtgeCore.Serialization;
+
+namespace DtgeCore;
 
 public class Subscene : SceneElement
 {
@@ -8,5 +10,11 @@ public class Subscene : SceneElement
 		: base(parentScene)
 	{
 		this.Name = name;
+	}
+
+	public Subscene(Scene parentScene, SubsceneSerializable subsceneSerializable)
+		:base(parentScene, subsceneSerializable)
+	{
+		this.Name = subsceneSerializable.Name;
 	}
 }
