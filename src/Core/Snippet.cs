@@ -10,6 +10,9 @@ namespace DtgeCore;
  * DTGE's Scenes are made up of a sequence of snippets, with each snippet containing the desired
  * text and any business logic of how the scene should unfold and change in response to various
  * kinds of state within the game.
+ * 
+ * This is planned to be heavily restructured in the near future, as the current implementation
+ * of Snippets is a bit of a nightmare.
  */
 public class Snippet : SceneElement
 {

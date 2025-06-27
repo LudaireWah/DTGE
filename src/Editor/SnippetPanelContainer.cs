@@ -7,8 +7,7 @@ using DtgeGodotCommon;
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene responsible for authoring
- * DTGE Snippets.
+ * The root node for the Godot scene responsible for authoring DTGE Snippets.
  */
 public partial class SnippetPanelContainer : PanelContainer
 {
