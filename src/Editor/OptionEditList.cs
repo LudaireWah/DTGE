@@ -49,11 +49,6 @@ public partial class OptionEditList : VBoxContainer
 		}
 	}
 
-	private void updateEditablesFromUi()
-	{
-
-	}
-
 	private void updateUiFromEditables()
 	{
 		for (int optionIndex = 0;

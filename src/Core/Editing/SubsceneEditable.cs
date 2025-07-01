@@ -15,8 +15,8 @@ public class SubsceneEditable : Subscene
 		get { return base.Name; }
 		set
 		{
-			this.notifyParentOfEdit();
 			base.Name = value;
+			this.notifyParentOfEdit();
 		}
 	}
 
@@ -38,6 +38,7 @@ public class SubsceneEditable : Subscene
 	{
 		SubsceneSerializable serializable = this.CreateSerializable<SubsceneSerializable>();
 
+		serializable.Id = this.Id;
 		serializable.Name = this.Name;
 
 		return serializable;
@@ -54,6 +55,7 @@ public class SubsceneEditable : Subscene
 		if (this.parentSceneEditable != null)
 		{
 			this.parentSceneEditable.NotifyUIUpdateNeeded();
+			this.parentSceneEditable.NotifySubsceneSnippetsOfChange();
 		}
 	}
 }

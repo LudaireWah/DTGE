@@ -108,6 +108,7 @@ public class SceneSerializable
 	}
 
 	[JsonInclude]
+	[JsonPropertyName(DtgeScenePropertyNames.SceneV0)]
 	private SceneVersion0 sceneVersion0Data { get; set; }
 
 	public SceneSerializable()

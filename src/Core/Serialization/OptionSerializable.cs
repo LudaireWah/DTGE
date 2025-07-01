@@ -50,6 +50,7 @@ public class OptionSerializable : SceneElementSerializable
 	}
 
 	[JsonInclude]
+	[JsonPropertyName(DtgeScenePropertyNames.OptionV0)]
 	private OptionVersion0 optionVersion0Data { get; set; }
 
 	public OptionSerializable()

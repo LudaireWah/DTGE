@@ -1,3 +1,5 @@
+using DtgeCore;
+using DtgeCore.Editing;
 using Godot;
 
 namespace DtgeEditor;
@@ -38,11 +40,6 @@ public partial class SnippetListContainer : VBoxContainer
 		}
 	}
 
-	private void updateEditablesFromUI()
-	{
-
-	}
-
 	private void updateUIFromEditables()
 	{
 		int nonNullSnippetCount = 0;
@@ -51,7 +48,7 @@ public partial class SnippetListContainer : VBoxContainer
 			snippetIndex < this.dtgeSceneEditable.GetSnippetCount();
 			snippetIndex++)
 		{
-			DtgeCore.Editing.SnippetEditable currentSnippet =
+			DtgeCore.Editing.ISnippetEditable currentSnippet =
 				this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
 			if (currentSnippet == null)
 			{
@@ -65,6 +62,7 @@ public partial class SnippetListContainer : VBoxContainer
 					.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
 				if (currentSnippetPanelContainer != null)
 				{
+					currentSnippetPanelContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 					currentSnippetPanelContainer.SnippetEditable = currentSnippet;
 				}
 				else
@@ -102,12 +100,12 @@ public partial class SnippetListContainer : VBoxContainer
 
 	public void _on_add_snippet_button_pressed()
 	{
-		DtgeCore.Editing.SnippetEditable newSnippetEditable =
+		DtgeCore.Editing.ISnippetEditable newSnippetEditable =
 			this.dtgeSceneEditable.AllocateNewSnippet();
 		this.addNewSnippetPanelContainer(newSnippetEditable);
 	}
 
-	private void addNewSnippetPanelContainer(DtgeCore.Editing.SnippetEditable snippetEditable)
+	private void addNewSnippetPanelContainer(DtgeCore.Editing.ISnippetEditable snippetEditable)
 	{
 		SnippetPanelContainer newSnippetPanelContainer =
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
@@ -115,15 +113,50 @@ public partial class SnippetListContainer : VBoxContainer
 
 		if (newSnippetPanelContainer != null)
 		{
+			newSnippetPanelContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 			newSnippetPanelContainer.SnippetEditable = snippetEditable;
-			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleMoveSnippetUp;
+			newSnippetPanelContainer.OnSnippetModeChanged = this.OnSnippetModeChanged;
+			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleSnippetMovedUp;
 			newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
 			newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
 			this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
 		}
 	}
 
-	public void HandleMoveSnippetUp(SnippetPanelContainer targetSnippet)
+	public void OnSnippetModeChanged(
+		SnippetPanelContainer targetSnippetPanelContainer,
+		DtgeCore.Snippet.Mode targetMode)
+	{
+		ISnippetEditable snippetEditableToReplace = targetSnippetPanelContainer.SnippetEditable;
+
+
+		string convertFailMessage = null;
+		ISnippetEditable convertedSnippetEditable = null;
+
+		if (!SnippetConverter.CanConvertSnippetToMode(
+			this.DtgeSceneEditable,
+			snippetEditableToReplace,
+			targetMode,
+			out convertFailMessage))
+		{
+			GlobalErrorHandler.InvokeError("Snippet mode change failed: " + convertFailMessage);
+		}
+		else
+		{
+			convertedSnippetEditable = SnippetConverter.ConvertSnippetToNewMode(
+				this.DtgeSceneEditable,
+				snippetEditableToReplace,
+				targetMode);
+		}
+
+		this.DtgeSceneEditable.ReplaceSnippet(
+			snippetEditableToReplace,
+			convertedSnippetEditable);
+		targetSnippetPanelContainer.DtgeSceneEditable = this.DtgeSceneEditable;
+		targetSnippetPanelContainer.SnippetEditable = convertedSnippetEditable;
+	}
+
+	public void HandleSnippetMovedUp(SnippetPanelContainer targetSnippet)
 	{
 		//SnippetPanelContainer currentSnippetPanelContainer = null;
 		//SnippetPanelContainer aboveSnippetPanelContainer = null;

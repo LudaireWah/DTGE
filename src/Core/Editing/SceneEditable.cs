@@ -1,4 +1,6 @@
 ﻿using DtgeCore.Serialization;
+using System;
+using System.Collections.Generic;
 
 namespace DtgeCore.Editing;
 
@@ -117,9 +119,31 @@ public class SceneEditable : Scene
 			snippetIndex < serializable.SnippetList.Count;
 			snippetIndex++)
 		{
-			this.SnippetList.Add(
-				new SnippetEditable(this, serializable.SnippetList[snippetIndex]));
+			SnippetSerializable deserializingSnippetSerializable =
+				serializable.SnippetList[snippetIndex];
+			switch (deserializingSnippetSerializable.Mode)
+			{
+			case Snippet.Mode.Simple:
+				SnippetSimpleEditable snippetSimple = new SnippetSimpleEditable(
+					this,
+					deserializingSnippetSerializable as SnippetSimpleSerializable);
+				this.SnippetList.Add(snippetSimple);
+				break;
+			case Snippet.Mode.Subscene:
+				SnippetSubsceneEditable snippetSubscene = new SnippetSubsceneEditable(
+					this,
+					deserializingSnippetSerializable as SnippetSubsceneSerializable);
+				this.SnippetList.Add(snippetSubscene);
+				break;
+			case Snippet.Mode.Random:
+				break;
+			default:
+				GlobalErrorHandler.InvokeError("Unknown snippt type");
+				break;
+			}
 		}
+
+		this.NeedsUIUpdate = true;
 
 		this.nextSUID = serializable.NextSUID;
 	}
@@ -127,7 +151,6 @@ public class SceneEditable : Scene
 	private SceneSerializable ToSerializable()
 	{
 		SceneSerializable serializable = new SceneSerializable();
-
 		serializable.Id = this.Id;
 		serializable.NullSubsceneEnabled = this.NullSubsceneEnabled;
 		serializable.RenderImage = this.RenderImage;
@@ -149,7 +172,7 @@ public class SceneEditable : Scene
 
 		for (int snippetIndex = 0;  snippetIndex < this.SnippetList.Count; snippetIndex++)
 		{
-			SnippetEditable snippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
+			ISnippetEditable snippetEditable = this.SnippetList[snippetIndex] as ISnippetEditable;
 			serializable.SnippetList.Add(snippetEditable.ToSerializable());
 		}
 
@@ -185,16 +208,15 @@ public class SceneEditable : Scene
 	public string CalculateDebugSceneText(bool preserveRandomization)
 	{
 		string sceneText = "";
-
 		sceneText += this.SerializeToJsonString();
 		sceneText += "\r\n\r\nCalculatedText:\r\n";
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
-			SnippetEditable currentSnippet = this.SnippetList[snippetIndex] as SnippetEditable;
+			ISnippetEditable currentSnippet = this.SnippetList[snippetIndex] as ISnippetEditable;
 			if (preserveRandomization)
 			{
-				sceneText += currentSnippet.CalculateTextWithoutRandomization();
+				sceneText += currentSnippet.CalculateTextStable();
 			}
 			else
 			{
@@ -210,8 +232,8 @@ public class SceneEditable : Scene
 		string copyableText = "";
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; snippetIndex++)
 		{
-			SnippetEditable currentSnippetEditable =
-				this.SnippetList[snippetIndex] as SnippetEditable;
+			ISnippetEditable currentSnippetEditable =
+				this.SnippetList[snippetIndex] as ISnippetEditable;
 			string snippetCopyableText =
 				currentSnippetEditable.GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
 			copyableText += snippetCopyableText;
@@ -235,15 +257,14 @@ public class SceneEditable : Scene
 		}
 		else
 		{
-
 			string[][] pastedTextSplitIntoVariations =
 				new string[pastedTextSplitIntoSnippets.Length][];
 			for (int snippetIndex = 0;
 				snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText;
 				snippetIndex++)
 			{
-				SnippetEditable currentSnippetEditable =
-					this.SnippetList[snippetIndex] as SnippetEditable;
+				ISnippetEditable currentSnippetEditable =
+					this.SnippetList[snippetIndex] as ISnippetEditable;
 				pastedTextSplitIntoVariations[snippetIndex] =
 					pastedTextSplitIntoSnippets[snippetIndex].Split(
 						COPYPASTE_VARIATION_BOUNDARY_MARKER);
@@ -260,13 +281,15 @@ public class SceneEditable : Scene
 					snippetIndex < pastedTextSplitIntoSnippets.Length;
 					snippetIndex++)
 				{
-					SnippetEditable currentSnippetEditable =
-						this.SnippetList[snippetIndex] as SnippetEditable;
+					ISnippetEditable currentSnippetEditable =
+						this.SnippetList[snippetIndex] as ISnippetEditable;
 					currentSnippetEditable.RestoreFromPastedText(
 						pastedTextSplitIntoVariations[snippetIndex]);
 				}
 			}
 		}
+
+		this.NeedsUIUpdate = true;
 
 		return canRestoreFromPastedText;
 	}
@@ -276,18 +299,21 @@ public class SceneEditable : Scene
 		SubsceneEditable newSubscene = new SubsceneEditable(this);
 		this.SubsceneList.Add(newSubscene);
 		this.NeedsUIUpdate = true;
+		this.NotifySubsceneSnippetsOfChange();
 		return newSubscene;
 	}
 
 	public void RemoveSubscene(SubsceneEditable subsceneEditable)
 	{
 		this.SubsceneList.Remove(subsceneEditable);
+		this.NotifySubsceneSnippetsOfChange();
 		this.NeedsUIUpdate = true;
 	}
 
 	public void RemoveSubsceneByIndex(int subsceneIndex)
 	{
 		this.SubsceneList.RemoveAt(subsceneIndex);
+		this.NotifySubsceneSnippetsOfChange();
 		this.NeedsUIUpdate = true;
 	}
 
@@ -299,6 +325,7 @@ public class SceneEditable : Scene
 				new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME);
 			this.SubsceneList.Insert(0, nullSubscene);
 			this.NullSubsceneEnabled = true;
+			this.NotifySubsceneSnippetsOfChange();
 			this.NeedsUIUpdate = true;
 		}
 	}
@@ -309,6 +336,7 @@ public class SceneEditable : Scene
 		{
 			this.SubsceneList.RemoveAt(0);
 			this.NullSubsceneEnabled = false;
+			this.NotifySubsceneSnippetsOfChange();
 			this.NeedsUIUpdate = true;
 		}
 	}
@@ -349,16 +377,33 @@ public class SceneEditable : Scene
 		return this.SubsceneList[subsceneIndex] as SubsceneEditable;
 	}
 	
-	public SnippetEditable AllocateNewSnippet()
+	public bool HasMatchingSubscene(SUID subsceneId)
 	{
-		SnippetEditable newSnippetEditable = new SnippetEditable(this);
+		bool foundMatch = false;
+
+		for (int subsceneIndex = 0;
+			subsceneIndex < this.SubsceneList.Count && !foundMatch;
+			subsceneIndex++)
+		{
+			if (this.SubsceneList[0].Id == subsceneId)
+			{
+				foundMatch = true;
+			}
+		}
+
+		return foundMatch;
+	}
+	
+	public ISnippetEditable AllocateNewSnippet()
+	{
+		ISnippetEditable newSnippetEditable = new SnippetSimpleEditable(this);
 		this.SnippetList.Add(newSnippetEditable);
 		this.NeedsUIUpdate = true;
 
 		return newSnippetEditable;
 	}
 
-	public void RemoveSnippet(SnippetEditable snippetEditable)
+	public void RemoveSnippet(ISnippetEditable snippetEditable)
 	{
 		this.SnippetList.Remove(snippetEditable);
 		this.NeedsUIUpdate = true;
@@ -369,8 +414,36 @@ public class SceneEditable : Scene
 		return this.SnippetList.Count;
 	}
 
-	public SnippetEditable GetSnippetByIndex(int snippetIndex)
+	public ISnippetEditable GetSnippetByIndex(int snippetIndex)
 	{
-		return this.SnippetList[snippetIndex] as SnippetEditable;
+		return this.SnippetList[snippetIndex] as ISnippetEditable;
+	}
+
+	public void ReplaceSnippet(ISnippetEditable toReplace, ISnippetEditable replaceWith)
+	{
+		for (int snippetIndex = 0; snippetIndex <  this.SnippetList.Count; snippetIndex++)
+		{
+			if (this.SnippetList[snippetIndex] == toReplace)
+			{
+				this.SnippetList[snippetIndex] = replaceWith;
+				this.NeedsUIUpdate = true;
+			}
+		}
+
+		this.NotifySubsceneSnippetsOfChange();
+	}
+
+	public void NotifySubsceneSnippetsOfChange()
+	{
+		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; snippetIndex++)
+		{
+			ISnippetEditable snippet = this.SnippetList[snippetIndex] as ISnippetEditable;
+			if (snippet.Mode == Snippet.Mode.Subscene)
+			{
+				SnippetSubsceneEditable snippetSubsceneEditable =
+					snippet as SnippetSubsceneEditable;
+				snippetSubsceneEditable.UpdateVariationsFromSubscenes();
+			}
+		}
 	}
 }

@@ -272,9 +272,9 @@ public partial class DtgeSceneEditContainer : Control
 			snippetIndex < this.dtgeSceneEditable.GetSnippetCount();
 			snippetIndex++)
 		{
-			DtgeCore.Editing.SnippetEditable snippetEditable =
+			DtgeCore.Editing.ISnippetEditable snippetEditable =
 				this.dtgeSceneEditable.GetSnippetByIndex(snippetIndex);
-			if (snippetEditable.Mode == DtgeCore.Snippet.SnippetMode.Random)
+			if (snippetEditable.Mode == DtgeCore.Snippet.Mode.Random)
 			{
 				randomModeSnippetFound = true;
 			}

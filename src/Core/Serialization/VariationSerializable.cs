@@ -29,6 +29,7 @@ public class VariationSerializable : SceneElementSerializable
 	}
 
 	[JsonInclude]
+	[JsonPropertyName(DtgeScenePropertyNames.VariationV0)]
 	private VariationVersion0 variationVersion0Data { set; get; }
 
 	public VariationSerializable()

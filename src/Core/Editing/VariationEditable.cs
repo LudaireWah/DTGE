@@ -43,6 +43,13 @@ public class VariationEditable : Variation
 		this.parentSceneEditable = parentSceneEditable;
 	}
 
+	public VariationEditable(SceneEditable parentSceneEditable, VariationEditable other)
+		: base(parentSceneEditable)
+	{
+		this.Name = other.Name;
+		this.Text = other.Text;
+	}
+
 	public VariationEditable(SceneEditable parentSceneEditable, string name, string text)
 		: base(parentSceneEditable, name, text)
 	{
@@ -53,6 +60,7 @@ public class VariationEditable : Variation
 	{
 		VariationSerializable serializable = this.CreateSerializable<VariationSerializable>();
 
+		serializable.Id = this.Id;
 		serializable.Name = this.Name;
 		serializable.Text = this.Text;
 

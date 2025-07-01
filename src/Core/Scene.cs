@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
-
+using DtgeCore.Editing;
 using DtgeCore.Serialization;
 
 namespace DtgeCore;
@@ -81,11 +82,14 @@ public class Scene
 	public SceneImagePosition ImagePosition {  get; protected set; }
 	public string ImagePath {  get; protected set; }
 
+	public Random SceneRandom { get; private set; }
+
 	protected List<Option> OptionList { get; private set; }
 	protected List<Subscene> SubsceneList { get; private set; }
-	protected List<Snippet> SnippetList { get; private set; }
+	protected List<ISnippet> SnippetList { get; private set; }
 
 	protected int nextSUID = SUID.FIRST_VALID_SUID;
+	private readonly int sceneRandomSeed;
 
 	public Scene()
 	{
@@ -96,7 +100,11 @@ public class Scene
 		this.ImagePath = null;
 		this.OptionList = new List<Option>();
 		this.SubsceneList = new List<Subscene>();
-		this.SnippetList = new List<Snippet>();
+		this.SnippetList = new List<ISnippet>();
+
+		Random seedGenerator = new Random();
+		this.sceneRandomSeed = seedGenerator.Next();
+		this.SceneRandom = new Random(this.sceneRandomSeed);
 	}
 
 	protected Scene(SceneSerializable serializable)
@@ -114,16 +122,43 @@ public class Scene
 		}
 
 		this.SubsceneList = new List<Subscene>();
-		for (int subsceneIndex = 0; subsceneIndex < serializable.SubsceneList.Count; subsceneIndex++)
+		for (int subsceneIndex = 0;
+			subsceneIndex < serializable.SubsceneList.Count;
+			subsceneIndex++)
 		{
 			this.SubsceneList.Add(new Subscene(this, serializable.SubsceneList[subsceneIndex]));
 		}
 
-		this.SnippetList = new List<Snippet>();
+		this.SnippetList = new List<ISnippet>();
 		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
 		{
-			this.SnippetList.Add(new Snippet(this, serializable.SnippetList[snippetIndex]));
+			SnippetSerializable deserializingSnippetSerializable =
+				serializable.SnippetList[snippetIndex];
+			switch (deserializingSnippetSerializable.Mode)
+			{
+			case Snippet.Mode.Simple:
+				SnippetSimple snippetSimple = new SnippetSimple(
+					this,
+					deserializingSnippetSerializable as SnippetSimpleSerializable);
+				this.SnippetList.Add(snippetSimple);
+				break;
+			case Snippet.Mode.Subscene:
+				SnippetSubscene snippetSubscene = new SnippetSubscene(
+					this,
+					deserializingSnippetSerializable as SnippetSubsceneSerializable);
+				this.SnippetList.Add(snippetSubscene);
+				break;
+			case Snippet.Mode.Random:
+				break;
+			default:
+				GlobalErrorHandler.InvokeError("Unknown snippt type");
+				break;
+			}
 		}
+
+		Random seedGenerator = new Random();
+		this.sceneRandomSeed = seedGenerator.Next();
+		this.SceneRandom = new Random(this.sceneRandomSeed);
 	}
 
 	public static Scene DeserializeFromJsonString(string jsonString)
@@ -145,7 +180,7 @@ public class Scene
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
-			Snippet currentSnippet = this.SnippetList[snippetIndex];
+			ISnippet currentSnippet = this.SnippetList[snippetIndex];
 			sceneText += currentSnippet.CalculateText();
 		}
 

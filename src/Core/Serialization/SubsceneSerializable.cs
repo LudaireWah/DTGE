@@ -22,6 +22,7 @@ public class SubsceneSerializable : SceneElementSerializable
 	}
 
 	[JsonInclude]
+	[JsonPropertyName(DtgeScenePropertyNames.SubsceneV0)]
 	private SubsceneVersion0 subsceneVersion0Data { get; set; }
 
 	public SubsceneSerializable()
