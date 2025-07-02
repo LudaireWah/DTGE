@@ -2,118 +2,159 @@
 
 namespace DtgeCore.Editing;
 
-public class SnippetSimpleEditable : SnippetSimple, ISnippetEditable
+public partial class SnippetEditable
 {
-	private SceneEditable parentSceneEditable;
-
-	public SnippetSimpleEditable(SceneEditable parentSceneEditable)
-		: base(parentSceneEditable)
+	private class SimpleSnippetImplementationEditable
+		: SimpleSnippetImplementation, ISnippetEditableImplementation
 	{
-		this.parentSceneEditable = parentSceneEditable;
+		private const string SIMPLE_SINGLE_VARIATION_NAME = "(Simple)";
 
-		this.SingleVariation = new VariationEditable(
-			parentSceneEditable,
-			"(Simple)",
-			string.Empty);
-	}
+		private SceneEditable parentSceneEditable;
 
-	public SnippetSimpleEditable(SceneEditable parentSceneEditable, ISnippetEditable other)
-		:base(parentSceneEditable)
-	{
-		this.parentSceneEditable = parentSceneEditable;
-
-		VariationEditable othersFirstVariation = other.GetVariationEditable(0);
-		this.SingleVariation = new VariationEditable(
-			parentSceneEditable,
-			othersFirstVariation.Name,
-			othersFirstVariation.Text);
-	}
-
-	public SnippetSimpleEditable(
-		SceneEditable parentSceneEditable,
-		SnippetSimpleSerializable serializable)
-		: base(parentSceneEditable)
-	{
-		this.parentSceneEditable = parentSceneEditable;
-
-		this.SingleVariation = new VariationEditable(
-			parentSceneEditable,
-			serializable.SingleVariation.Name,
-			serializable.SingleVariation.Text);
-
-	}
-
-	public SnippetSerializable ToSerializable()
-	{
-		SnippetSimpleSerializable serializable =
-			this.CreateSerializable<SnippetSimpleSerializable>();
-
-		serializable.Mode = this.Mode;
-		serializable.SingleVariation.Name = this.SingleVariation.Name;
-		serializable.SingleVariation.Text = this.SingleVariation.Text;
-
-		return serializable;
-	}
-
-	public static bool CanConvertFrom(ISnippetEditable otherSnippetEditable, out string message)
-	{
-		bool canConvert = false;
-		message = string.Empty;
-
-		if (otherSnippetEditable.GetVariationCount() == 1)
+		public SimpleSnippetImplementationEditable(SceneEditable parentSceneEditable)
+			: base(parentSceneEditable)
 		{
-			canConvert = true;
-		}
-		else
-		{
-			message = "To switch to simple mode you must have exactly one variation.";
+			this.parentSceneEditable = parentSceneEditable;
+
+			this.SingleVariation = new VariationEditable(
+				parentSceneEditable,
+				SIMPLE_SINGLE_VARIATION_NAME,
+				string.Empty);
 		}
 
-		return canConvert;
-	}
+		public SimpleSnippetImplementationEditable(
+			SceneEditable parentSceneEditable,
+			ISnippetEditableImplementation other)
+			: base(parentSceneEditable)
+		{
+			this.parentSceneEditable = parentSceneEditable;
 
-	public string CalculateTextStable()
-	{
-		return this.CalculateText();
-	}
+			this.SingleVariation = new VariationEditable(
+				parentSceneEditable,
+				SIMPLE_SINGLE_VARIATION_NAME,
+				other.GetVariationText(0));
+		}
 
-	public string GetCopyableText(string variationBoundaryMarker)
-	{
-		return this.SingleVariation.Text;
-	}
+		public SimpleSnippetImplementationEditable(
+			SceneEditable parentSceneEditable,
+			SnippetSimpleSerializable serializable)
+			: base(parentSceneEditable)
+		{
+			this.parentSceneEditable = parentSceneEditable;
 
-	public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
-	{
-		VariationEditable singleVariationEditable = this.SingleVariation as VariationEditable;
-		singleVariationEditable.Text = pastedTextSplitByVariation[0];
-	}
+			this.SingleVariation = new VariationEditable(
+				parentSceneEditable,
+				SIMPLE_SINGLE_VARIATION_NAME,
+				serializable.SingleVariation.Text);
+		}
 
-	public VariationEditable GetVariationEditable(int variationIndex)
-	{
-		return this.SingleVariation as VariationEditable;
-	}
+		public void PopulateSerializable(SnippetSimpleSerializable serializable)
+		{
+			serializable.SingleVariation.Name = this.SingleVariation.Name;
+			serializable.SingleVariation.Text = this.SingleVariation.Text;
+		}
 
-	public bool CanEditVariationCount()
-	{
-		return false;
-	}
+		public static bool CanConvertFrom(
+			ISnippetEditableImplementation otherSnippetEditable,
+			out string message)
+		{
+			bool canConvert = false;
+			message = string.Empty;
 
-	public int GetVariationCount()
-	{
-		return 1;
-	}
+			if (otherSnippetEditable.GetVariationCount() == 1)
+			{
+				canConvert = true;
+			}
+			else
+			{
+				message = "To switch to simple mode you must have exactly one variation.";
+			}
 
-	public bool AddVariation()
-	{
-		GlobalErrorHandler.InvokeError("An attempt was made to add a new variation to a simple snippet.");
+			return canConvert;
+		}
 
-		return false;
-	}
+		public string CalculateTextStable()
+		{
+			return this.CalculateText();
+		}
 
-	public bool RemoveVariationEditable(int variationIndex)
-	{
-		GlobalErrorHandler.InvokeError("An attempt was made to remove a variation from a simple snippet.");
+		public string GetCopyableText(string variationBoundaryMarker)
+		{
+			return this.SingleVariation.Text;
+		}
 
-		return false;
+		public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
+		{
+			VariationEditable singleVariationEditable = this.SingleVariation as VariationEditable;
+			singleVariationEditable.Text = pastedTextSplitByVariation[0];
+			this.notifyParentOfEdit();
+		}
+
+		public VariationEditable GetVariationEditable(int variationIndex)
+		{
+			return this.SingleVariation as VariationEditable;
+		}
+
+		public string GetVariationName(int variationIndex)
+		{
+			return this.SingleVariation.Name;
+		}
+
+		public string GetVariationText(int variationIndex)
+		{
+			return this.SingleVariation.Text;
+		}
+
+		public void SetVariationText(int variationIndex, string variationText)
+		{
+			VariationEditable variationEditable = this.SingleVariation as VariationEditable;
+			if (variationEditable.Text != variationText)
+			{
+				variationEditable.Text = variationText;
+				this.notifyParentOfEdit();
+			}
+		}
+
+		public bool CanEditVariationCount()
+		{
+			return false;
+		}
+
+		public int GetVariationCount()
+		{
+			return 1;
+		}
+
+		public int GetCurrentVariationIndex()
+		{
+			return 0;
+		}
+
+		public void SetCurrentVariationIndex(int variationIndex)
+		{
+			GlobalErrorHandler.InvokeErrorIf(variationIndex != 0, "An attempt was made to set the CurrentVariationIndex of a simple snippet to something other than 0.");
+		}
+
+		public bool AddVariation()
+		{
+			GlobalErrorHandler.InvokeError("An attempt was made to add a new variation to a simple snippet.");
+
+			return false;
+		}
+
+		public bool RemoveVariationEditable(int variationIndex)
+		{
+			GlobalErrorHandler.InvokeError("An attempt was made to remove a variation from a simple snippet.");
+
+			return false;
+		}
+
+		private void notifyParentOfEdit()
+		{
+			if (this.parentSceneEditable != null)
+			{
+				this.parentSceneEditable.NotifyUIUpdateNeeded();
+			}
+		}
 	}
 }

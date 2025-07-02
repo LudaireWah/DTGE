@@ -12,6 +12,7 @@ namespace DtgeCore.Serialization;
  */
 [JsonDerivedType(typeof(SnippetSimpleSerializable), typeDiscriminator: "simple")]
 [JsonDerivedType(typeof(SnippetSubsceneSerializable), typeDiscriminator: "subscene")]
+[JsonDerivedType(typeof(SnippetRandomSerializable), typeDiscriminator: "random")]
 public abstract class SnippetSerializable : SceneElementSerializable
 {
 	[JsonIgnore]

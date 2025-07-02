@@ -13,8 +13,11 @@ public class OptionEditable : Option
         get { return base.Name; }
         set
         {
-            base.Name = value;
-			this.notifyParentOfEdit();
+            if (base.Name  != value)
+			{
+				base.Name = value;
+				this.notifyParentOfEdit();
+			}
 		}
     }
     public new string TargetSceneId
@@ -22,8 +25,11 @@ public class OptionEditable : Option
         get { return base.TargetSceneId; }
         set
         {
-            base.TargetSceneId = value;
-			this.notifyParentOfEdit();
+            if (base.TargetSceneId != value)
+			{
+				base.TargetSceneId = value;
+				this.notifyParentOfEdit();
+			}
 		}
     }
     public new string DisplayName
@@ -31,8 +37,11 @@ public class OptionEditable : Option
         get { return base.DisplayName; }
         set
         {
-            base.DisplayName = value;
-			this.notifyParentOfEdit();
+            if (base.DisplayName != value)
+			{
+				base.DisplayName = value;
+				this.notifyParentOfEdit();
+			}
 		}
     }
     public new string Tooltip
@@ -40,8 +49,11 @@ public class OptionEditable : Option
         get { return base.Tooltip; }
         set
         {
-            base.Tooltip = value;
-			this.notifyParentOfEdit();
+            if (base.Tooltip != value)
+			{
+				base.Tooltip = value;
+				this.notifyParentOfEdit();
+			}
 		}
     }
     public new bool Enabled
@@ -49,8 +61,11 @@ public class OptionEditable : Option
         get { return base.Enabled; }
         set
         {
-            base.Enabled = value;
-			this.notifyParentOfEdit();
+            if (base.Enabled != value)
+			{
+				base.Enabled = value;
+				this.notifyParentOfEdit();
+			}
 		}
     }
 

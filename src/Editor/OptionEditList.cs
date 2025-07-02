@@ -14,20 +14,8 @@ public partial class OptionEditList : VBoxContainer
 	VBoxContainer optionEditListVBoxContainer;
 	Label tooManyOptionsLabel;
 
-	public bool UiNeedsUpdate;
+	public DtgeCore.Editing.SceneEditable DtgeSceneEditable;
 
-	private DtgeCore.Editing.SceneEditable dtgeSceneEditable;
-	public DtgeCore.Editing.SceneEditable DtgeSceneEditable
-	{
-		get { return this.dtgeSceneEditable; }
-		set
-		{
-			this.dtgeSceneEditable = value;
-			this.UiNeedsUpdate = true;
-		}
-	}
-
-	public int MaximumSupportedOptions;
 	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
@@ -35,33 +23,22 @@ public partial class OptionEditList : VBoxContainer
 	{
 		this.optionEditListVBoxContainer = this.GetNode<VBoxContainer>("OptionEditListScrollContainer/OptionEditListVBoxContainer");
 		this.tooManyOptionsLabel = this.GetNode<Label>("TooManyOptionsLabel");
-
-		this.updateOptionLabelsAndTooManyWarning();
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-		if (this.UiNeedsUpdate)
-		{
-			this.updateUiFromEditables();
-			this.UiNeedsUpdate = false;
-		}
-	}
-
-	private void updateUiFromEditables()
+	public void UpdateFromEditables()
 	{
 		for (int optionIndex = 0;
-			optionIndex < this.dtgeSceneEditable.GetOptionCount();
+			optionIndex < this.DtgeSceneEditable.GetOptionCount();
 			optionIndex++)
 		{
 			DtgeCore.Editing.OptionEditable currentOptionEditable =
-				this.dtgeSceneEditable.GetOptionByIndex(optionIndex);
+				this.DtgeSceneEditable.GetOptionByIndex(optionIndex);
 			OptionEditPanel currentOptionEditPanel =
 				this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionIndex);
 			if (currentOptionEditPanel != null)
 			{
 				currentOptionEditPanel.OptionEditable = currentOptionEditable;
+				currentOptionEditPanel.UpdateFromEditables();
 			}
 			else
 			{
@@ -69,7 +46,7 @@ public partial class OptionEditList : VBoxContainer
 			}
 		}
 
-		while (this.dtgeSceneEditable.GetOptionCount() <
+		while (this.DtgeSceneEditable.GetOptionCount() <
 			this.optionEditListVBoxContainer.GetChildCount())
 		{
 			OptionEditPanel excessOptionEditPanel
@@ -95,7 +72,7 @@ public partial class OptionEditList : VBoxContainer
 	public void HandleOptionDeleted(OptionEditPanel toRemove)
 	{
 		this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.dtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
+		this.DtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
 	}
 
 	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
@@ -105,7 +82,7 @@ public partial class OptionEditList : VBoxContainer
 
 	public void _on_add_option_button_pressed()
 	{
-		DtgeCore.Editing.OptionEditable newOption = this.dtgeSceneEditable.AllocateNewOption();
+		DtgeCore.Editing.OptionEditable newOption = this.DtgeSceneEditable.AllocateNewOption();
 		this.addNewOptionEditPanel(newOption);
 	}
 
@@ -131,10 +108,6 @@ public partial class OptionEditList : VBoxContainer
 		}
 	}
 
-	private void updateOptionEditPanelsFromScene()
-	{
-	}
-
 	private void addNewOptionEditPanel(DtgeCore.Editing.OptionEditable optionEditable)
 	{
 		OptionEditPanel newOptionEditPanel =
@@ -149,6 +122,7 @@ public partial class OptionEditList : VBoxContainer
 			newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
 			newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
 			this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
+			newOptionEditPanel.UpdateFromEditables();
 		}
 
 		this.updateOptionLabelsAndTooManyWarning();

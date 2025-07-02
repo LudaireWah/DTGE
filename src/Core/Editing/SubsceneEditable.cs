@@ -15,8 +15,11 @@ public class SubsceneEditable : Subscene
 		get { return base.Name; }
 		set
 		{
-			base.Name = value;
-			this.notifyParentOfEdit();
+			if (base.Name != value)
+			{
+				base.Name = value;
+				this.notifyParentOfEdit();
+			}
 		}
 	}
 

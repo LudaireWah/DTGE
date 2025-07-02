@@ -20,7 +20,7 @@ public class SnippetRandomSerializable : SnippetSerializable
 
 	private class SnippetRandomVersion0
 	{
-		public List<VariationSerializable> Variations;
+		public List<VariationSerializable> Variations { get; set; }
 
 		public SnippetRandomVersion0()
 		{
@@ -29,6 +29,7 @@ public class SnippetRandomSerializable : SnippetSerializable
 	}
 
 	[JsonInclude]
+	[JsonPropertyName(DtgeScenePropertyNames.SnippetRandomV0)]
 	private SnippetRandomVersion0 snippetRandomVersion0Data { get; set; }
 
 	public SnippetRandomSerializable()

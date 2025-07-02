@@ -17,20 +17,7 @@ public partial class OptionEditPanel : PanelContainer
 	LineEdit displayNameLineEdit;
 	CheckButton optionEnabledCheckButton;
 
-	private DtgeCore.Editing.OptionEditable optionEditable;
-	public DtgeCore.Editing.OptionEditable OptionEditable
-	{
-		get
-		{
-			return this.optionEditable;
-		}
-		set
-		{
-			this.optionEditable = value;
-			this.UiNeedsUpdate = true;
-		}
-	}
-	public bool UiNeedsUpdate;
+	public DtgeCore.Editing.OptionEditable OptionEditable;
 	
 	public Action<OptionEditPanel> OnOptionMovedUp;
 	public Action<OptionEditPanel> OnOptionMovedDown;
@@ -45,18 +32,19 @@ public partial class OptionEditPanel : PanelContainer
 		this.targetSceneLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
 		this.displayNameLineEdit =this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
 		this.optionEnabledCheckButton = this.GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
-
-		this.UpdateUIFromEditables();
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public void UpdateFromEditables()
 	{
-		if (this.UiNeedsUpdate)
-		{
-			this.UpdateUIFromEditables();
-			this.UiNeedsUpdate = false;
-		}
+		GodotUtilities.UpdateNodeText(this.idLineEdit, this.OptionEditable.Name);
+		GodotUtilities.UpdateNodeText(this.targetSceneLineEdit, this.OptionEditable.TargetSceneId);
+		GodotUtilities.UpdateNodeText(this.displayNameLineEdit, this.OptionEditable.DisplayName);
+		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
+	}
+
+	public void FlushChangesForSave()
+	{
+		this.updateEditablesFromUI();
 	}
 
 	private void updateEditablesFromUI()
@@ -65,24 +53,6 @@ public partial class OptionEditPanel : PanelContainer
 		this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
 		this.OptionEditable.DisplayName = this.displayNameLineEdit.Text;
 		this.OptionEditable.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-	}
-
-	private void UpdateUIFromEditables()
-	{
-		GodotUtilities.UpdateNodeText(this.idLineEdit, this.OptionEditable.Name);
-		GodotUtilities.UpdateNodeText(this.targetSceneLineEdit, this.OptionEditable.TargetSceneId);
-		GodotUtilities.UpdateNodeText(this.displayNameLineEdit, this.OptionEditable.DisplayName);
-		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
-	}
-
-	public class Test
-	{
-		public string Text {  get; set; }
-	}
-
-	public void FlushChangesForSave()
-	{
-		this.updateEditablesFromUI();
 	}
 
 	public void UpdateOptionLocationLabel(int optionIndex)

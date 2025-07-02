@@ -507,7 +507,6 @@ public partial class Editor : Control
 			DtgeSceneTabInfo selectedTabInfo =
 				this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
 			this.dtgeSceneEditContainer.DtgeSceneEditable = selectedTabInfo.dtgeScene;
-			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
 
@@ -575,14 +574,12 @@ public partial class Editor : Control
 		this.dtgeSceneEditContainer
 			.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog
 			.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
 
 	public void _on_enable_null_subscene_confirmation_dialog_confirmed()
 	{
 		this.dtgeSceneEditContainer.DtgeSceneEditable.EnableNullSubscene();
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.HandleSceneUpdated();
 	}
 
@@ -618,7 +615,6 @@ public partial class Editor : Control
 		}
 
 		this.dtgeSceneEditContainer.DtgeSceneEditable = newDtgeSceneTabInfo.dtgeScene;
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.anyEditsMade = true;
 	}
 
@@ -642,7 +638,6 @@ public partial class Editor : Control
 		this.dtgeSceneTabBar.CurrentTab = newTabIndex;
 
 		this.dtgeSceneEditContainer.DtgeSceneEditable = openedDtgeSceneTabInfo.dtgeScene;
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
 		this.anyEditsMade = true;
 	}
 
@@ -714,12 +709,10 @@ public partial class Editor : Control
 		{
 			DtgeSceneTabInfo newActiveDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
 			this.dtgeSceneEditContainer.DtgeSceneEditable = newActiveDtgeSceneTabInfo.dtgeScene;
-			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 		else
 		{
 			this.dtgeSceneEditContainer.DtgeSceneEditable = null;
-			this.dtgeSceneEditContainer.UpdateUIFromScene();
 		}
 	}
 
@@ -855,6 +848,6 @@ public partial class Editor : Control
 			gameDataFile.Close();
 		}
 
-		this.dtgeSceneEditContainer.UpdateUIFromScene();
+		this.dtgeSceneEditContainer.NotifyGameDataChanged();
 	}
 }

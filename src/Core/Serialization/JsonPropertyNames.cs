@@ -15,6 +15,7 @@ public static class DtgeScenePropertyNames
 	public const string SceneElementV0 =	"elV0";
 	public const string OptionV0 =			"opV0";
 	public const string SceneV0 =			"scV0";
+	public const string SnippetRandomV0 =	"snRaV0";
 	public const string SnippetSimpleV0 =	"snSiV0";
 	public const string SnippetSubsceneV0 = "SnSuV0";
 	public const string SnippetV0 =			"snV0";

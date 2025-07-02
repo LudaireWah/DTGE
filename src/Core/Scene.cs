@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using DtgeCore.Editing;
+
 using DtgeCore.Serialization;
 
 namespace DtgeCore;
@@ -13,14 +13,14 @@ namespace DtgeCore;
  * options the player may choose from to advance in the game.
  *
  * Most of the Scene's heavy lifting is done by the various SceneElements. The scene itself is
- * responsible for managing these elementsm as well as some meta level things such as an optional
+ * responsible for managing these elements as well as some scene level things such as an optional
  * image that can be displayed alongside the text.
  * 
- * A Scene is mostly read only while running the game, and the class and its elements reflect
- * that. Any changes of state that happen in the game should be represented by moving between
- * scenes or, in the future, the Entity system (DTGE-12). There are a few exceptions such as
- * subscenes and randomization, which are mainly used by Snippets. Other than this,Scenes should
- * only be modified while editing the game, which uses the SceneEditable.
+ * A Scene is mostly read only while running the game. The class and its elements reflect that.
+ * Any changes of state that happen in the game should be represented by moving between scenes or
+ * the Entity system (still upcoming DTGE-12). There are a few exceptions such as subscenes and
+ * randomization, which are mainly used by Snippets. Other than this, Scenes should only be
+ * modified while editing the game, which uses the SceneEditable.
  */
 public class Scene
 {
@@ -86,7 +86,7 @@ public class Scene
 
 	protected List<Option> OptionList { get; private set; }
 	protected List<Subscene> SubsceneList { get; private set; }
-	protected List<ISnippet> SnippetList { get; private set; }
+	protected List<Snippet> SnippetList { get; private set; }
 
 	protected int nextSUID = SUID.FIRST_VALID_SUID;
 	private readonly int sceneRandomSeed;
@@ -100,7 +100,7 @@ public class Scene
 		this.ImagePath = null;
 		this.OptionList = new List<Option>();
 		this.SubsceneList = new List<Subscene>();
-		this.SnippetList = new List<ISnippet>();
+		this.SnippetList = new List<Snippet>();
 
 		Random seedGenerator = new Random();
 		this.sceneRandomSeed = seedGenerator.Next();
@@ -129,31 +129,12 @@ public class Scene
 			this.SubsceneList.Add(new Subscene(this, serializable.SubsceneList[subsceneIndex]));
 		}
 
-		this.SnippetList = new List<ISnippet>();
+		this.SnippetList = new List<Snippet>();
 		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
 		{
 			SnippetSerializable deserializingSnippetSerializable =
 				serializable.SnippetList[snippetIndex];
-			switch (deserializingSnippetSerializable.Mode)
-			{
-			case Snippet.Mode.Simple:
-				SnippetSimple snippetSimple = new SnippetSimple(
-					this,
-					deserializingSnippetSerializable as SnippetSimpleSerializable);
-				this.SnippetList.Add(snippetSimple);
-				break;
-			case Snippet.Mode.Subscene:
-				SnippetSubscene snippetSubscene = new SnippetSubscene(
-					this,
-					deserializingSnippetSerializable as SnippetSubsceneSerializable);
-				this.SnippetList.Add(snippetSubscene);
-				break;
-			case Snippet.Mode.Random:
-				break;
-			default:
-				GlobalErrorHandler.InvokeError("Unknown snippt type");
-				break;
-			}
+			this.SnippetList.Add(new Snippet(this, deserializingSnippetSerializable));
 		}
 
 		Random seedGenerator = new Random();
@@ -180,7 +161,7 @@ public class Scene
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
-			ISnippet currentSnippet = this.SnippetList[snippetIndex];
+			Snippet currentSnippet = this.SnippetList[snippetIndex];
 			sceneText += currentSnippet.CalculateText();
 		}
 
@@ -222,7 +203,7 @@ public class Scene
 
 			for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 			{
-				if (SubsceneList[subsceneIndex].Name == subsceneName)
+				if (this.SubsceneList[subsceneIndex].Name == subsceneName)
 				{
 					desiredSubsceneIndex = subsceneIndex;
 					break;
@@ -246,7 +227,7 @@ public class Scene
 
 		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 		{
-			if (SubsceneList[subsceneIndex].Id == subscene.Id)
+			if (this.SubsceneList[subsceneIndex].Id == subscene.Id)
 			{
 				desiredSubsceneIndex = subsceneIndex;
 				break;

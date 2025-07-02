@@ -15,8 +15,11 @@ public class VariationEditable : Variation
 		get { return base.Name; }
 		set
 		{
-			this.notifyParentOfEdit();
-			base.Name = value;
+			if (base.Name != value)
+			{
+				base.Name = value;
+				this.notifyParentOfEdit();
+			}
 		}
 	}
 	public new string Text
@@ -24,8 +27,11 @@ public class VariationEditable : Variation
 		get { return base.Text; }
 		set
 		{
-			this.notifyParentOfEdit();
-			base.Text = value;
+			if (base.Text != value)
+			{
+				base.Text = value;
+				this.notifyParentOfEdit();
+			}
 		}
 	}
 

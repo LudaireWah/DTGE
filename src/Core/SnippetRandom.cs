@@ -4,28 +4,49 @@ using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
-public class SnippetRandom : SceneElement, ISnippet
+/**
+ * Random Snippets have a set of variations of any number and will randomly decide which to use.
+ * The Random Snippet should always use the random number generator provided by the parent Scene
+ * so that a certain scene state can be deterministically recreated by the scene for debugging
+ * purposes.
+ */
+public partial class Snippet
 {
-	public Snippet.Mode Mode { get { return Snippet.Mode.Random; } }
-
-	protected List<Variation> Variations { get; private set; }
-
-	public SnippetRandom(Scene parentScene)
-		: base(parentScene)
+	protected class RandomSnippetImplementation : ISnippetImplementation
 	{
-		this.Variations = new List<Variation>();
-	}
+		public Mode CurrentMode { get { return Mode.Random; } }
 
-	public SnippetRandom(Scene parentScene, SnippetRandomSerializable serializable)
-		:base(parentScene, serializable)
-	{
-		this.Variations = new List<Variation>();
-	}
+		protected List<Variation> Variations { get; private set; }
 
-	public virtual string CalculateText()
-	{
-		int randomizedIndex = this.ParentScene.SceneRandom.Next(this.Variations.Count);
+		protected Scene parentScene;
 
-		return this.Variations[randomizedIndex].Text;
+		public RandomSnippetImplementation(Scene parentScene)
+		{
+			this.parentScene = parentScene;
+			this.Variations = new List<Variation>();
+		}
+
+		public RandomSnippetImplementation(
+			Scene parentScene,
+			SnippetRandomSerializable serializable)
+		{
+			this.parentScene = parentScene;
+			this.Variations = new List<Variation>();
+
+			for (int variationIndex = 0;
+				variationIndex < serializable.Variations.Count;
+				variationIndex++)
+			{
+				this.Variations.Add(
+					new Variation(parentScene, serializable.Variations[variationIndex]));
+			}
+		}
+
+		public virtual string CalculateText()
+		{
+			int randomizedIndex = this.parentScene.SceneRandom.Next(this.Variations.Count);
+
+			return this.Variations[randomizedIndex].Text;
+		}
 	}
 }

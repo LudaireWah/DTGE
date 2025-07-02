@@ -4,33 +4,42 @@ using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
-public class SnippetSubscene : SceneElement, ISnippet
+/**
+ * Subscene Snippets always contain a single variation per subscene on the parent scene and 
+ * provide the text of the snippet matching the parent scene's current subscene.
+ */
+public partial class Snippet
 {
-	public Snippet.Mode Mode { get { return Snippet.Mode.Subscene; } }
-
-	protected Dictionary<SUID, Variation> VariationsBySubsceneId { get; private set; }
-
-	public SnippetSubscene(Scene parentScene)
-		:base(parentScene)
+	protected class SubsceneSnippetImplementation : ISnippetImplementation
 	{
-		this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
-	}
+		public Mode CurrentMode { get { return Mode.Subscene; } }
 
-	public SnippetSubscene(Scene parentScene, SnippetSubsceneSerializable serializable)
-		: base(parentScene, serializable)
-	{
-		this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
+		protected Dictionary<SUID, Variation> VariationsBySubsceneId { get; private set; }
 
-		foreach (SUID subsceneSuid in serializable.VariationsBySubsceneId.Keys)
+		protected Scene parentScene;
+
+		public SubsceneSnippetImplementation(Scene parentScene)
 		{
-			this.VariationsBySubsceneId[subsceneSuid] =
-				new Variation(parentScene, serializable.VariationsBySubsceneId[subsceneSuid]);
+			this.parentScene = parentScene;
+			this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
 		}
-	}
 
-	public string CalculateText()
-	{
-		Variation variation = this.VariationsBySubsceneId[this.ParentScene.CurrentSubscene.Id];
-		return variation.Text;
+		public SubsceneSnippetImplementation(Scene parentScene, SnippetSubsceneSerializable serializable)
+		{
+			this.parentScene = parentScene;
+			this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
+
+			foreach (SUID subsceneSuid in serializable.VariationsBySubsceneId.Keys)
+			{
+				this.VariationsBySubsceneId[subsceneSuid] =
+					new Variation(parentScene, serializable.VariationsBySubsceneId[subsceneSuid]);
+			}
+		}
+
+		public string CalculateText()
+		{
+			Variation variation = this.VariationsBySubsceneId[this.parentScene.CurrentSubscene.Id];
+			return variation.Text;
+		}
 	}
 }

@@ -1,125 +1,206 @@
 ﻿using DtgeCore.Serialization;
-using System.Collections.Generic;
 
 namespace DtgeCore.Editing;
 
-public class SnippetRandomEditable : SnippetRandom, ISnippetEditable
+public partial class SnippetEditable
 {
-	private SceneEditable parentSceneEditable;
-
-	private int lastRandomizedVariationIndex;
-
-	public SnippetRandomEditable(SceneEditable parentSceneEditable)
-		: base(parentSceneEditable)
+	private class RandomSnippetImplementationEditable
+		: RandomSnippetImplementation, ISnippetEditableImplementation
 	{
-		this.parentSceneEditable = parentSceneEditable;
-		this.lastRandomizedVariationIndex = 0;
-	}
+		private const string RANDOM_VARIATION_NAME_PREFIX = "Random ";
 
-	public SnippetRandomEditable(SceneEditable parentSceneEditable, ISnippetEditable other)
-		: base(parentSceneEditable)
-	{
-		this.parentSceneEditable = parentSceneEditable;
-		this.lastRandomizedVariationIndex = 0;
-	}
+		private SceneEditable parentSceneEditable;
 
-	public SnippetRandomEditable(
-		SceneEditable parentSceneEditable,
-		SnippetRandomSerializable serializable)
-		: base(parentSceneEditable)
-	{
-		this.parentSceneEditable = parentSceneEditable;
-		this.lastRandomizedVariationIndex = 0;
-	}
+		private int currentVariationIndex;
+		private int lastIntUsedToCreateName;
 
-	public SnippetSerializable ToSerializable()
-	{
-		SnippetRandomSerializable serializable =
-			this.CreateSerializable<SnippetRandomSerializable>();
-
-		serializable.Mode = this.Mode;
-
-		for (int variationIndex = 0; variationIndex < this.Variations.Count; variationIndex++)
+		public RandomSnippetImplementationEditable(SceneEditable parentSceneEditable)
+			: base(parentSceneEditable)
 		{
-			VariationEditable variationEditable =
-				this.Variations[variationIndex] as VariationEditable;
-			serializable.Variations[variationIndex] = variationEditable.ToSerializable();
+			this.parentSceneEditable = parentSceneEditable;
+			this.currentVariationIndex = 0;
+			this.lastIntUsedToCreateName = 1;
 		}
 
-		return null;
-	}
-
-	public override string CalculateText()
-	{
-		int randomizedIndex = this.ParentScene.SceneRandom.Next(this.Variations.Count);
-		this.lastRandomizedVariationIndex = randomizedIndex;
-
-		return this.Variations[randomizedIndex].Text;
-	}
-
-	public string CalculateTextStable()
-	{
-		return this.Variations[this.lastRandomizedVariationIndex].Text;
-	}
-
-	public string GetCopyableText(string variationBoundaryMarker)
-	{
-		string copyableVariationText = "";
-
-		for (int variationIndex = 0; variationIndex < this.Variations.Count; variationIndex++)
+		public RandomSnippetImplementationEditable(
+			SceneEditable parentSceneEditable,
+			ISnippetEditableImplementation other)
+			: base(parentSceneEditable)
 		{
-			copyableVariationText += this.Variations[variationIndex].Text;
-			if (variationIndex < this.parentSceneEditable.GetSubsceneCount() - 1)
+			this.parentSceneEditable = parentSceneEditable;
+			this.currentVariationIndex = 0;
+			this.lastIntUsedToCreateName = 1;
+
+			for (int variationIndex = 0;
+				variationIndex < other.GetVariationCount();
+				variationIndex++)
 			{
-				copyableVariationText += variationBoundaryMarker;
+				this.Variations.Add(new VariationEditable(
+					parentSceneEditable,
+					getVariationNameForIndex(this.lastIntUsedToCreateName++),
+					other.GetVariationText(variationIndex)));
 			}
 		}
 
-		return copyableVariationText;
-	}
-
-	public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
-	{
-		if (pastedTextSplitByVariation.Length != this.Variations.Count)
+		public RandomSnippetImplementationEditable(
+			SceneEditable parentSceneEditable,
+			SnippetRandomSerializable serializable)
+			: base(parentSceneEditable)
 		{
-			GlobalErrorHandler.InvokeError("There was a mismatch between variation count and pasted variation count when restoring from pasted text.");
+			this.parentSceneEditable = parentSceneEditable;
+			this.currentVariationIndex = 0;
+			this.lastIntUsedToCreateName = 1;
+
+			for (int variationIndex = 0;
+				variationIndex < serializable.Variations.Count;
+				variationIndex++)
+			{
+				this.Variations.Add(new VariationEditable(
+					parentSceneEditable,
+					serializable.Variations[variationIndex].Name,
+					serializable.Variations[variationIndex].Text));
+				this.lastIntUsedToCreateName++;
+			}
 		}
-		else
+
+		public void PopulateSerializable(SnippetRandomSerializable serializable)
 		{
 			for (int variationIndex = 0; variationIndex < this.Variations.Count; variationIndex++)
 			{
 				VariationEditable variationEditable =
 					this.Variations[variationIndex] as VariationEditable;
-				variationEditable.Text = pastedTextSplitByVariation[variationIndex];
+				serializable.Variations.Add(variationEditable.ToSerializable());
 			}
 		}
-	}
 
-	public VariationEditable GetVariationEditable(int variationIndex)
-	{
-		return this.Variations[variationIndex] as VariationEditable;
-	}
+		public override string CalculateText()
+		{
+			int randomizedIndex =
+				this.parentSceneEditable.SceneRandom.Next(this.Variations.Count);
+			if (this.currentVariationIndex != randomizedIndex)
+			{
+				this.currentVariationIndex = randomizedIndex;
+				this.notifyParentOfEdit();
+			}
 
-	public bool CanEditVariationCount()
-	{
-		return true;
-	}
+			return this.Variations[randomizedIndex].Text;
+		}
 
-	public int GetVariationCount()
-	{
-		return this.Variations.Count;
-	}
+		public string CalculateTextStable()
+		{
+			return this.Variations[this.currentVariationIndex].Text;
+		}
 
-	public bool AddVariation()
-	{
-		this.Variations.Add(new VariationEditable(this.parentSceneEditable));
-		return true;
-	}
+		public string GetCopyableText(string variationBoundaryMarker)
+		{
+			string copyableVariationText = "";
 
-	public bool RemoveVariationEditable(int variationIndex)
-	{
-		this.Variations.RemoveAt(variationIndex);
+			for (int variationIndex = 0; variationIndex < this.Variations.Count; variationIndex++)
+			{
+				copyableVariationText += this.Variations[variationIndex].Text;
+				if (variationIndex < this.parentSceneEditable.GetSubsceneCount() - 1)
+				{
+					copyableVariationText += variationBoundaryMarker;
+				}
+			}
 
-		return true;
+			return copyableVariationText;
+		}
+
+		public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
+		{
+			if (pastedTextSplitByVariation.Length != this.Variations.Count)
+			{
+				GlobalErrorHandler.InvokeError("There was a mismatch between variation count and pasted variation count when restoring from pasted text.");
+			}
+			else
+			{
+				for (int variationIndex = 0;
+					variationIndex < this.Variations.Count;
+					variationIndex++)
+				{
+					VariationEditable variationEditable =
+						this.Variations[variationIndex] as VariationEditable;
+					variationEditable.Text = pastedTextSplitByVariation[variationIndex];
+				}
+			}
+		}
+
+		public string GetVariationName(int variationIndex)
+		{
+			return this.Variations[variationIndex].Name;
+		}
+
+		public string GetVariationText(int variationIndex)
+		{
+			return this.Variations[variationIndex].Text;
+		}
+
+		public void SetVariationText(int variationIndex, string variationText)
+		{
+			VariationEditable variationEditable =
+				this.Variations[variationIndex] as VariationEditable;
+
+			if (variationText != variationEditable.Text)
+			{
+				variationEditable.Text = variationText;
+				this.notifyParentOfEdit();
+			}
+		}
+
+		public bool CanEditVariationCount()
+		{
+			return true;
+		}
+
+		public int GetVariationCount()
+		{
+			return this.Variations.Count;
+		}
+
+		public int GetCurrentVariationIndex()
+		{
+			return this.currentVariationIndex;
+		}
+
+		public void SetCurrentVariationIndex(int variationIndex)
+		{
+			if (this.currentVariationIndex != variationIndex)
+			{
+				this.currentVariationIndex = variationIndex;
+				this.notifyParentOfEdit();
+			}
+		}
+
+		public bool AddVariation()
+		{
+			VariationEditable newVariation = new VariationEditable(
+				this.parentSceneEditable,
+				getVariationNameForIndex(this.lastIntUsedToCreateName++),
+				string.Empty);
+			this.Variations.Add(newVariation);
+			this.notifyParentOfEdit();
+			return true;
+		}
+
+		public bool RemoveVariationEditable(int variationIndex)
+		{
+			this.Variations.RemoveAt(variationIndex);
+			this.notifyParentOfEdit();
+			return true;
+		}
+
+		private static string getVariationNameForIndex(int variationIndex)
+		{
+			return RANDOM_VARIATION_NAME_PREFIX + variationIndex;
+		}
+
+		private void notifyParentOfEdit()
+		{
+			if (this.parentSceneEditable != null)
+			{
+				this.parentSceneEditable.NotifyUIUpdateNeeded();
+			}
+		}
 	}
 }

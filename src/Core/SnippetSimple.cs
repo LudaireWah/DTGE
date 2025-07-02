@@ -2,27 +2,33 @@
 
 namespace DtgeCore;
 
-public class SnippetSimple : SceneElement, ISnippet
+/**
+ * The Simple Snippet contains a single variation with zero logic. This is mainly used for blocks
+ * of text within scenes that don't vary based subscene, state, or anything else.
+ */
+public partial class Snippet
 {
-	public Snippet.Mode Mode { get { return Snippet.Mode.Simple; } }
-
-	protected Variation SingleVariation { get; set; }
-
-	public SnippetSimple(Scene parentScene)
-		: base(parentScene)
+	protected class SimpleSnippetImplementation : ISnippetImplementation
 	{
-		this.SingleVariation = new Variation(parentScene, "(Simple)", string.Empty);
-	}
+		public Mode CurrentMode { get { return Mode.Simple; } }
 
-	public SnippetSimple(Scene parentScene, SnippetSimpleSerializable serializable)
-		: base(parentScene, serializable)
-	{
-		this.SingleVariation =
-			new Variation(parentScene, serializable.SingleVariation);
-	}
+		protected Variation SingleVariation { get; set; }
 
-	public string CalculateText()
-	{
-		return this.SingleVariation.Text;
+		public SimpleSnippetImplementation(Scene parentScene)
+		{
+			this.SingleVariation = new Variation(parentScene, "(Simple)", string.Empty);
+		}
+
+		public SimpleSnippetImplementation(Scene parentScene, SnippetSimpleSerializable serializable)
+		{
+			this.SingleVariation =
+				new Variation(parentScene, serializable.SingleVariation);
+		}
+
+		public string CalculateText()
+		{
+			return this.SingleVariation.Text;
+
+		}
 	}
 }
