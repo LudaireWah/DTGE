@@ -28,11 +28,11 @@ text = "Option #"
 
 [node name="MoveUpButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
 layout_mode = 2
-text = "↑"
+text = "⮝"
 
 [node name="MoveDownButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
 layout_mode = 2
-text = "↓"
+text = "⮟"
 
 [node name="DeleteButton" type="Button" parent="OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer"]
 layout_mode = 2

@@ -23,12 +23,14 @@ public partial class SnippetPanelContainer : PanelContainer
 	HBoxContainer snippetTabsHBoxContainer;
 	TabBar snippetTabBar;
 	Button newTabButton;
+	Button moveSnippetUpButton;
+	Button moveSnippetDownButton;
 
 	public DtgeCore.Editing.SnippetEditable SnippetEditable { get; set; }
 
-	public Action<SnippetPanelContainer> OnSnippetMovedUp;
-	public Action<SnippetPanelContainer> OnSnippetMovedDown;
-	public Action<SnippetPanelContainer> OnSnippetDeleted;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetMovedUp;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetMovedDown;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetDeleted;
 
 	public override void _Ready()
 	{
@@ -37,6 +39,8 @@ public partial class SnippetPanelContainer : PanelContainer
 		this.snippetTabsHBoxContainer = this.GetNode<HBoxContainer>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer");
 		this.snippetTabBar = this.GetNode<TabBar>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar");
 		this.newTabButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton");
+		this.moveSnippetUpButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton");
+		this.moveSnippetDownButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveDownButton");
 
 		this.snippetTextEdit.FocusMode = FocusModeEnum.Click;
 	}
@@ -63,6 +67,14 @@ public partial class SnippetPanelContainer : PanelContainer
 			GodotUtilities.UpdateNodeText(
 				this.snippetTextEdit,
 				this.SnippetEditable.GetVariationText(this.snippetTabBar.CurrentTab));
+
+			this.moveSnippetUpButton.Disabled = this.SnippetEditable.isFirst();
+			this.moveSnippetUpButton.FocusMode =
+				this.SnippetEditable.isFirst() ? FocusModeEnum.None : FocusModeEnum.All;
+
+			this.moveSnippetDownButton.Disabled = this.SnippetEditable.isLast();
+			this.moveSnippetDownButton.FocusMode =
+				this.SnippetEditable.isLast() ? FocusModeEnum.None : FocusModeEnum.All;
 		}
 	}
 
@@ -75,17 +87,17 @@ public partial class SnippetPanelContainer : PanelContainer
 
 	public void _on_move_up_button_pressed()
 	{
-		this.OnSnippetMovedUp(this);
+		this.OnSnippetMovedUp(this.SnippetEditable);
 	}
 
 	public void _on_move_down_button_pressed()
 	{
-		this.OnSnippetMovedDown(this);
+		this.OnSnippetMovedDown(this.SnippetEditable);
 	}
 
 	public void _on_delete_button_pressed()
 	{
-		this.OnSnippetDeleted(this);
+		this.OnSnippetDeleted(this.SnippetEditable);
 	}
 
 	public void _on_conditional_mode_option_button_item_selected(int modeIndex)

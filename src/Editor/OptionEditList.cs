@@ -64,75 +64,19 @@ public partial class OptionEditList : VBoxContainer
 		this.addNewOptionEditPanel(newOption);
 	}
 
-	private void HandleOptionMovedUp(OptionEditPanel targetOption)
+	private void HandleOptionMovedUp(DtgeCore.Editing.OptionEditable targetOptionEditable)
 	{
-		//OptionEditPanel currentOptionEditPanel = null;
-		//OptionEditPanel aboveOptionEditPanel = null;
-
-		//for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
-		//{
-		//	currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
-		//	if (currentOptionEditPanel != null &&
-		//		aboveOptionEditPanel != null &&
-		//		currentOptionEditPanel == targetOption)
-		//	{
-		//		// TODO: The adjustment to how options works means this needs to be totally redone.
-		//		//DtgeCore.Option aboveOptionCopy = new DtgeCore.Option();
-		//		//aboveOptionCopy.CopyFrom(aboveOptionEditPanel.BoundOption);
-		//		//aboveOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
-		//		//currentOptionEditPanel.BoundOption.CopyFrom(aboveOptionCopy);
-		//		break;
-		//	}
-		//	aboveOptionEditPanel = currentOptionEditPanel;
-		//}
-
-		//if (currentOptionEditPanel != null)
-		//{
-		//	currentOptionEditPanel.UpdateUIFromOption();
-		//}
-
-		//if (aboveOptionEditPanel != null)
-		//{
-		//	aboveOptionEditPanel.UpdateUIFromOption();
-		//}
+		this.DtgeSceneEditable.TryMoveOption(targetOptionEditable, -1);
 	}
 
-	private void HandleOptionMovedDown(OptionEditPanel targetOption)
+	private void HandleOptionMovedDown(DtgeCore.Editing.OptionEditable targetOptionEditable)
 	{
-		//OptionEditPanel currentOptionEditPanel = null;
-		//OptionEditPanel belowOptionEditPanel = null;
-		//for (int optionPanelChildIndex = 0; optionPanelChildIndex < this.optionEditListVBoxContainer.GetChildCount(); optionPanelChildIndex++)
-		//{
-		//	currentOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex);
-		//	belowOptionEditPanel = this.optionEditListVBoxContainer.GetChildOrNull<OptionEditPanel>(optionPanelChildIndex + 1);
-		//	if (currentOptionEditPanel != null &&
-		//		belowOptionEditPanel != null &&
-		//		currentOptionEditPanel == targetOption)
-		//	{
-		//		DtgeCore.Option belowOptionCopy = new DtgeCore.Option();
-		//		belowOptionCopy.CopyFrom(belowOptionEditPanel.BoundOption);
-		//		belowOptionEditPanel.BoundOption.CopyFrom(currentOptionEditPanel.BoundOption);
-		//		currentOptionEditPanel.BoundOption.CopyFrom(belowOptionCopy);
-
-		//		break;
-		//	}
-		//}
-
-		//if (currentOptionEditPanel != null)
-		//{
-		//	currentOptionEditPanel.UpdateUIFromOption();
-		//}
-
-		//if (belowOptionEditPanel != null)
-		//{
-		//	belowOptionEditPanel.UpdateUIFromOption();
-		//}
+		this.DtgeSceneEditable.TryMoveOption(targetOptionEditable, 1);
 	}
 
-	public void HandleOptionDeleted(OptionEditPanel toRemove)
+	public void HandleOptionDeleted(DtgeCore.Editing.OptionEditable optionEditable)
 	{
-		this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.DtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
+		this.DtgeSceneEditable.RemoveOption(optionEditable);
 	}
 
 	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)

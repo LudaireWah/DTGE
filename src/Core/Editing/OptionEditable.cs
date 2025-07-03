@@ -118,6 +118,17 @@ public class OptionEditable : Option
 		return optionString;
 	}
 
+    public bool isFirst()
+    {
+        return this == this.parentSceneEditable.GetOptionByIndex(0);
+    }
+
+    public bool isLast()
+    {
+        return this == this.parentSceneEditable.GetOptionByIndex(
+            this.parentSceneEditable.GetOptionCount() - 1);
+    }
+
 	private void notifyParentOfEdit()
     {
         if (this.parentSceneEditable != null)

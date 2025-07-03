@@ -321,6 +321,17 @@ public partial class SnippetEditable : Snippet
 		}
 	}
 
+	public bool isFirst()
+	{
+		return this == this.parentSceneEditable.GetSnippetByIndex(0);
+	}
+
+	public bool isLast()
+	{
+		return this == this.parentSceneEditable.GetSnippetByIndex(
+			this.parentSceneEditable.GetSnippetCount() - 1);
+	}
+
 	private void notifyParentOfEdit()
 	{
 		if (this.parentSceneEditable != null)

@@ -16,12 +16,14 @@ public partial class OptionEditPanel : PanelContainer
 	LineEdit targetSceneLineEdit;
 	LineEdit displayNameLineEdit;
 	CheckButton optionEnabledCheckButton;
+	Button moveOptionUpButton;
+	Button moveOptionDownButton;
 
 	public DtgeCore.Editing.OptionEditable OptionEditable;
 	
-	public Action<OptionEditPanel> OnOptionMovedUp;
-	public Action<OptionEditPanel> OnOptionMovedDown;
-	public Action<OptionEditPanel> OnOptionDeleted;
+	public Action<DtgeCore.Editing.OptionEditable> OnOptionMovedUp;
+	public Action<DtgeCore.Editing.OptionEditable> OnOptionMovedDown;
+	public Action<DtgeCore.Editing.OptionEditable> OnOptionDeleted;
 	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
@@ -30,8 +32,10 @@ public partial class OptionEditPanel : PanelContainer
 		this.optionLocationLabel = this.GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
 		this.idLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
 		this.targetSceneLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
-		this.displayNameLineEdit =this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
+		this.displayNameLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
 		this.optionEnabledCheckButton = this.GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
+		this.moveOptionUpButton = this.GetNode<Button>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveUpButton");
+		this.moveOptionDownButton = this.GetNode<Button>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveDownButton");
 	}
 
 	public void UpdateFromEditables()
@@ -40,6 +44,14 @@ public partial class OptionEditPanel : PanelContainer
 		GodotUtilities.UpdateNodeText(this.targetSceneLineEdit, this.OptionEditable.TargetSceneId);
 		GodotUtilities.UpdateNodeText(this.displayNameLineEdit, this.OptionEditable.DisplayName);
 		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
+
+		this.moveOptionUpButton.Disabled = this.OptionEditable.isFirst();
+		this.moveOptionUpButton.FocusMode =
+			this.OptionEditable.isFirst() ? FocusModeEnum.None : FocusModeEnum.All;
+
+		this.moveOptionDownButton.Disabled = this.OptionEditable.isLast();
+		this.moveOptionDownButton.FocusMode =
+			this.OptionEditable.isLast() ? FocusModeEnum.None : FocusModeEnum.All;
 	}
 
 	public void UpdateOptionLocationLabel(int optionIndex)
@@ -69,17 +81,17 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_move_up_button_pressed()
 	{
-		this.OnOptionMovedUp(this);
+		this.OnOptionMovedUp(this.OptionEditable);
 	}
 
 	public void _on_move_down_button_pressed()
 	{
-		this.OnOptionMovedDown(this);
+		this.OnOptionMovedDown(this.OptionEditable);
 	}
 
 	public void _on_delete_button_pressed()
 	{
-		this.OnOptionDeleted(this);
+		this.OnOptionDeleted(this.OptionEditable);
 	}
 
 	public void _on_navigate_to_target_scene_button_pressed()

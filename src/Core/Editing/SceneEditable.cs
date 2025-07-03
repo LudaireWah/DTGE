@@ -371,6 +371,33 @@ public class SceneEditable : Scene
 		this.NotifyUIUpdateNeeded();
 	}
 
+	public bool TryMoveOption(OptionEditable optionEditable, int numberOfPositionsToMove)
+	{
+		int currentIndex = this.OptionList.IndexOf(optionEditable);
+		int targetIndex = currentIndex + numberOfPositionsToMove;
+		bool optionMoved = false;
+
+		if (targetIndex >= 0 && targetIndex < this.OptionList.Count - 1)
+		{
+			this.OptionList.Remove(optionEditable);
+			this.OptionList.Insert(targetIndex, optionEditable);
+			optionMoved = true;
+		}
+		else if (targetIndex == this.OptionList.Count - 1)
+		{
+			this.OptionList.Remove(optionEditable);
+			this.OptionList.Add(optionEditable);
+			optionMoved = true;
+		}
+
+		if (optionMoved)
+		{
+			this.NotifyUIUpdateNeeded();
+		}
+
+		return optionMoved;
+	}
+
 	public void ClearAllOptions()
 	{
 		this.OptionList.Clear();
@@ -432,6 +459,33 @@ public class SceneEditable : Scene
 	public SnippetEditable GetSnippetByIndex(int snippetIndex)
 	{
 		return this.SnippetList[snippetIndex] as SnippetEditable;
+	}
+
+	public bool TryMoveSnippet(SnippetEditable snippetEditable, int numberOfPositionsToMove)
+	{
+		int currentIndex = this.SnippetList.IndexOf(snippetEditable);
+		int targetIndex = currentIndex + numberOfPositionsToMove;
+		bool snippetMoved = false;
+
+		if (targetIndex >= 0 && targetIndex < this.SnippetList.Count - 1)
+		{
+			this.SnippetList.Remove(snippetEditable);
+			this.SnippetList.Insert(targetIndex, snippetEditable);
+			snippetMoved = true;
+		}
+		else if (targetIndex == this.SnippetList.Count - 1)
+		{
+			this.SnippetList.Remove(snippetEditable);
+			this.SnippetList.Add(snippetEditable);
+			snippetMoved = true;
+		}
+
+		if (snippetMoved)
+		{
+			this.NotifyUIUpdateNeeded();
+		}
+
+		return snippetMoved;
 	}
 
 	public void NotifySubsceneSnippetsOfChange()
