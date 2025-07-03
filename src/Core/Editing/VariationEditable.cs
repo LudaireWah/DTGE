@@ -4,7 +4,7 @@ namespace DtgeCore.Editing;
 
 /**
  * VariationEditable is the editable version of the Variation to be used in editors for authoring
- * DTGE games. For more detailed information on how Editables work, see SceneEditable.cs.
+ * DTGE games. For more details on how Editables work, see SceneEditable.cs.
  */
 public class VariationEditable : Variation
 {

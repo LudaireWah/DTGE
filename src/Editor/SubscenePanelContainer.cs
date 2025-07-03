@@ -15,26 +15,19 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public Action<SubscenePanelContainer> OnSubsceneDeleted;
 
-	private DtgeCore.Editing.SubsceneEditable subsceneEditable;
-	public DtgeCore.Editing.SubsceneEditable SubsceneEditable
-	{
-		get { return this.subsceneEditable; }
-		set
-		{
-			this.subsceneEditable = value;
-			this.UiNeedsUpdate = true;
-		}
-	}
-	public bool UiNeedsUpdate;
+	public DtgeCore.Editing.SubsceneEditable SubsceneEditable { get; set; }
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
-		if (this.UiNeedsUpdate)
+	}
+
+	public void UpdateUIFromEditables()
+	{
+		if (this.nameLineEdit.Text != this.SubsceneEditable.Name)
 		{
-			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.subsceneEditable.Name);
-			this.UiNeedsUpdate = false;
+			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.SubsceneEditable.Name);	
 		}
 	}
 
@@ -45,9 +38,9 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public void _on_subscene_line_edit_text_changed(string newText)
 	{
-		if (newText != this.subsceneEditable.Name)
+		if (newText != this.SubsceneEditable.Name)
 		{
-			this.subsceneEditable.Name = newText;
+			this.SubsceneEditable.Name = newText;
 		}
 	}
 }

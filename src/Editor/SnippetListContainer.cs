@@ -1,5 +1,3 @@
-using DtgeCore;
-using DtgeCore.Editing;
 using Godot;
 
 namespace DtgeEditor;
@@ -61,23 +59,6 @@ public partial class SnippetListContainer : VBoxContainer
 		}
 	}
 
-	public void FlushChangesForSave()
-	{
-		for (int snippetPanelIndex = 0;
-			snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount();
-			snippetPanelIndex++)
-		{
-			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex)
-				.FlushChangesForSave();
-		}
-	}
-
-	public void HandleSnippetDeleted(SnippetPanelContainer toRemove)
-	{
-		this.snippetListVBoxContainer.RemoveChild(toRemove);
-		this.DtgeSceneEditable.RemoveSnippet(toRemove.SnippetEditable);
-	}
-
 	public void _on_add_snippet_button_pressed()
 	{
 		DtgeCore.Editing.SnippetEditable newSnippetEditable =
@@ -85,24 +66,13 @@ public partial class SnippetListContainer : VBoxContainer
 		this.addNewSnippetPanelContainer(newSnippetEditable);
 	}
 
-	private void addNewSnippetPanelContainer(DtgeCore.Editing.SnippetEditable snippetEditable)
+	private void HandleSnippetDeleted(SnippetPanelContainer toRemove)
 	{
-		SnippetPanelContainer newSnippetPanelContainer =
-			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
-			.Instantiate<SnippetPanelContainer>();
-
-		if (newSnippetPanelContainer != null)
-		{
-			newSnippetPanelContainer.SnippetEditable = snippetEditable;
-			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleSnippetMovedUp;
-			newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
-			newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
-			this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
-			newSnippetPanelContainer.UpdateUIFromEditables();
-		}
+		this.snippetListVBoxContainer.RemoveChild(toRemove);
+		this.DtgeSceneEditable.RemoveSnippet(toRemove.SnippetEditable);
 	}
 
-	public void HandleSnippetMovedUp(SnippetPanelContainer targetSnippet)
+	private void HandleSnippetMovedUp(SnippetPanelContainer targetSnippet)
 	{
 		//SnippetPanelContainer currentSnippetPanelContainer = null;
 		//SnippetPanelContainer aboveSnippetPanelContainer = null;
@@ -136,7 +106,7 @@ public partial class SnippetListContainer : VBoxContainer
 		//this.OnSnippetListUpdated();
 	}
 
-	public void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
+	private void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
 	{
 		//SnippetPanelContainer currentSnippetPanelContainer = null;
 		//SnippetPanelContainer belowSnippetPanelContainer = null;
@@ -168,5 +138,22 @@ public partial class SnippetListContainer : VBoxContainer
 		//}
 
 		//this.OnSnippetListUpdated();
+	}
+
+	private void addNewSnippetPanelContainer(DtgeCore.Editing.SnippetEditable snippetEditable)
+	{
+		SnippetPanelContainer newSnippetPanelContainer =
+			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
+			.Instantiate<SnippetPanelContainer>();
+
+		if (newSnippetPanelContainer != null)
+		{
+			newSnippetPanelContainer.SnippetEditable = snippetEditable;
+			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleSnippetMovedUp;
+			newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
+			newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
+			this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
+			newSnippetPanelContainer.UpdateUIFromEditables();
+		}
 	}
 }

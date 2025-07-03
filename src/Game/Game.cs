@@ -222,7 +222,11 @@ public partial class Game : Control
 			{
 				string sceneJson = sceneFile.GetAsText();
 				DtgeCore.Scene newScene = DtgeCore.Scene.DeserializeFromJsonString(sceneJson);
-				if (newScene != null)
+				if (newScene == null || newScene.Id == null)
+				{
+					this.PopupErrorDialog("Error code VOID: A scene failed to load or had no id.");
+				}
+				else
 				{
 					sceneManager.AddScene(newScene);
 

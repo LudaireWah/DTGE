@@ -19,15 +19,18 @@ public partial class Editor : Control
 	private const string CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL =
 		"subsceneIsNonNull";
 	private const string CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME = "subsceneName";
+	private const string UNSAVED_FILE_SUFFIX = " *";
+	private const float SMALL_ACCEPT_DIALOG_SIZE_RATIO = 0.25f;
+	private const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_X = 0.5f;
+	private const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y = 0.75f;
+	private const int GAME_PREVIEW_CLOSE_BUTTON_HEIGHT = 50;
 
-	MarginContainer marginContainer;
-	TabBar dtgeSceneTabBar;
-	DtgeSceneEditContainer dtgeSceneEditContainer;
-	Button addNewDtgeSceneButton;
-
-	PopupMenu filePopupMenu;
-	PopupMenu gamePopupMenu;
-	PopupMenu helpPopupMenu;
+	private struct DtgeSceneTabInfo
+	{
+		public DtgeCore.Editing.SceneEditable dtgeScene;
+		public string path;
+		public bool saved;
+	}
 
 	private enum PopupMenuIds
 	{
@@ -44,6 +47,21 @@ public partial class Editor : Control
 		HelpLicense,
 	}
 
+	private enum EditorState
+	{
+		Active,
+		Closing
+	}
+
+	MarginContainer marginContainer;
+	TabBar dtgeSceneTabBar;
+	DtgeSceneEditContainer dtgeSceneEditContainer;
+	Button addNewDtgeSceneButton;
+
+	PopupMenu filePopupMenu;
+	PopupMenu gamePopupMenu;
+	PopupMenu helpPopupMenu;
+
 	FileDialog openFileDialog;
 	FileDialog saveAsFileDialog;
 	FileDialog saveAsAndCloseFileDialog;
@@ -58,18 +76,8 @@ public partial class Editor : Control
 	DtgeGame.Game gamePreviewScene;
 	ProjectSettingsConfirmationDialog projectSettingsConfirmationDialog;
 
-	Vector2I smallDialogInitialSize;
-	Vector2I largeDialogInitialSize;
-	const float SMALL_ACCEPT_DIALOG_SIZE_RATIO = 0.25f;
-	const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_X = 0.5f;
-	const float LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y = 0.75f;
-	const int GAME_PREVIEW_CLOSE_BUTTON_HEIGHT = 50;
-
-	private enum EditorState
-	{
-		Active,
-		Closing
-	}
+	private Vector2I smallDialogInitialSize;
+	private Vector2I largeDialogInitialSize;
 
 	private EditorState currentState;
 	private int tabToProcessBeforeClosing;
@@ -77,19 +85,12 @@ public partial class Editor : Control
 	// A dictionary using creation order as a unique key, as we can't safely assume that scene ids
 	// are unique during authorship. This key will be stored with the tabs as metadata to
 	// associate them with the entry in the dictionary
-	Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary;
-	int nextKeyforOpenDtgeSceneDictionary;
+	private Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary;
+	private int nextKeyforOpenDtgeSceneDictionary;
 
 	private string pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog;
 
-	private struct DtgeSceneTabInfo
-	{
-		public DtgeCore.Editing.SceneEditable dtgeScene;
-		public string path;
-		public bool saved;
-	}
-
-	bool anyEditsMade = false;
+	private bool anyEditsMade = false;
 
 	public Editor()
 	{
@@ -165,8 +166,8 @@ public partial class Editor : Control
 
 		this.createNewSceneTab();
 
-		this.GetTree().Root.SizeChanged += this.HandleWindowSizeChanged;
-		this.HandleWindowSizeChanged();
+		this.GetTree().Root.SizeChanged += this._on_root_size_changed;
+		this.updateWindowSize();
 
 		this.currentState = EditorState.Active;
 		this.GetTree().AutoAcceptQuit = false;
@@ -226,132 +227,6 @@ public partial class Editor : Control
 			this.currentState = EditorState.Closing;
 			this.tabToProcessBeforeClosing = 0;
 		}
-	}
-
-	public void HandleWindowSizeChanged()
-	{
-		Rect2 newViewport = this.GetTree().Root.GetViewport().GetVisibleRect();
-		this.marginContainer.SetSize(newViewport.Size);
-		this.smallDialogInitialSize.X =
-			(int)(newViewport.Size.X * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
-		this.smallDialogInitialSize.Y =
-			(int)(newViewport.Size.Y * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
-		this.largeDialogInitialSize.X =
-			(int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
-		this.largeDialogInitialSize.Y =
-			(int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
-	}
-
-	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
-	{
-		bool sceneFoundInTabs = false;
-
-		for (int dtgeSceneTabIndex = 0;
-			dtgeSceneTabIndex < this.dtgeSceneTabBar.TabCount;
-			dtgeSceneTabIndex++)
-		{
-			DtgeSceneTabInfo dtgeSceneTabInfo =
-				this.openDtgeSceneDictionary[this.getKeyFromTabIndex(dtgeSceneTabIndex)];
-			if (dtgeSceneTabInfo.dtgeScene.Id == sceneId.scene)
-			{
-				this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabIndex;
-				sceneFoundInTabs = true;
-				this._on_dtge_scenes_tab_bar_tab_selected(dtgeSceneTabIndex);
-				break;
-			}
-		}
-
-		bool sceneFoundInFiles = false;
-		if (!sceneFoundInTabs)
-		{
-			DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
-
-			DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
-			DtgeCore.GlobalErrorHandler.InvokeErrorIf(
-				sceneDirectory == null,
-				"No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
-
-			string[] sceneFileNames = sceneDirectory.GetFiles();
-			string targetSceneFileName = sceneId.scene + ".dscn";
-
-			for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
-			{
-				string sceneFileName = sceneFileNames[sceneFileIndex];
-
-				if (sceneFileName == targetSceneFileName)
-				{
-					string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
-					FileAccess sceneFile =
-						FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
-
-					if (sceneFile != null)
-					{
-						string sceneJson = sceneFile.GetAsText();
-						DtgeCore.Editing.SceneEditable newScene =
-							DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(sceneJson);
-						if (newScene != null)
-						{
-							this.createOpenedSceneTab(newScene, sceneFilePath);
-							sceneFoundInFiles = true;
-						}
-
-						sceneFile.Close();
-					}
-				}
-			}
-		}
-
-		if (sceneFoundInTabs || sceneFoundInFiles)
-		{
-			bool subsceneSuccessfullySet =
-				this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subscene);
-			if (!subsceneSuccessfullySet)
-			{
-				if (sceneId.subscene != null)
-				{
-					this.createNewSubsceneFromOptionConfirmationDialog.DialogText =
-						"Scene [" + sceneId.scene + "] does not contain subscene [" + sceneId.subscene + "]. Do you want to create this subscene?";
-					this.createNewSubsceneFromOptionConfirmationDialog.RemoveMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
-					this.createNewSubsceneFromOptionConfirmationDialog.SetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
-					this.createNewSubsceneFromOptionConfirmationDialog.Popup();
-				}
-				else
-				{
-					this.enableNullSubsceneOptionConfirmationDialog.DialogText =
-						"Scene [" + sceneId.scene + "] does not support (None) subscenes. Do you want to allow them?";
-					this.enableNullSubsceneOptionConfirmationDialog.Popup();
-				}
-			}
-		}
-
-		if (!sceneFoundInTabs && !sceneFoundInFiles)
-		{
-			this.createNewSceneFromOptionConfirmationDialog.DialogText =
-				"No scene [" + sceneId.scene + "] was found. Do you want to create one?";
-			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
-				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
-			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
-				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL);
-			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
-				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
-			this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME, sceneId.scene);
-			if (sceneId.subscene != null)
-			{
-				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL, sceneId.subscene != null);
-				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
-			}
-			this.createNewSceneFromOptionConfirmationDialog.Popup();
-		}
-	}
-
-	public void HandleSceneUpdated()
-	{
-		this.setCurrentSceneTabInfoSaved(false);
-		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
-		this.anyEditsMade = true;
 	}
 
 	public void _on_popup_menu_index_pressed(int index)
@@ -574,13 +449,146 @@ public partial class Editor : Control
 		this.dtgeSceneEditContainer
 			.AddSubscene((string)this.createNewSubsceneFromOptionConfirmationDialog
 			.GetMeta(CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME));
-		this.HandleSceneUpdated();
 	}
 
 	public void _on_enable_null_subscene_confirmation_dialog_confirmed()
 	{
 		this.dtgeSceneEditContainer.DtgeSceneEditable.EnableNullSubscene();
-		this.HandleSceneUpdated();
+	}
+
+	public void _on_root_size_changed()
+	{
+		this.updateWindowSize();
+	}
+
+	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	{
+		bool sceneFoundInTabs = false;
+
+		for (int dtgeSceneTabIndex = 0;
+			dtgeSceneTabIndex < this.dtgeSceneTabBar.TabCount;
+			dtgeSceneTabIndex++)
+		{
+			DtgeSceneTabInfo dtgeSceneTabInfo =
+				this.openDtgeSceneDictionary[this.getKeyFromTabIndex(dtgeSceneTabIndex)];
+			if (dtgeSceneTabInfo.dtgeScene.Id == sceneId.scene)
+			{
+				this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabIndex;
+				sceneFoundInTabs = true;
+				this._on_dtge_scenes_tab_bar_tab_selected(dtgeSceneTabIndex);
+				break;
+			}
+		}
+
+		bool sceneFoundInFiles = false;
+		if (!sceneFoundInTabs)
+		{
+			DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+			DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
+			DtgeCore.GlobalErrorHandler.InvokeErrorIf(
+				sceneDirectory == null,
+				"No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
+
+			string[] sceneFileNames = sceneDirectory.GetFiles();
+			string targetSceneFileName = sceneId.scene + ".dscn";
+
+			for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
+			{
+				string sceneFileName = sceneFileNames[sceneFileIndex];
+
+				if (sceneFileName == targetSceneFileName)
+				{
+					string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
+					FileAccess sceneFile =
+						FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
+
+					if (sceneFile != null)
+					{
+						string sceneJson = sceneFile.GetAsText();
+						DtgeCore.Editing.SceneEditable newScene =
+							DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(sceneJson);
+						if (newScene != null)
+						{
+							this.createOpenedSceneTab(newScene, sceneFilePath);
+							sceneFoundInFiles = true;
+						}
+
+						sceneFile.Close();
+					}
+				}
+			}
+		}
+
+		if (sceneFoundInTabs || sceneFoundInFiles)
+		{
+			bool subsceneSuccessfullySet =
+				this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subscene);
+			if (!subsceneSuccessfullySet)
+			{
+				if (sceneId.subscene != null)
+				{
+					this.createNewSubsceneFromOptionConfirmationDialog.DialogText =
+						"Scene [" + sceneId.scene + "] does not contain subscene [" + sceneId.subscene + "]. Do you want to create this subscene?";
+					this.createNewSubsceneFromOptionConfirmationDialog.RemoveMeta(
+						CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
+					this.createNewSubsceneFromOptionConfirmationDialog.SetMeta(
+						CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
+					this.createNewSubsceneFromOptionConfirmationDialog.Popup();
+				}
+				else
+				{
+					this.enableNullSubsceneOptionConfirmationDialog.DialogText =
+						"Scene [" + sceneId.scene + "] does not support (None) subscenes. Do you want to allow them?";
+					this.enableNullSubsceneOptionConfirmationDialog.Popup();
+				}
+			}
+		}
+
+		if (!sceneFoundInTabs && !sceneFoundInFiles)
+		{
+			this.createNewSceneFromOptionConfirmationDialog.DialogText =
+				"No scene [" + sceneId.scene + "] was found. Do you want to create one?";
+			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
+				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
+			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
+				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL);
+			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
+				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
+			this.createNewSceneFromOptionConfirmationDialog.SetMeta(
+				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME, sceneId.scene);
+			if (sceneId.subscene != null)
+			{
+				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
+					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL, sceneId.subscene != null);
+				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
+					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
+			}
+			this.createNewSceneFromOptionConfirmationDialog.Popup();
+		}
+	}
+
+	private void HandleSceneUpdated()
+	{
+		this.setCurrentSceneTabInfoSaved(false);
+		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
+		this.anyEditsMade = true;
+	}
+
+	private void HandleProjectSettingsSaved()
+	{
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+
+		FileAccess gameDataFile =
+			FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
+		if (gameDataFile != null)
+		{
+			string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(gameData);
+			gameDataFile.StoreString(gameDataString);
+			gameDataFile.Close();
+		}
+
+		this.dtgeSceneEditContainer.NotifyGameDataChanged();
 	}
 
 	private void runDebugGame()
@@ -603,7 +611,7 @@ public partial class Editor : Control
 		newDtgeSceneTabInfo.path = null;
 		newDtgeSceneTabInfo.saved = false;
 
-		this.dtgeSceneTabBar.AddTab("(new scene)*");
+		this.dtgeSceneTabBar.AddTab("(new scene)" + UNSAVED_FILE_SUFFIX);
 		int newTabIndex = this.dtgeSceneTabBar.TabCount - 1;
 		this.dtgeSceneTabBar.SetTabMetadata(newTabIndex, this.nextKeyforOpenDtgeSceneDictionary);
 		this.openDtgeSceneDictionary.Add(
@@ -647,14 +655,6 @@ public partial class Editor : Control
 		return this.openDtgeSceneDictionary[tabKey];
 	}
 
-	private void setCurrentSceneTabInfoScene(DtgeCore.Editing.SceneEditable scene)
-	{
-		DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
-		currentDtgeSceneTabInfo.dtgeScene = scene;
-		this.openDtgeSceneDictionary[this.getKeyFromTabIndex(this.dtgeSceneTabBar.CurrentTab)] =
-			currentDtgeSceneTabInfo;
-	}
-
 	private void setCurrentSceneTabInfoPath(string path)
 	{
 		DtgeSceneTabInfo currentDtgeSceneTabInfo = this.getCurrentDtgeSceneTabInfo();
@@ -694,7 +694,7 @@ public partial class Editor : Control
 
 		if (!dtgeSceneTabInfo.saved)
 		{
-			updatedTabTitle += " *";
+			updatedTabTitle += UNSAVED_FILE_SUFFIX;
 		}
 
 		this.dtgeSceneTabBar.SetTabTitle(tabIndex, updatedTabTitle);
@@ -718,7 +718,6 @@ public partial class Editor : Control
 
 	private void saveCurrentSceneToPath(string path)
 	{
-		this.dtgeSceneEditContainer.FlushChangesForSave();
 		Editor.saveSceneToPath(this.dtgeSceneEditContainer.DtgeSceneEditable, path);
 		this.setCurrentSceneTabInfoPath(path);
 		this.setCurrentSceneTabInfoSaved(true);
@@ -835,19 +834,17 @@ public partial class Editor : Control
 		this.projectSettingsConfirmationDialog.Popup();
 	}
 
-	private void HandleProjectSettingsSaved()
+	private void updateWindowSize()
 	{
-		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
-
-		FileAccess gameDataFile =
-			FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
-		if (gameDataFile != null)
-		{
-			string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(gameData);
-			gameDataFile.StoreString(gameDataString);
-			gameDataFile.Close();
-		}
-
-		this.dtgeSceneEditContainer.NotifyGameDataChanged();
+		Rect2 newViewport = this.GetTree().Root.GetViewport().GetVisibleRect();
+		this.marginContainer.SetSize(newViewport.Size);
+		this.smallDialogInitialSize.X =
+			(int)(newViewport.Size.X * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+		this.smallDialogInitialSize.Y =
+			(int)(newViewport.Size.Y * SMALL_ACCEPT_DIALOG_SIZE_RATIO);
+		this.largeDialogInitialSize.X =
+			(int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
+		this.largeDialogInitialSize.Y =
+			(int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
 	}
 }

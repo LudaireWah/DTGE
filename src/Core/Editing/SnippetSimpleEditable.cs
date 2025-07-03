@@ -2,6 +2,12 @@
 
 namespace DtgeCore.Editing;
 
+/**
+ * This file contains the editable implementation of a Simple Snippet.
+ * 
+ * For additional information on Snippets and their implementations, see SnippetEditable.cs and
+ * Snippet.cs. For more information on Editables in general, see SceneEditable.cs.
+ */
 public partial class SnippetEditable
 {
 	private class SimpleSnippetImplementationEditable

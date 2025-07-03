@@ -2,6 +2,38 @@
 
 namespace DtgeCore.Editing;
 
+/**
+ * SnippetEditable is the editable version of the Snippt to be used in editors for authoring DTGE
+ * games. For more details on how Snippets work and how they interact with their implementations,
+ * see Snippet.cs. For more details on how Editables work, see SceneEditable.cs.
+ * 
+ * As for information specific to the editable portion of snippets, the different snippet modes
+ * are meant to be used mostly interchangeably by shell editors so that the bulk of the complexity
+ * can be encapsulated. Ideally, an editor can determine how to display and modify a snippet
+ * purely by calling the various functions and never needs to check CurrentMode (though this isn't
+ * enforced strictly by fully encapsulating CurrentMode).
+ * 
+ * As an example, an editor shouldn't need to check the snippet mode and have a switch statement
+ * on that mode to determine whether the snippet's current mode needs tabs or the ability to add
+ * and remove variations. Instead, it should call AlwaysHasOneVariation or CanEditVariationCount.
+ * 
+ * As a result, the SnippetEditable has a lot more logic than Snippet, as it needs to be able to
+ * answer questions about capabilities that vary by mode and convert between modes on top of the
+ * usual extra logic needed by Editables. It also notably provides a variation on CalculateText,
+ * CalculateTextStable, which will maintain the current variation across calls. This is mostly
+ * used so that scene preview text isn't constantly changing between variations as a user types
+ * (this is mostly relevant for snippets that include randomization).
+ * 
+ * Another less than obvious feature of the SnippetEditable is the copy/paste functionality. To
+ * aid authors in writing, DTGE provides the ability to copy the text all of the snippets and
+ * their variations to the clipboard to be pasted into a word processor for things like spell
+ * check, grammar help, and similar advanced features that the Editor isn't designed to support.
+ * The copied text provides clear boundaries between variations, and so long as the boundaries
+ * aren't messed with, authors can do final editing on their scene and then paste the results back
+ * in to have those updates reflected in their scene.
+ * 
+ * For more details on how Editables work, see SceneEditable.cs.
+ */
 public partial class SnippetEditable : Snippet
 {
 	private interface ISnippetEditableImplementation : ISnippetImplementation
@@ -184,6 +216,11 @@ public partial class SnippetEditable : Snippet
 		this.notifyParentOfEdit();
 
 		return successFullyConverted;
+	}
+
+	public bool AlwaysHasOneVariation()
+	{
+		return this.CurrentMode == Snippet.Mode.Simple;
 	}
 
 	public bool CanEditVariationCount()

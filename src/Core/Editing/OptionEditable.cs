@@ -4,7 +4,8 @@ namespace DtgeCore.Editing;
 
 /**
  * OptionEditable is the editable version of the Option to be used in editors for authoring DTGE
- * games. For more detailed information on how Editables work, see SceneEditable.cs.
+ * games. For more details on how Options work, see Option.cs. For more details on how Editables
+ * work, see SceneEditable.cs.
  */
 public class OptionEditable : Option
 {
@@ -77,7 +78,9 @@ public class OptionEditable : Option
         this.parentSceneEditable = parentSceneEditable;
 	}
 
-    public OptionEditable(SceneEditable parentSceneEditable, OptionSerializable optionSerializable)
+    public OptionEditable(
+        SceneEditable parentSceneEditable,
+        OptionSerializable optionSerializable)
         : base(parentSceneEditable, optionSerializable)
     {
         this.parentSceneEditable = parentSceneEditable;

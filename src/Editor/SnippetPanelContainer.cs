@@ -3,7 +3,6 @@ using System;
 using Godot;
 
 using DtgeGodotCommon;
-using DtgeCore.Editing;
 
 namespace DtgeEditor;
 
@@ -52,9 +51,9 @@ public partial class SnippetPanelContainer : PanelContainer
 		{
 			this.conditionalModeOptionButton.Selected = (int)(this.SnippetEditable.CurrentMode);
 
-			this.updateConditionalModeOptionButton(DtgeCore.Snippet.Mode.Simple);
-			this.updateConditionalModeOptionButton(DtgeCore.Snippet.Mode.Subscene);
-			this.updateConditionalModeOptionButton(DtgeCore.Snippet.Mode.Random);
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Simple);
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Subscene);
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Random);
 
 			this.conditionalModeOptionButton.SetItemDisabled(this.snippetTabBar.CurrentTab, true);
 			this.conditionalModeOptionButton.SetItemTooltip(this.snippetTabBar.CurrentTab, null);
@@ -67,21 +66,11 @@ public partial class SnippetPanelContainer : PanelContainer
 		}
 	}
 
-	private void updateEditablesFromUI()
+	public void _on_snippet_text_edit_text_changed()
 	{
 		this.SnippetEditable.SetVariationText(
 			this.snippetTabBar.CurrentTab,
 			this.snippetTextEdit.Text);
-	}
-
-	public void FlushChangesForSave()
-	{
-		this.updateEditablesFromUI();
-	}
-
-	public void _on_snippet_text_edit_text_changed()
-	{
-		this.updateEditablesFromUI();
 	}
 
 	public void _on_move_up_button_pressed()
@@ -124,30 +113,26 @@ public partial class SnippetPanelContainer : PanelContainer
 		this.snippetTextEdit.GrabFocus();
 	}
 
+	private void setCanChangeToModeState(DtgeCore.Snippet.Mode mode)
+	{
+		int optionButtonIndexFromMode = (int)mode;
+		string cannotChangeMessage = string.Empty;
+		bool canChange = this.SnippetEditable.CanChangeToMode(
+				mode,
+				out cannotChangeMessage);
+
+		this.conditionalModeOptionButton.SetItemDisabled(
+			optionButtonIndexFromMode,
+			!canChange);
+		this.conditionalModeOptionButton.SetItemTooltip(
+			optionButtonIndexFromMode,
+			canChange ? null : cannotChangeMessage);
+	}
+
 	private void updateVariationTabsFromSnippet()
 	{
 		this.snippetTabsHBoxContainer.Visible =
-			this.SnippetEditable.CurrentMode != DtgeCore.Snippet.Mode.Simple;
-
-		if (this.SnippetEditable.CanEditVariationCount())
-		{
-			this.newTabButton.Visible = true;
-			if (this.snippetTabBar.TabCount > 1)
-			{
-				this.snippetTabBar.TabCloseDisplayPolicy =
-					TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
-			}
-			else
-			{
-				this.snippetTabBar.TabCloseDisplayPolicy =
-					TabBar.CloseButtonDisplayPolicy.ShowNever;
-			}
-		}
-		else
-		{
-			this.newTabButton.Visible = false;
-			this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
-		}
+			!this.SnippetEditable.AlwaysHasOneVariation();
 
 		for (int variationIndex = 0;
 			variationIndex < this.SnippetEditable.GetVariationCount();
@@ -171,6 +156,26 @@ public partial class SnippetPanelContainer : PanelContainer
 			this.snippetTabBar.RemoveTab(this.snippetTabBar.TabCount - 1);
 		}
 
+		if (this.SnippetEditable.CanEditVariationCount())
+		{
+			this.newTabButton.Visible = true;
+			if (this.snippetTabBar.TabCount > 1)
+			{
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
+			}
+			else
+			{
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowNever;
+			}
+		}
+		else
+		{
+			this.newTabButton.Visible = false;
+			this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
+		}
+
 		if (this.snippetTabBar.CurrentTab != this.SnippetEditable.GetCurrentVariationIndex())
 		{
 			this.snippetTabBar.CurrentTab = this.SnippetEditable.GetCurrentVariationIndex();
@@ -182,21 +187,5 @@ public partial class SnippetPanelContainer : PanelContainer
 		this.SnippetEditable.AddVariation();
 		this.UpdateUIFromEditables();
 		this.snippetTabBar.CurrentTab = this.snippetTabBar.TabCount - 1;
-	}
-
-	private void updateConditionalModeOptionButton(DtgeCore.Snippet.Mode mode)
-	{
-		int optionButtonIndexFromMode = (int)mode;
-		string cannotChangeMessage = string.Empty;
-		bool canChange = this.SnippetEditable.CanChangeToMode(
-				mode,
-				out cannotChangeMessage);
-
-		this.conditionalModeOptionButton.SetItemDisabled(
-			optionButtonIndexFromMode,
-			!canChange);
-		this.conditionalModeOptionButton.SetItemTooltip(
-			optionButtonIndexFromMode,
-			canChange ? null : cannotChangeMessage);
 	}
 }

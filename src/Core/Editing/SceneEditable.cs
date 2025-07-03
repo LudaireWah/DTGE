@@ -8,6 +8,12 @@ namespace DtgeCore.Editing;
  * such as Options, and tracks when changes have been made to the scene. This allows editors to
  * distribute the specific pieces of the scene through their code but still be able to see if
  * edits have been made in a single place.
+ * 
+ * "Editables" refers to all the classes in DtgeCore.Editing which are extensions of classes in
+ * DtgeCore that provide editing capabilities. Editables are responsible for calling
+ * NotifyUIUpdateNeeded when changes have been made requiring a UI update. All Editables should
+ * also be capable of being constructed from or saving themselves to a matching Serializable for
+ * saving and loading scene files.
  */
 public class SceneEditable : Scene
 {

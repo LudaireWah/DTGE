@@ -42,19 +42,6 @@ public partial class OptionEditPanel : PanelContainer
 		this.optionEnabledCheckButton.ButtonPressed = this.OptionEditable.Enabled;
 	}
 
-	public void FlushChangesForSave()
-	{
-		this.updateEditablesFromUI();
-	}
-
-	private void updateEditablesFromUI()
-	{
-		this.OptionEditable.Name = this.idLineEdit.Text;
-		this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
-		this.OptionEditable.DisplayName = this.displayNameLineEdit.Text;
-		this.OptionEditable.Enabled = this.optionEnabledCheckButton.ButtonPressed;
-	}
-
 	public void UpdateOptionLocationLabel(int optionIndex)
 	{
 		this.optionLocationLabel.Text = "Option " + (optionIndex + 1);
@@ -62,28 +49,22 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_option_enabled_check_button_pressed()
 	{
-		this.updateEditablesFromUI();
+		this.OptionEditable.Enabled = this.optionEnabledCheckButton.ButtonPressed;
 	}
 
 	public void _on_id_line_edit_text_changed(string newText)
 	{
-		this.updateEditablesFromUI();
+		this.OptionEditable.Name = this.idLineEdit.Text;
 	}
 
 	public void _on_target_scene_line_edit_text_changed(string newText)
 	{
-		this.updateEditablesFromUI();
+		this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
 	}
 
 	public void _on_display_name_line_edit_text_changed(string newText)
 	{
-		this.updateEditablesFromUI();
-	}
-
-	public void _on_navigate_to_target_scene_button_pressed()
-	{
-		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
-		this.OnTryOpenScene(targetSceneId);
+		this.OptionEditable.DisplayName = this.displayNameLineEdit.Text;
 	}
 
 	public void _on_move_up_button_pressed()
@@ -99,5 +80,11 @@ public partial class OptionEditPanel : PanelContainer
 	public void _on_delete_button_pressed()
 	{
 		this.OnOptionDeleted(this);
+	}
+
+	public void _on_navigate_to_target_scene_button_pressed()
+	{
+		DtgeCore.Scene.SceneId targetSceneId = new DtgeCore.Scene.SceneId(this.targetSceneLineEdit.Text);
+		this.OnTryOpenScene(targetSceneId);
 	}
 }

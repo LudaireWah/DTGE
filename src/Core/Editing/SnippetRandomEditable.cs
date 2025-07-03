@@ -2,6 +2,15 @@
 
 namespace DtgeCore.Editing;
 
+
+/**
+ * This file contains the editable implementation of a Random Snippet. Notable functionality for
+ * this implementation is that the current index can be set independent of randomization, and it
+ * only re-randomizes when CalculateText is called instead of CalculateTextStable.
+ * 
+ * For additional information on Snippets and their implementations, see SnippetEditable.cs and
+ * Snippet.cs. For more information on Editables in general, see SceneEditable.cs.
+ */
 public partial class SnippetEditable
 {
 	private class RandomSnippetImplementationEditable

@@ -4,7 +4,7 @@ namespace DtgeCore;
 
 /**
  * The Simple Snippet contains a single variation with zero logic. This is mainly used for blocks
- * of text within scenes that don't vary based subscene, state, or anything else.
+ * of text within scenes that don't vary based subscene, Entity state, or anything else.
  */
 public partial class Snippet
 {
@@ -19,7 +19,9 @@ public partial class Snippet
 			this.SingleVariation = new Variation(parentScene, "(Simple)", string.Empty);
 		}
 
-		public SimpleSnippetImplementation(Scene parentScene, SnippetSimpleSerializable serializable)
+		public SimpleSnippetImplementation(
+			Scene parentScene,
+			SnippetSimpleSerializable serializable)
 		{
 			this.SingleVariation =
 				new Variation(parentScene, serializable.SingleVariation);

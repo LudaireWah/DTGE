@@ -24,7 +24,9 @@ public partial class Snippet
 			this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
 		}
 
-		public SubsceneSnippetImplementation(Scene parentScene, SnippetSubsceneSerializable serializable)
+		public SubsceneSnippetImplementation(
+			Scene parentScene,
+			SnippetSubsceneSerializable serializable)
 		{
 			this.parentScene = parentScene;
 			this.VariationsBySubsceneId = new Dictionary<SUID, Variation>();
@@ -38,7 +40,8 @@ public partial class Snippet
 
 		public string CalculateText()
 		{
-			Variation variation = this.VariationsBySubsceneId[this.parentScene.CurrentSubscene.Id];
+			Variation variation =
+				this.VariationsBySubsceneId[this.parentScene.CurrentSubscene.Id];
 			return variation.Text;
 		}
 	}

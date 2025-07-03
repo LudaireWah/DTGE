@@ -1,9 +1,17 @@
 ﻿using DtgeCore.Serialization;
 
-using Godot;
-
 namespace DtgeCore.Editing;
 
+/**
+ * This file contains the editable implementation of a Subscene Snippet, which provides a
+ * variation for each subscene and calculates text based on the scene's current subscene. Notable
+ * functionality includes changing the parent SceneEditable's current subscene when this
+ * SnippetEditable's current subscene is displayed so that the current subscene being worked on
+ * can be synced across all snippets and the preview text.
+ * 
+ * For additional information on Snippets and their implementations, see SnippetEditable.cs and
+ * Snippet.cs. For more information on Editables in general, see SceneEditable.cs.
+ */
 public partial class SnippetEditable
 {
 	private class SubsceneSnippetImplementationEditable
@@ -240,6 +248,7 @@ public partial class SnippetEditable
 
 			this.parentSceneEditable.NotifyUIUpdateNeeded();
 		}
+
 		private void notifyParentOfEdit()
 		{
 			if (this.parentSceneEditable != null)

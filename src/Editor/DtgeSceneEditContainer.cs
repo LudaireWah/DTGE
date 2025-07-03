@@ -32,7 +32,6 @@ public partial class DtgeSceneEditContainer : Control
 	SnippetListContainer snippetListContainer;
 
 	VBoxContainer dtgeSceneTextPreviewContainer;
-	OptionButton dtgeSceneTextPreviewSubsceneSelectionOptionButton;
 	Button dtgeSceneTextPreviewRandomizeButton;
 	RichTextLabel dtgeSceneTextPreviewRichTextLabel;
 
@@ -40,21 +39,19 @@ public partial class DtgeSceneEditContainer : Control
 	FileDialog chooseImageFileDialog;
 
 	private bool sceneChangedSinceLastUpdate;
-	private DtgeCore.Editing.SceneEditable dtgeSceneEditable;
+	private DtgeCore.Editing.SceneEditable _dtgeSceneEditable;
 	public DtgeCore.Editing.SceneEditable DtgeSceneEditable
 	{
-		get { return this.dtgeSceneEditable; }
+		get { return this._dtgeSceneEditable; }
 		set
 		{
-			this.dtgeSceneEditable = value;
+			this._dtgeSceneEditable = value;
 			this.sceneChangedSinceLastUpdate = true;
 		}
 	}
 
 	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
 	public Action OnSceneUpdated;
-
-	private DtgeCore.Editing.SubsceneEditable lastSelectedSubsceneForTextPreviewSubsceneSelector;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -79,7 +76,6 @@ public partial class DtgeSceneEditContainer : Control
 		this.snippetListContainer = this.GetNode<SnippetListContainer>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SnippetListContainer");
 
 		this.dtgeSceneTextPreviewContainer = this.GetNode<VBoxContainer>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer");
-		this.dtgeSceneTextPreviewSubsceneSelectionOptionButton = this.GetNode<OptionButton>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewSubsceneSelectionOptionButton");
 		this.dtgeSceneTextPreviewRandomizeButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton");
 		this.dtgeSceneTextPreviewRichTextLabel = this.GetNode<RichTextLabel>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/SceneTextPreviewRichTextLabel");
 
@@ -144,13 +140,6 @@ public partial class DtgeSceneEditContainer : Control
 		}
 	}
 
-	public void FlushChangesForSave()
-	{
-		this.DtgeSceneEditable.Id = this.dtgeSceneIdEntry.Text;
-		this.optionEditList.FlushChangesForSave();
-		this.snippetListContainer.FlushChangesForSave();
-	}
-
 	public void NotifyGameDataChanged()
 	{
 		this.UpdateFromEditables();
@@ -179,6 +168,104 @@ public partial class DtgeSceneEditContainer : Control
 		newSubscene.Name = subsceneName;
 		this.DtgeSceneEditable.SetCurrentSubscene(newSubscene);
 		this.addNewSubscenePanelContainer(newSubscene);
+	}
+
+	public void _on_id_line_edit_text_changed(string new_text)
+	{
+		this.DtgeSceneEditable.Id = new_text;
+		if (this.OnSceneUpdated != null)
+		{
+			this.OnSceneUpdated();
+		}
+	}
+
+	public void _on_scene_text_copy_snippets_button_pressed()
+	{
+		DisplayServer.ClipboardSet(this.DtgeSceneEditable.GetCopyableText());
+	}
+
+	public void _on_scene_text_paste_snippets_button_pressed()
+	{
+		if (DisplayServer.ClipboardHas())
+		{
+			bool success =
+				this.DtgeSceneEditable.RestoreFromPastedText(DisplayServer.ClipboardGet());
+			if (success)
+			{
+				this.snippetListContainer.UpdateFromEditables();
+			}
+			else
+			{
+				this.pasteSnippetsFailedAcceptDialog.Popup();
+			}
+		}
+	}
+
+	public void _on_scene_text_preview_randomize_button_pressed()
+	{
+		this.setSceneTextPreviewText(false);
+	}
+
+	public void _on_show_preview_check_button_toggled(bool toggled_on)
+	{
+		if (toggled_on)
+		{
+			this.dtgeSceneTextPreviewContainer.Visible = true;
+		}
+		else
+		{
+			this.dtgeSceneTextPreviewContainer.Visible = false;
+		}
+	}
+
+	public void _on_new_subscene_button_pressed()
+	{
+		this.AddSubscene("");
+	}
+
+	public void _on_allow_no_subscene_check_button_toggled(bool on)
+	{
+		if (on)
+		{
+			this.DtgeSceneEditable.EnableNullSubscene();
+		}
+		else
+		{
+			this.DtgeSceneEditable.DisableNullSubscene();
+		}
+		this.updateSubsceneListFromDTGEScene();
+	}
+
+	public void _on_add_scene_image_button_pressed()
+	{
+		this.DtgeSceneEditable.RenderImage = true;
+		this.UpdateFromEditables();
+	}
+
+	public void _on_choose_image_button_pressed()
+	{
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
+		this.chooseImageFileDialog.RootSubfolder = gameData.SceneImageDirectoryPath;
+		this.chooseImageFileDialog.Popup();
+	}
+
+	public void _on_image_position_option_button_item_selected(int indexSelected)
+	{
+		this.DtgeSceneEditable.ImagePosition = (DtgeCore.Scene.SceneImagePosition)indexSelected;
+	}
+
+	public void _on_remove_scene_image_button_pressed()
+	{
+		this.DtgeSceneEditable.RenderImage = false;
+		this.DtgeSceneEditable.ImagePath = null;
+		this.DtgeSceneEditable.ImagePosition = (DtgeCore.Scene.SceneImagePosition)0;
+		this.UpdateFromEditables();
+	}
+
+	public void _on_choose_image_file_dialog_file_selected(string filePathSelected)
+	{
+		this.DtgeSceneEditable.ImagePath = filePathSelected;
+		this.UpdateFromEditables();
 	}
 
 	private void HandleSubsceneDeleted(SubscenePanelContainer subscenePanelContainer)
@@ -246,55 +333,6 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void updateSceneTextPreview()
 	{
-		if (this.DtgeSceneEditable.GetSubsceneCount() > 0)
-		{
-			for (int subsceneIndex = 0;
-				subsceneIndex < this.DtgeSceneEditable.GetSubsceneCount();
-				subsceneIndex++)
-			{
-				DtgeCore.Editing.SubsceneEditable subsceneEditable =
-					this.DtgeSceneEditable.GetSubscene(subsceneIndex);
-				if (this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount <=
-					subsceneIndex)
-				{
-					this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.AddItem(
-						subsceneEditable.Name);
-				}
-				else
-				{
-					this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.SetItemText(
-						subsceneIndex, subsceneEditable.Name);
-				}
-			}
-			if (this.lastSelectedSubsceneForTextPreviewSubsceneSelector != null)
-			{
-				//bool previousActiveSubsceneReselected =
-				//	this.DtgeSceneEditable.SetCurrentSubscene(
-				//		this.lastSelectedSubsceneForTextPreviewSubsceneSelector);
-				//this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.Selected =
-				//	this.DtgeSceneEditable.CurrentSubsceneIndex;
-			}
-
-			this.lastSelectedSubsceneForTextPreviewSubsceneSelector =
-				this.DtgeSceneEditable.CurrentSubscene;
-		}
-
-		while (this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount >
-			this.DtgeSceneEditable.GetSubsceneCount())
-		{
-			this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.RemoveItem(
-				this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount - 1);
-		}
-
-		if (this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.ItemCount == 0)
-		{
-			this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.Visible = false;
-		}
-		else
-		{
-			this.dtgeSceneTextPreviewSubsceneSelectionOptionButton.Visible = true;
-		}
-
 		bool randomModeSnippetFound = false;
 		for (int snippetIndex = 0;
 			snippetIndex < this.DtgeSceneEditable.GetSnippetCount();
@@ -326,6 +364,7 @@ public partial class DtgeSceneEditContainer : Control
 			newSubscenePanelContainer.SubsceneEditable = subsceneEditable;
 			newSubscenePanelContainer.OnSubsceneDeleted = this.HandleSubsceneDeleted;
 			this.subsceneListHBoxContainer.AddChild(newSubscenePanelContainer);
+			newSubscenePanelContainer.UpdateUIFromEditables();
 		}
 	}
 
@@ -337,112 +376,5 @@ public partial class DtgeSceneEditContainer : Control
 			this.DtgeSceneEditable.CalculateDebugSceneText(preserveRandomization);
 		//this.dtgeSceneTextPreviewRichTextLabel.Text =
 		//	this.DtgeSceneEditable.GetCopyableText();
-	}
-
-	public void _on_id_line_edit_text_changed(string new_text)
-	{
-		this.DtgeSceneEditable.Id = new_text;
-		if (this.OnSceneUpdated != null)
-		{
-			this.OnSceneUpdated();
-		}
-	}
-
-	public void _on_scene_text_copy_snippets_button_pressed()
-	{
-		DisplayServer.ClipboardSet(this.DtgeSceneEditable.GetCopyableText());
-	}
-
-	public void _on_scene_text_paste_snippets_button_pressed()
-	{
-		if (DisplayServer.ClipboardHas())
-		{
-			bool success =
-				this.DtgeSceneEditable.RestoreFromPastedText(DisplayServer.ClipboardGet());
-			if (success)
-			{
-				this.snippetListContainer.UpdateFromEditables();
-			}
-			else
-			{
-				this.pasteSnippetsFailedAcceptDialog.Popup();
-			}
-		}
-	}
-
-	public void _on_scene_text_preview_randomize_button_pressed()
-	{
-		this.setSceneTextPreviewText(false);
-	}
-
-	public void _on_show_preview_check_button_toggled(bool toggled_on)
-	{
-		if (toggled_on)
-		{
-			this.dtgeSceneTextPreviewContainer.Visible = true;
-		}
-		else
-		{
-			this.dtgeSceneTextPreviewContainer.Visible = false;
-		}
-	}
-
-	public void _on_new_subscene_button_pressed()
-	{
-		this.AddSubscene("");
-	}
-
-	public void _on_scene_text_preview_subscene_selection_option_button_item_selected(
-		int selected)
-	{
-		this.DtgeSceneEditable.CurrentSubsceneIndex = selected;
-		this.lastSelectedSubsceneForTextPreviewSubsceneSelector =
-			this.DtgeSceneEditable.CurrentSubscene;
-		this.updateSceneTextPreview();
-	}
-
-	public void _on_allow_no_subscene_check_button_toggled(bool on)
-	{
-		if (on)
-		{
-			this.DtgeSceneEditable.EnableNullSubscene();
-		}
-		else
-		{
-			this.DtgeSceneEditable.DisableNullSubscene();
-		}
-		this.updateSubsceneListFromDTGEScene();
-	}
-
-	public void _on_add_scene_image_button_pressed()
-	{
-		this.DtgeSceneEditable.RenderImage = true;
-		this.UpdateFromEditables();
-	}
-
-	public void _on_choose_image_button_pressed()
-	{
-		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
-		this.chooseImageFileDialog.RootSubfolder = gameData.SceneImageDirectoryPath;
-		this.chooseImageFileDialog.Popup();
-	}
-
-	public void _on_image_position_option_button_item_selected(int indexSelected)
-	{
-		this.DtgeSceneEditable.ImagePosition = (DtgeCore.Scene.SceneImagePosition)indexSelected;
-	}
-
-	public void _on_remove_scene_image_button_pressed()
-	{
-		this.DtgeSceneEditable.RenderImage = false;
-		this.DtgeSceneEditable.ImagePath = null;
-		this.DtgeSceneEditable.ImagePosition = (DtgeCore.Scene.SceneImagePosition)0;
-		this.UpdateFromEditables();
-	}
-
-	public void _on_choose_image_file_dialog_file_selected(string filePathSelected)
-	{
-		this.DtgeSceneEditable.ImagePath = filePathSelected;
-		this.UpdateFromEditables();
 	}
 }

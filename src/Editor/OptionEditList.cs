@@ -58,77 +58,13 @@ public partial class OptionEditList : VBoxContainer
 		this.updateOptionLabelsAndTooManyWarning();
 	}
 
-	public void FlushChangesForSave()
-	{
-		for (int optionPanelIndex = 0;
-			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
-			optionPanelIndex++)
-		{
-			this.optionEditListVBoxContainer
-				.GetChild<OptionEditPanel>(optionPanelIndex).FlushChangesForSave();
-		}
-	}
-
-	public void HandleOptionDeleted(OptionEditPanel toRemove)
-	{
-		this.optionEditListVBoxContainer.RemoveChild(toRemove);
-		this.DtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
-	}
-
-	public void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
-	{
-		this.OnTryOpenScene(sceneId);
-	}
-
 	public void _on_add_option_button_pressed()
 	{
 		DtgeCore.Editing.OptionEditable newOption = this.DtgeSceneEditable.AllocateNewOption();
 		this.addNewOptionEditPanel(newOption);
 	}
 
-	private void updateOptionLabelsAndTooManyWarning()
-	{
-		for (int optionPanelIndex = 0, optionlocationLabelIndex = 0;
-			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
-			optionPanelIndex++, optionlocationLabelIndex++)
-		{
-			OptionEditPanel currentOptionEditPanel =
-				this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
-			currentOptionEditPanel.UpdateOptionLocationLabel(optionPanelIndex);
-		}
-
-		if (this.optionEditListVBoxContainer.GetChildCount() >
-			DtgeCore.GameData.GetGameData().MaximumSupportedOptions)
-		{
-			this.tooManyOptionsLabel.Visible = true;
-		}
-		else
-		{
-			this.tooManyOptionsLabel.Visible = false;
-		}
-	}
-
-	private void addNewOptionEditPanel(DtgeCore.Editing.OptionEditable optionEditable)
-	{
-		OptionEditPanel newOptionEditPanel =
-			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH))
-			.Instantiate<OptionEditPanel>();
-
-		if (newOptionEditPanel != null)
-		{
-			newOptionEditPanel.OptionEditable = optionEditable;
-			newOptionEditPanel.OnOptionMovedUp = this.MoveOptionUp;
-			newOptionEditPanel.OnOptionMovedDown = this.MoveOptionDown;
-			newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
-			newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
-			this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
-			newOptionEditPanel.UpdateFromEditables();
-		}
-
-		this.updateOptionLabelsAndTooManyWarning();
-	}
-
-	private void MoveOptionUp(OptionEditPanel targetOption)
+	private void HandleOptionMovedUp(OptionEditPanel targetOption)
 	{
 		//OptionEditPanel currentOptionEditPanel = null;
 		//OptionEditPanel aboveOptionEditPanel = null;
@@ -161,7 +97,7 @@ public partial class OptionEditList : VBoxContainer
 		//}
 	}
 
-	private void MoveOptionDown(OptionEditPanel targetOption)
+	private void HandleOptionMovedDown(OptionEditPanel targetOption)
 	{
 		//OptionEditPanel currentOptionEditPanel = null;
 		//OptionEditPanel belowOptionEditPanel = null;
@@ -191,5 +127,58 @@ public partial class OptionEditList : VBoxContainer
 		//{
 		//	belowOptionEditPanel.UpdateUIFromOption();
 		//}
+	}
+
+	public void HandleOptionDeleted(OptionEditPanel toRemove)
+	{
+		this.optionEditListVBoxContainer.RemoveChild(toRemove);
+		this.DtgeSceneEditable.RemoveOption(toRemove.OptionEditable);
+	}
+
+	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	{
+		this.OnTryOpenScene(sceneId);
+	}
+
+	private void addNewOptionEditPanel(DtgeCore.Editing.OptionEditable optionEditable)
+	{
+		OptionEditPanel newOptionEditPanel =
+			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH))
+			.Instantiate<OptionEditPanel>();
+
+		if (newOptionEditPanel != null)
+		{
+			newOptionEditPanel.OptionEditable = optionEditable;
+			newOptionEditPanel.OnOptionMovedUp = this.HandleOptionMovedUp;
+			newOptionEditPanel.OnOptionMovedDown = this.HandleOptionMovedDown;
+			newOptionEditPanel.OnOptionDeleted = this.HandleOptionDeleted;
+			newOptionEditPanel.OnTryOpenScene = this.HandleTryOpenScene;
+			this.optionEditListVBoxContainer.AddChild(newOptionEditPanel);
+			newOptionEditPanel.UpdateFromEditables();
+		}
+
+		this.updateOptionLabelsAndTooManyWarning();
+	}
+
+	private void updateOptionLabelsAndTooManyWarning()
+	{
+		for (int optionPanelIndex = 0, optionlocationLabelIndex = 0;
+			optionPanelIndex < this.optionEditListVBoxContainer.GetChildCount();
+			optionPanelIndex++, optionlocationLabelIndex++)
+		{
+			OptionEditPanel currentOptionEditPanel =
+				this.optionEditListVBoxContainer.GetChild<OptionEditPanel>(optionPanelIndex);
+			currentOptionEditPanel.UpdateOptionLocationLabel(optionPanelIndex);
+		}
+
+		if (this.optionEditListVBoxContainer.GetChildCount() >
+			DtgeCore.GameData.GetGameData().MaximumSupportedOptions)
+		{
+			this.tooManyOptionsLabel.Visible = true;
+		}
+		else
+		{
+			this.tooManyOptionsLabel.Visible = false;
+		}
 	}
 }

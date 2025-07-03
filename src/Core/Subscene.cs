@@ -8,7 +8,7 @@ namespace DtgeCore;
  * when running the game, as each time the Scene is provided to the shell by the SceneManager,
  * the current Subscene can change.
  * 
- * Subscenes don't do much work themselves, but are used extensively by Snippets.
+ * Subscenes don't do much work themselves but are used extensively by Snippets.
  */
 public class Subscene : SceneElement
 {

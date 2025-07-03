@@ -11,7 +11,7 @@ namespace DtgeGodotCommon;
 public class GodotUtilities
 {
 	/**
-	 * Setting the Text property on a LineEdit resets the carrot position, so we should only call
+	 * Setting the Text property on a LineEdit resets the caret position, so we should only call
 	 * the property's setter if the text is different.
 	 */
 	public static void UpdateNodeText(LineEdit element, string newText)
@@ -23,7 +23,7 @@ public class GodotUtilities
 	}
 
 	/**
-	 * Setting the Text property on a TextEdit resets the carrot position, so we should only call
+	 * Setting the Text property on a TextEdit resets the caret position, so we should only call
 	 * the property's setter if the text is different.
 	 */
 	public static void UpdateNodeText(TextEdit element, string newText)

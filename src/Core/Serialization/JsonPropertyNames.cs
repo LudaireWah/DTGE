@@ -6,7 +6,9 @@
  * with the rest to make it obvious if there's accidental overlap, which should be avoided.
  * 
  * This is mainly used for the version data, as that has a long name, is very common, and it's
- * important to make sure there isn't overlap in the names since inheritence is involved.
+ * important to make sure there isn't overlap in the names since inheritence is involved. These
+ * should never be changed once that version of DTGE has been released to preserve backwards
+ * compatibility.
  */
 public static class DtgeScenePropertyNames
 {

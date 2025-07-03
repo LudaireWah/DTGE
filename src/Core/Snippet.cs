@@ -9,16 +9,16 @@ namespace DtgeCore;
  * variation should be used and returning that variation so that the results of each Snippet can
  * be concatenated by the scene and displayed as the scene's text.
  * 
- * The complexity is that snippets have multiple modes of operation. While every mode ultimately
- * is meant to calculate its text, how it does so and what capabilities it offers at edit time
- * varies wildly.
+ * The complexity is that snippets have multiple modes of operation. While the CalculateText entry
+ * point is the same across modes, the internal logic of how it chooses between variations and
+ * what capabilities it offers at edit time varies wildly.
  * 
  * As a result, the Snippet class is mostly a wrapper. It contains the current mode and the entry
  * point for CalculateText, but otherwise, it contains a single ISnippetImplementation which is
  * the matching implementation for the mode.
  * 
  * This class is a partial class because implementations are classes protected within the Snippet
- * for encapsulation but are split out into separate files for readability.
+ * for encapsulation, but they're split into separate files for readability.
  */
 public partial class Snippet : SceneElement
 {
