@@ -18,6 +18,11 @@ public partial class Game : Control
 {
 	private const string SETTINGS_PATH = "dtge.config";
 
+	private enum PopupMenuIds
+	{
+		FileSettings
+	}
+
 	private MarginContainer marginContainer;
 	private PanelContainer sceneTextPanelContainer;
 	private RichTextLabel sceneTextDisplay;
@@ -27,14 +32,7 @@ public partial class Game : Control
 	private TextureRect bottomTextureRect;
 	private NavigationButtonGrid navigationButtonGrid;
 	private AcceptDialog errorAcceptDialog;
-
 	private PopupMenu filePopupMenu;
-
-	private enum PopupMenuIds
-	{
-		FileSettings
-	}
-
 	private GameSettingsWindow gameSettingsWindow;
 
 	private GameSettings gameSettings;
@@ -84,8 +82,8 @@ public partial class Game : Control
 		this.loadScenesFromFiles();
 		this.updateUIFromScene();
 
-		this.GetTree().Root.SizeChanged += this.HandleWindowSizeChanged;
-		this.HandleWindowSizeChanged();
+		this.GetTree().Root.SizeChanged += this._on_root_size_changed;
+		this.updateWindowSize();
 		this.manualViewportSizeOverride = false;
 	}
 
@@ -122,6 +120,35 @@ public partial class Game : Control
 		this.updateUIFromScene();
 	}
 
+	public void LoadScene(DtgeCore.Scene scene)
+	{
+		this.currentDtgeScene = scene;
+		this.updateUIFromScene();
+	}
+
+	public void SetManualViewportSize(Vector2 manualSize)
+	{
+		this.manualViewportSizeOverride = true;
+		this.manualViewportSize = manualSize;
+		this.updateWindowSize();
+	}
+
+	public void _on_popup_menu_index_pressed(int index)
+	{
+		switch ((PopupMenuIds)index)
+		{
+		case PopupMenuIds.FileSettings:
+			this.gameSettingsWindow.GameSettings = new GameSettings(this.gameSettings);
+			this.gameSettingsWindow.Popup();
+			break;
+		}
+	}
+
+	private void _on_root_size_changed()
+	{
+		this.updateWindowSize();
+	}
+
 	private void updateUIFromScene()
 	{
 		if (this.currentDtgeScene != null)
@@ -133,7 +160,7 @@ public partial class Game : Control
 		}
 	}
 
-	public void HandleWindowSizeChanged()
+	private void updateWindowSize()
 	{
 		Vector2 newViewport;
 		if (this.manualViewportSizeOverride)
@@ -147,28 +174,10 @@ public partial class Game : Control
 		this.marginContainer.SetSize(newViewport);
 	}
 
-	public void SetManualViewportSize(Vector2 manualSize)
-	{
-		this.manualViewportSizeOverride = true;
-		this.manualViewportSize = manualSize;
-		this.HandleWindowSizeChanged();
-	}
-
-	public void PopupErrorDialog(string errorText)
+	private void PopupErrorDialog(string errorText)
 	{
 		this.errorAcceptDialog.DialogText = errorText;
 		this.errorAcceptDialog.Popup();
-	}
-
-	public void _on_popup_menu_index_pressed(int index)
-	{
-		switch ((PopupMenuIds)index)
-		{
-		case PopupMenuIds.FileSettings:
-			this.gameSettingsWindow.GameSettings = new GameSettings(this.gameSettings);
-			this.gameSettingsWindow.Popup();
-			break;
-		}
 	}
 
 	private static void initializeGameDataFromFile()
@@ -252,12 +261,6 @@ public partial class Game : Control
 		{
 			this.currentDtgeScene = startScene;
 		}
-	}
-
-	public void LoadScene(DtgeCore.Scene scene)
-	{
-		this.currentDtgeScene = scene;
-		this.updateUIFromScene();
 	}
 
 	private void onSaveSettings(GameSettings settings)

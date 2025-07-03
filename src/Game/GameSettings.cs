@@ -6,9 +6,9 @@
  */
 public class GameSettings
 {
-	public int SceneTextSize { get; set; }
-
 	const int SCENE_TEXT_SIZE_DEFAULT = 24;
+
+	public int SceneTextSize { get; set; }
 
 	public GameSettings()
 	{

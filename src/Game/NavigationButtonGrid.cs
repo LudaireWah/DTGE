@@ -38,13 +38,6 @@ public partial class NavigationButtonGrid : GridContainer
 	private static readonly string navigationGridShortcutStringNone = "";
 	private static readonly Key navigationGridShortcutKeyNone = Key.None;
 
-
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-		
-	}
-
 	public void ChangeGridDimensions(int columns, int rows)
 	{
 		this.columnCount = columns;
@@ -104,11 +97,6 @@ public partial class NavigationButtonGrid : GridContainer
 				}
 			}
 		}
-	}
-
-	private void bindCachedSceneOptionsToButtons()
-	{
-		
 	}
 
 	private void handleOptionSelected(DtgeCore.Option option)

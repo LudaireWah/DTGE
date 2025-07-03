@@ -11,12 +11,12 @@ namespace DtgeGame;
  */
 public partial class NavigationButton : MarginContainer
 {
-	public DtgeCore.Option boundOption;
-
 	Button button;
 	MarginContainer shortcutMarginContainer;
 	Label shortcutLabel;
 	ColorRect navigationButtonPlaceholderColorRect;
+
+	public DtgeCore.Option boundOption;
 
 	public Action<DtgeCore.Option> OnOptionSelected;
 

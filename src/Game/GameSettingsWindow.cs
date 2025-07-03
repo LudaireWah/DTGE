@@ -22,15 +22,10 @@ public partial class GameSettingsWindow : Window
 		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
 		this.sceneTextSizeLineEdit = this.GetNode<LineEdit>("RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit");
 
-		this.SizeChanged += this.HandleWindowSizeChanged;
+		this.SizeChanged += this._on_window_size_changed;
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-	}
-
-	public void HandleWindowSizeChanged()
+	public void _on_window_size_changed()
 	{
 		Rect2 newViewport = this.GetViewport().GetVisibleRect();
 		this.rootMarginContainer.SetSize(newViewport.Size);
