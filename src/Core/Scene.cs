@@ -219,17 +219,13 @@ public class Scene : ISubsceneContextProvider
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
 			Snippet currentSnippet = this.SnippetList[snippetIndex];
-			currentSnippet.Randomize();
-			sceneText += currentSnippet.CalculateText();
-			currentSnippet.ExecuteEntitySetters();
+			sceneText += currentSnippet.CalculateText(false);
 		}
-
-		SimpleEntityManager simpleEntityManager = SimpleEntityManager.GetSimpleEntityManager();
 
 		return sceneText;
 	}
 
-	public string CalculateDebugSceneText(bool randomize)
+	public string CalculateDebugSceneText(bool preserveRandomization)
 	{
 		string sceneText = "";
 		
@@ -239,12 +235,7 @@ public class Scene : ISubsceneContextProvider
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
 			Snippet currentSnippet = this.SnippetList[snippetIndex];
-			if (randomize)
-			{
-				currentSnippet.Randomize();
-			}
-			sceneText += currentSnippet.CalculateText();
-			currentSnippet.ExecuteEntitySetters();
+			sceneText += currentSnippet.CalculateText(preserveRandomization);
 		}
 
 		return sceneText;
