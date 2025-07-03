@@ -1,10 +1,5 @@
 # DTGE-specific ignores
 DTGEScenes/
-Sample Scenes/
-*.dscn
-dtge.gamedata
-dtge.config
-game.dtge
 
 # User specific launch file
 launchSettings.json
@@ -432,3 +427,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+dtge.config
+dtge.gamedata

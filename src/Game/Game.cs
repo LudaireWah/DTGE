@@ -76,9 +76,6 @@ public partial class Game : Control
 			this.saveSettingsToFile(SETTINGS_PATH);
 		}
 
-		DtgeCore.SimpleEntityManager entityManager = DtgeCore.SimpleEntityManager.GetSimpleEntityManager();
-		entityManager.Clear();
-
 		this.updateUIFromSettings();
 		this.loadScenesFromFiles();
 		this.updateUIFromScene();
