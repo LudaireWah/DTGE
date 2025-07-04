@@ -1,23 +1,35 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
 /**
- * DTGE's Scene is the fundamental unit of the engine. Nearly everything displayed to the
- * player is displayed via a scene. Thus, navigation through the game is navigating
- * through a set of scenes, each presenting the player with a description of the player's
- * situation and which options the player may choose to advance in the game.
+ * DTGE's Scene is the fundamental unit of the engine. Nearly everything displayed to the player
+ * is displayed via a scene. Thus, navigation through the game is navigating through a set of
+ * scenes, each presenting the player with a description of the player's situation and a set of
+ * options the player may choose from to advance in the game.
+ *
+ * Most of the Scene's heavy lifting is done by the various SceneElements. The scene itself is
+ * responsible for managing these elements as well as some scene level things such as an optional
+ * image that can be displayed alongside the text.
+ * 
+ * Scenes are identified by their name and optionally a subscene name. This id is entered by
+ * authors as scene_name.subscene_name. Scene names should be unique within a DTGE game while
+ * subscene names should be unique within the subscene they're a part of. Within a scene,
+ * different elements are identified by a special identifier called a SUID. You can find more
+ * details on SUIDs and their use in SceneElement.cs and Suid.cs.
+ * 
+ * A Scene is mostly read only while running the game. The class and its elements reflect that.
+ * Any changes of state that happen in the game should be represented by moving between scenes or
+ * the Entity system (still upcoming DTGE-12). There are a few exceptions such as subscenes and
+ * randomization, which are mainly used by Snippets. Other than this, Scenes should only be
+ * modified while editing the game, which uses the SceneEditable.
  */
-public class Scene : ISubsceneContextProvider
+public class Scene
 {
-	private const string NULL_SUBSCENE_DISPLAY_NAME = "(None)";
-	private const string COPYPASTE_SNIPPET_BOUNDARY_MARKER = ">>>\r\n[DTGESnippetBoundary]\r\n<<<";
-	private const string COPYPASTE_VARIATION_BOUNDARY_MARKER = ">>>\r\n[DTGEVariationBoundary]\r\n<<<";
-
 	public enum SceneImagePosition
 	{
 		Left,
@@ -27,164 +39,111 @@ public class Scene : ISubsceneContextProvider
 		OnlyImage
 	}
 
-	public struct SceneId
-	{
-		public string scene;
-		public string subscene;
-
-		public SceneId(string sceneIdString)
-		{
-			string[] ids = sceneIdString.Split(".");
-			this.scene = ids[0];
-			if (ids.Length > 1)
-			{
-				this.subscene = ids[1];
-			}
-			else
-			{
-				this.subscene = null;
-			}
-			if (ids.Length > 2)
-			{
-				// error
-			}
-		}
-
-		public SceneId(string sceneName, string subsceneName)
-		{
-			this.scene = sceneName;
-			this.subscene = subsceneName;
-		}
-	}
-
-	public class SubsceneId
-	{
-		public string Name { get; set; }
-		public uint Id { get; set; }
-		public static SubsceneId None = new SubsceneId(NULL_SUBSCENE_DISPLAY_NAME, 0);
-
-		private static uint nextIdNumber = 1;
-
-		public SubsceneId()
-		{
-			this.Name = "New Subscene";
-			this.Id = nextIdNumber++;
-		}
-
-		public SubsceneId(string name)
-		{
-			this.Name = name;
-			this.Id = nextIdNumber++;
-		}
-
-		private SubsceneId(string name, uint id)
-		{
-			this.Name = name;
-			this.Id = id;
-		}
-	}
-
-	public string Id { get; set; }
-	public List<Option> OptionList { get; set; }
-	public List<SubsceneId> Subscenes { get; set; }
+	public string Name { get; protected set; }
+	public bool NullSubsceneEnabled { get; protected set; }
 	public int CurrentSubsceneIndex { get; set; }
-	public bool AllowNullSubscene { get; set; }
-	public List<Snippet> SnippetList { get; set; }
-	public bool RenderImage { get; set; }
-	public SceneImagePosition ImagePosition {  get; set; }
-	public string ImagePath {  get; set; }
+	public Subscene CurrentSubscene
+	{
+		get
+		{
+			Subscene currentSubscene = null; 
+			if (this.SubsceneList.Count > 0)
+			{
+				currentSubscene = this.SubsceneList[this.CurrentSubsceneIndex];
+			}
+			return currentSubscene;
+		}
+	}
+	public bool RenderImage { get; protected set; }
+	public SceneImagePosition ImagePosition {  get; protected set; }
+	public string ImagePath {  get; protected set; }
 
-	// Backwards compatibility
-	public Option[] optionList { get; set; }
-	public string SceneText { get; set; }
+	public Random SceneRandom { get; private set; }
 
-	private List<Action<SubsceneId>> OnSubsceneAddedList;
-	private List<Action<SubsceneId>> OnSubsceneRemovedList;
-	private List<Action<SubsceneId, string>> OnSubsceneRenamedList;
+	protected List<Option> OptionList { get; private set; }
+	protected List<Subscene> SubsceneList { get; private set; }
+	protected List<Snippet> SnippetList { get; private set; }
+
+	protected int nextSUID = SUID.FIRST_VALID_SUID;
+	private readonly int sceneRandomSeed;
 
 	public Scene()
 	{
-		this.Id = "";
-		this.OptionList = new List<Option>();
-		this.Subscenes = new List<SubsceneId>();
+		this.Name = "";
+		this.NullSubsceneEnabled = false;
 		this.CurrentSubsceneIndex = 0;
-		this.AllowNullSubscene = false;
-		this.SnippetList = new List<Snippet>();
-		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
 		this.RenderImage = false;
 		this.ImagePath = null;
-
-		this.AddOption(new Option());
-		this.AddSnippet(new Snippet(this));
-	}
-
-	public Scene(string id)
-	{
-		this.Id= id;
 		this.OptionList = new List<Option>();
-		this.Subscenes = new List<SubsceneId>();
-		this.CurrentSubsceneIndex = 0;
-		this.AllowNullSubscene = false;
+		this.SubsceneList = new List<Subscene>();
 		this.SnippetList = new List<Snippet>();
-		this.OnSubsceneAddedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRemovedList = new List<Action<SubsceneId>>();
-		this.OnSubsceneRenamedList = new List<Action<SubsceneId, string>>();
-		this.RenderImage = false;
-		this.ImagePath = null;
 
-		this.AddOption(new Option());
-		this.AddSnippet(new Snippet(this));
+		Random seedGenerator = new Random();
+		this.sceneRandomSeed = seedGenerator.Next();
+		this.SceneRandom = new Random(this.sceneRandomSeed);
 	}
 
-	public string Serialize()
-	{   
-		string toReturn = JsonSerializer.Serialize(this);
-		return toReturn;
-	}
-
-	public static Scene Deserialize(string sceneJson)
+	protected Scene(SceneSerializable serializable)
 	{
-		Scene deserializedScene = JsonSerializer.Deserialize<DtgeCore.Scene>(sceneJson);
-		if (deserializedScene.SceneText != null && deserializedScene.SceneText.Length != 0)
-		{
-			Snippet snippetFromSceneText = new Snippet(deserializedScene);
-			snippetFromSceneText.SetVariationText(0,(deserializedScene.SceneText));
+		this.Name = serializable.Name;
+		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
+		this.CurrentSubsceneIndex = 0;
+		this.RenderImage= serializable.RenderImage;
+		this.ImagePath= serializable.ImagePath;
 
-			deserializedScene.ClearAllSnippets();
-			deserializedScene.SnippetList.Add(snippetFromSceneText);
-			deserializedScene.SceneText = null;
+		this.OptionList = new List<Option>();
+		for (int optionIndex = 0; optionIndex < serializable.OptionList.Count; optionIndex++)
+		{
+			this.OptionList.Add(new Option(this, serializable.OptionList[optionIndex]));
 		}
 
-		for (int snippetIndex = 0; snippetIndex < deserializedScene.SnippetList.Count; snippetIndex++)
+		this.SubsceneList = new List<Subscene>();
+		for (int subsceneIndex = 0;
+			subsceneIndex < serializable.SubsceneList.Count;
+			subsceneIndex++)
 		{
-			deserializedScene.SnippetList[snippetIndex].SetSubsceneContextProvider(deserializedScene);
+			this.SubsceneList.Add(new Subscene(this, serializable.SubsceneList[subsceneIndex]));
 		}
 
-		if (deserializedScene.optionList != null)
+		this.SnippetList = new List<Snippet>();
+		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
 		{
-			for (int optionIndex = 0; optionIndex < deserializedScene.optionList.Length; optionIndex++)
-			{
-				if (deserializedScene.optionList[optionIndex] != null)
-				{
-					deserializedScene.OptionList.Add(deserializedScene.optionList[optionIndex]);
-				}
-			}
-			//deserializedScene.optionList = null;
+			SnippetSerializable deserializingSnippetSerializable =
+				serializable.SnippetList[snippetIndex];
+			this.SnippetList.Add(new Snippet(this, deserializingSnippetSerializable));
 		}
 
-		return deserializedScene;
+		Random seedGenerator = new Random();
+		this.sceneRandomSeed = seedGenerator.Next();
+		this.SceneRandom = new Random(this.sceneRandomSeed);
+
+		this.nextSUID = serializable.NextSUID;
 	}
 
-	public void AddOption(Option option)
+	public static Scene DeserializeFromJsonString(string jsonString)
 	{
-		this.OptionList.Add(option);
+		SceneSerializable sceneSerializable =
+			JsonSerializer.Deserialize<SceneSerializable>(jsonString);
+
+		return new Scene(sceneSerializable);
 	}
 
-	public void ClearAllOptions()
+	public SUID GetSUID()
 	{
-		this.OptionList.Clear();
+		return new SUID(this.nextSUID++);
+	}
+
+	public string CalculateSceneText()
+	{
+		string sceneText = "";
+
+		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
+		{
+			Snippet currentSnippet = this.SnippetList[snippetIndex];
+			sceneText += currentSnippet.CalculateText();
+		}
+
+		return sceneText;
 	}
 
 	public int GetOptionCount()
@@ -197,135 +156,10 @@ public class Scene : ISubsceneContextProvider
 		return this.OptionList[index];
 	}
 
-	public void AddSnippet(Snippet snippet)
-	{
-		this.SnippetList.Add(snippet);
-	}
-
-	public void ClearAllSnippets()
-	{
-		this.SnippetList.Clear();
-	}
-
-	public int GetSnippetCount()
-	{
-		return this.SnippetList.Count;
-	}
-
-	public string CalculateSceneText()
-	{
-		string sceneText = "";
-
-		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
-		{
-			Snippet currentSnippet = this.SnippetList[snippetIndex];
-			sceneText += currentSnippet.CalculateText(false);
-		}
-
-		return sceneText;
-	}
-
-	public string CalculateDebugSceneText(bool preserveRandomization)
-	{
-		string sceneText = "";
-		
-		//sceneText += this.Serialize();
-		//sceneText += "\r\n\r\nCalculatedText:\r\n";
-
-		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
-		{
-			Snippet currentSnippet = this.SnippetList[snippetIndex];
-			sceneText += currentSnippet.CalculateText(preserveRandomization);
-		}
-
-		return sceneText;
-	}
-
-	public string GetCopyableText()
-	{
-		string copyableText = "";
-		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; snippetIndex++)
-		{
-			string snippetCopyableText = this.SnippetList[snippetIndex].GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
-			copyableText += snippetCopyableText;
-			if (snippetIndex != this.SnippetList.Count - 1)
-			{
-				copyableText += COPYPASTE_SNIPPET_BOUNDARY_MARKER;
-			}
-		}
-		return copyableText;
-	}
-
-	public bool RestoreFromPastedText(string pastedText)
-	{
-		bool canRestoreFromPastedText = true;
-		string[] pastedTextSplitIntoSnippets = pastedText.Split(COPYPASTE_SNIPPET_BOUNDARY_MARKER);
-
-		if (pastedTextSplitIntoSnippets.Length != this.SnippetList.Count)
-		{
-			canRestoreFromPastedText = false;
-		}
-		else
-		{
-
-			string[][] pastedTextSplitIntoVariations = new string[pastedTextSplitIntoSnippets.Length][];
-			for (int snippetIndex = 0; snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText; snippetIndex++)
-			{
-				pastedTextSplitIntoVariations[snippetIndex] = pastedTextSplitIntoSnippets[snippetIndex].Split(COPYPASTE_VARIATION_BOUNDARY_MARKER);
-				if (pastedTextSplitIntoVariations[snippetIndex].Length != this.SnippetList[snippetIndex].GetVariationCount())
-				{
-					canRestoreFromPastedText = false;
-				}
-			}
-
-			if (canRestoreFromPastedText)
-			{
-				for (int snippetIndex = 0; snippetIndex < pastedTextSplitIntoSnippets.Length; snippetIndex++)
-				{
-					this.SnippetList[snippetIndex].RestoreFromPastedText(pastedTextSplitIntoVariations[snippetIndex]);
-				}
-			}
-		}
-
-		return canRestoreFromPastedText;
-	}
-
-	public void EnableNullSubscene()
-	{
-		if (!this.AllowNullSubscene)
-		{
-			this.AllowNullSubscene = true;
-			this.OnSubsceneAdded(SubsceneId.None);
-		}
-	}
-
-	public void DisableNullSubscene()
-	{
-		if (this.AllowNullSubscene)
-		{
-			this.AllowNullSubscene = false;
-			this.OnSubsceneRemoved(SubsceneId.None);
-		}
-	}
-
-	public void AddSubscene(string newSubsceneName)
-	{
-		SubsceneId newId = new SubsceneId(newSubsceneName);
-		this.Subscenes.Add(newId);
-		this.OnSubsceneAdded(newId);
-	}
-
-	public void RemoveSubsceneByIndex(int subsceneIndex)
-	{
-		SubsceneId toRemove = this.Subscenes[subsceneIndex];
-		this.OnSubsceneRemoved(toRemove);
-		this.Subscenes.RemoveAt(subsceneIndex);
-	}
-
 	public bool SetCurrentSubsceneByIndex(int index)
 	{
 		bool success = false;
-		if (index < this.Subscenes.Count)
+		if (index < this.SubsceneList.Count)
 		{
 			this.CurrentSubsceneIndex = index;
 			success = true;
@@ -338,19 +172,16 @@ public class Scene : ISubsceneContextProvider
 		bool success = false;
 		if (subsceneName == null)
 		{
-			if (this.AllowNullSubscene || this.Subscenes.Count == 0)
-			{
-				this.CurrentSubsceneIndex = 0;
-				success = true;
-			}
+			this.CurrentSubsceneIndex = 0;
+			success = this.NullSubsceneEnabled || this.SubsceneList.Count == 0;
 		}
-		if (subsceneName != null)
+		else
 		{
 			int desiredSubsceneIndex = -1;
 
-			for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
+			for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 			{
-				if (Subscenes[subsceneIndex].Name == subsceneName)
+				if (this.SubsceneList[subsceneIndex].Name == subsceneName)
 				{
 					desiredSubsceneIndex = subsceneIndex;
 					break;
@@ -367,23 +198,18 @@ public class Scene : ISubsceneContextProvider
 		return success;
 	}
 
-	public bool SetCurrentSubscene(SubsceneId subsceneId)
+	public bool SetCurrentSubscene(Subscene subscene)
 	{
 		bool success = false;
 		int desiredSubsceneIndex = -1;
 
-		for (int subsceneIndex = 0; subsceneIndex < this.Subscenes.Count; subsceneIndex++)
+		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 		{
-			if (Subscenes[subsceneIndex].Id == subsceneId.Id)
+			if (this.SubsceneList[subsceneIndex].Id == subscene.Id)
 			{
 				desiredSubsceneIndex = subsceneIndex;
 				break;
 			}
-		}
-
-		if (this.AllowNullSubscene && desiredSubsceneIndex >= 0)
-		{
-			desiredSubsceneIndex++;
 		}
 		
 		if (desiredSubsceneIndex != -1)
@@ -393,148 +219,5 @@ public class Scene : ISubsceneContextProvider
 		}
 
 		return success;
-	}
-
-	public void SetSubsceneName(int subsceneIndex, string newSubsceneName)
-	{
-		if (this.AllowNullSubscene && subsceneIndex == this.Subscenes.Count)
-		{
-			// Error; cannot set the name of a "None" subscene
-		}
-		else
-		{
-			this.Subscenes[subsceneIndex].Name = newSubsceneName;
-			(this.Subscenes[subsceneIndex]).Name = newSubsceneName;
-		}
-	}
-
-	public int GetSubsceneCount()
-	{
-		int subsceneCount = this.Subscenes.Count;
-		if (this.AllowNullSubscene)
-		{
-			subsceneCount++;
-		}
-		return subsceneCount;
-	}
-
-	public int GetEditableSubsceneCount()
-	{
-		return this.Subscenes.Count;
-	}
-
-	public SubsceneId GetSubsceneId(int subsceneIndex)
-	{
-		SubsceneId subsceneId = null;
-
-		if (this.AllowNullSubscene)
-		{
-			if (subsceneIndex == 0)
-			{
-				subsceneId = SubsceneId.None;
-			}
-			else
-			{
-				subsceneId = this.Subscenes[subsceneIndex - 1];
-			}
-		}
-		else
-		{
-			subsceneId = this.Subscenes[subsceneIndex];
-		}
-
-		return subsceneId;
-	}
-
-	public SubsceneId GetEditableSubsceneId(int subsceneIndex)
-	{
-		return this.Subscenes[subsceneIndex];
-	}
-
-	public int GetCurrentSubsceneIndex()
-	{
-		return this.CurrentSubsceneIndex;
-	}
-
-	public SubsceneId GetCurrentSubsceneId()
-	{
-		return this.GetSubsceneId(this.CurrentSubsceneIndex);
-	}
-
-	public void RegisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded)
-	{
-		if (onSubsceneAdded != null)
-		{
-			this.OnSubsceneAddedList.Add(onSubsceneAdded);
-		}
-		else
-		{
-			// Error
-		}
-	}
-
-	public void UnregisterOnSubsceneAdded(Action<SubsceneId> onSubsceneAdded)
-	{
-		this.OnSubsceneAddedList.Remove(onSubsceneAdded);
-	}
-
-	public void RegisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved)
-	{
-		if (onSubsceneRemoved != null)
-		{
-			this.OnSubsceneRemovedList.Add(onSubsceneRemoved);
-		}
-		else
-		{
-			// Error
-		}
-	}
-
-	public void UnregisterOnSubsceneRemoved(Action<SubsceneId> onSubsceneRemoved)
-	{
-		this.OnSubsceneRemovedList.Remove(onSubsceneRemoved);
-	}
-
-	public void RegisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed)
-	{
-		if (onSubsceneRenamed != null)
-		{
-			this.OnSubsceneRenamedList.Add(onSubsceneRenamed);
-		}
-		else
-		{
-			// Error
-		}
-	}
-
-	public void UnregisterOnSubsceneRenamed(Action<SubsceneId, string> onSubsceneRenamed)
-	{
-		this.OnSubsceneRenamedList.Remove(onSubsceneRenamed);
-	}
-
-	private void OnSubsceneAdded(SubsceneId subsceneName)
-	{
-		// Temporarily hijacking this as a "changed" On/Handle
-		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneAddedList.Count; registrarIndex++)
-		{
-			this.OnSubsceneAddedList[registrarIndex](subsceneName);
-		}
-
-	}
-
-	private void OnSubsceneRemoved(SubsceneId subsceneName)
-	{
-		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneRemovedList.Count; registrarIndex++)
-		{
-			this.OnSubsceneRemovedList[registrarIndex](subsceneName);
-		}
-	}
-
-	private void OnSubsceneRenamed(SubsceneId oldName, string newName)
-	{
-		for (int registrarIndex = 0; registrarIndex < this.OnSubsceneRenamedList.Count; registrarIndex++)
-		{
-			this.OnSubsceneRenamedList[registrarIndex](oldName, newName);
-		}
 	}
 }

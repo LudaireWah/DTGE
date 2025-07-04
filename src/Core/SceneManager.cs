@@ -1,10 +1,44 @@
-using System;
 using System.Collections.Generic;
 
 namespace DtgeCore;
+
 /**
- * The SceneManager is a singleton class responsible for having all Scenes
- * within the game based on their scene id.
+ * A SceneId is a combination of a scene name and subscene name used mainly by the SceneManager
+ * and Options to navigate between scenes.
+ */
+public struct SceneId
+{
+	public string sceneName;
+	public string subsceneName;
+
+	public SceneId(string sceneIdString)
+	{
+		string[] ids = sceneIdString.Split(".");
+		this.sceneName = ids[0];
+		if (ids.Length > 1)
+		{
+			this.subsceneName = ids[1];
+		}
+		else
+		{
+			this.subsceneName = null;
+		}
+		if (ids.Length > 2)
+		{
+			// error
+		}
+	}
+
+	public SceneId(string sceneName, string subsceneName)
+	{
+		this.sceneName = sceneName;
+		this.subsceneName = subsceneName;
+	}
+}
+
+/**
+ * The SceneManager is a singleton class responsible for holding onto all scenes within the game
+ * and providing navigation between scenes.
  */
 public class SceneManager
 {
@@ -35,35 +69,45 @@ public class SceneManager
 
 	public void AddScene(Scene newScene)
 	{
-		this.scenes[newScene.Id] = newScene;
+		this.scenes[newScene.Name] = newScene;
 	}
 
-	public GetSceneSuccessValue GetSceneById(string id, out Scene outScene)
+	public bool TryGetNextSceneFromOption(Option option, out Scene targetScene, out string message)
 	{
-		GetSceneSuccessValue successValue = GetSceneSuccessValue.Success;
-		bool foundScene = this.scenes.TryGetValue(id, out outScene);
+		SceneId targetSceneId = new SceneId(option.TargetSceneId);
+		Scene obtainedScene = null;
+		bool foundScene = this.scenes.TryGetValue(targetSceneId.sceneName, out obtainedScene);
+		bool subsceneSetSuccessfully = false;
 
 		if (!foundScene)
 		{
-			successValue = GetSceneSuccessValue.SceneNotFound;
+			targetScene = null;
+			message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "], which was not found.";
 		}
-
-		return successValue;
-	}
-
-	public GetSceneSuccessValue GetSceneAndSubsceneById(Scene.SceneId id, out Scene outScene)
-	{
-		GetSceneSuccessValue successValue = this.GetSceneById(id.scene, out outScene);
-		
-		if (successValue == GetSceneSuccessValue.Success)
+		else
 		{
-			bool subsceneSetSuccessfully = outScene.SetCurrentSubscene(id.subscene);
-			if (!subsceneSetSuccessfully)
+			subsceneSetSuccessfully = obtainedScene.SetCurrentSubscene(targetSceneId.subsceneName);
+			if (subsceneSetSuccessfully)
 			{
-				successValue = GetSceneSuccessValue.SubsceneNotFound;
+				targetScene = obtainedScene;
+				message = null;
+			}
+			else
+			{
+				if (targetSceneId.subsceneName == null)
+				{
+					targetScene = null;
+					message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "] without a subscene, which is not supported by that Scene.";
+				}
+				else
+				{
+					targetScene = null;
+					message = "Option [" + option.Name + "] attempted to open Subscene [" + targetSceneId.subsceneName + "], which was not found in Scene [" + targetSceneId.sceneName + "].";
+				}
 			}
 		}
-		return successValue;
+
+		return foundScene && subsceneSetSuccessfully;
 	}
 
 	public void ClearScenes()

@@ -1,6 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://d2tclmur7pj0d"]
 
-[ext_resource type="Script" path="res://src/Editor/OptionEditList.cs" id="1_tihpb"]
+[ext_resource type="Script" path="res://src/Editor/OptionListContainer.cs" id="1_tihpb"]
+
 
 [node name="OptionEditList" type="VBoxContainer"]
 offset_right = 40.0

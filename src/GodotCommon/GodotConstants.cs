@@ -1,17 +1,16 @@
 ﻿using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DtgeGodotCommon;
 
+/**
+ * GodotConstants provides a variety of constants commonly used to do stuff with Godot so that
+ * these various pieces can be defined in one place for consistent usage. Notably, this does NOT
+ * include the paths for specific nodes. Those should exist only within their parent scenes.
+ */
 public class GodotConstants
 {
 	// Scene Paths
 	public const string GAME_SCENE_PATH = "src/Game/game.tscn";
-
 	public const string OPTION_EDIT_PANEL_PATH = "src/Editor/option_edit_panel.tscn";
 	public const string SNIPPET_PANEL_CONTAINER_PATH = "src/Editor/snippet_panel_container.tscn";
 	public const string SUBSCENE_PANEL_CONTAINER_PATH = "src/Editor/subscene_panel_container.tscn";

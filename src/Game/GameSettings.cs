@@ -1,17 +1,18 @@
-﻿using Godot;
-using System.Text.Json;
+﻿namespace DtgeGame;
 
-namespace DtgeGame;
-
+/**
+ * GameSettings contains the settings for running the game, modified by the player. This is likely
+ * to be overhauled as part of DTGE-135
+ */
 public class GameSettings
 {
-	public int SceneTextSize { get; set; }
-
 	const int SCENE_TEXT_SIZE_DEFAULT = 24;
+
+	public int SceneTextSize { get; set; }
 
 	public GameSettings()
 	{
-		SceneTextSize = SCENE_TEXT_SIZE_DEFAULT;
+		this.SceneTextSize = SCENE_TEXT_SIZE_DEFAULT;
 	}
 
 	public GameSettings(GameSettings other)

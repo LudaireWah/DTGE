@@ -1,11 +1,13 @@
-using Godot;
 using System;
+
+using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene responsible for authoring
- * DTGE Snippets.
+ * The root node for the Godot scene responsible for authoring DTGE Snippets.
  */
 public partial class SnippetPanelContainer : PanelContainer
 {
@@ -21,196 +23,86 @@ public partial class SnippetPanelContainer : PanelContainer
 	HBoxContainer snippetTabsHBoxContainer;
 	TabBar snippetTabBar;
 	Button newTabButton;
+	Button moveSnippetUpButton;
+	Button moveSnippetDownButton;
 
-	private bool uiNeedsUpdate;
-	private DtgeCore.Snippet boundSnippet;
-	public DtgeCore.Snippet BoundSnippet
-	{
-		get
-		{
-			return this.boundSnippet;
-		}
-		set
-		{
-			this.boundSnippet = value;
-			this.uiNeedsUpdate = true;
-		}
-	}
+	public DtgeCore.Editing.SnippetEditable SnippetEditable { get; set; }
 
-	public Action<bool> OnSnippetUpdated; // (bool snippetCountChanged)
-	public Action<SnippetPanelContainer> OnSnippetMovedUp;
-	public Action<SnippetPanelContainer> OnSnippetMovedDown;
-	public Action<SnippetPanelContainer> OnSnippetDeleted;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetMovedUp;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetMovedDown;
+	public Action<DtgeCore.Editing.SnippetEditable> OnSnippetDeleted;
 
-	private DtgeCore.Snippet.VariationInfo lastVariationInfoSelectedByTab;
-
-	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.conditionalModeOptionButton = GetNode<OptionButton>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton");
-		this.snippetTextEdit = GetNode<TextEdit>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTextEdit");
-		this.snippetTabsHBoxContainer = GetNode<HBoxContainer>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer");
-		this.snippetTabBar = GetNode<TabBar>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar");
-		this.newTabButton = GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton");
+		this.conditionalModeOptionButton = this.GetNode<OptionButton>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton");
+		this.snippetTextEdit = this.GetNode<TextEdit>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTextEdit");
+		this.snippetTabsHBoxContainer = this.GetNode<HBoxContainer>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer");
+		this.snippetTabBar = this.GetNode<TabBar>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar");
+		this.newTabButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton");
+		this.moveSnippetUpButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton");
+		this.moveSnippetDownButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveDownButton");
 
-		snippetTextEdit.FocusMode = FocusModeEnum.Click;
-
-		this.UpdateUIFromSnippet();
+		this.snippetTextEdit.FocusMode = FocusModeEnum.Click;
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public void UpdateUIFromEditables()
 	{
-		if (this.uiNeedsUpdate)
-		{
-			this.UpdateUIFromSnippet();
-			this.uiNeedsUpdate = false;
-		}
-	}
-
-	public void FlushChangesForSave()
-	{
-		this.updateSnippetFromUI();
-	}
-
-	private void updateSnippetFromUI()
-	{
-		this.BoundSnippet.SetVariationText(snippetTabBar.CurrentTab, this.snippetTextEdit.Text);
-		this.OnSnippetUpdated(false);
-	}
-
-	public void UpdateUIFromSnippet()
-	{
-		if (this.boundSnippet == null)
+		if (this.SnippetEditable == null)
 		{
 			// error handling?
 		}
 		else
 		{
-			this.conditionalModeOptionButton.Selected = (int)(this.boundSnippet.CurrentMode);
+			this.conditionalModeOptionButton.Selected = (int)(this.SnippetEditable.CurrentMode);
 
-			this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.Mode.Simple, this.boundSnippet.IsSimpleModeDisabled());
-			if (this.boundSnippet.IsSimpleModeDisabled())
-			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.Mode.Simple, "Returning to simple mode requires that you have only one variation");
-			}
-			else
-			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.Mode.Simple, null);
-			}
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Simple);
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Subscene);
+			this.setCanChangeToModeState(DtgeCore.Snippet.Mode.Random);
 
-			this.conditionalModeOptionButton.SetItemDisabled((int)DtgeCore.Snippet.Mode.Subscene, this.boundSnippet.IsSubsceneModeDisabled());
-			if (this.boundSnippet.IsSubsceneModeDisabled())
-			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.Mode.Subscene, "Subscene mode requires that the scene has implemented subscenes");
-			}
-			else
-			{
-				this.conditionalModeOptionButton.SetItemTooltip((int)DtgeCore.Snippet.Mode.Subscene, null);
-			}
+			this.conditionalModeOptionButton.SetItemDisabled(this.snippetTabBar.CurrentTab, true);
+			this.conditionalModeOptionButton.SetItemTooltip(this.snippetTabBar.CurrentTab, null);
 
 			this.updateVariationTabsFromSnippet();
 
-			this.snippetTextEdit.Text = this.BoundSnippet.GetVariationTextByIndex(this.snippetTabBar.CurrentTab);
-		}
-	}
+			GodotUtilities.UpdateNodeText(
+				this.snippetTextEdit,
+				this.SnippetEditable.GetVariationText(this.snippetTabBar.CurrentTab));
 
-	private void updateVariationTabsFromSnippet()
-	{
-		switch (this.BoundSnippet.CurrentMode)
-		{
-		case DtgeCore.Snippet.Mode.Simple:
-			this.snippetTabsHBoxContainer.Visible = false;
-			this.newTabButton.Visible = false;
-			break;
-		case DtgeCore.Snippet.Mode.Subscene:
-			this.snippetTabsHBoxContainer.Visible = true;
-			this.newTabButton.Visible = false;
-			this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
-			break;
-		case DtgeCore.Snippet.Mode.Random:
-			this.snippetTabsHBoxContainer.Visible = true;
-			this.newTabButton.Visible = true;
-			if (this.snippetTabBar.TabCount > 1)
-			{
-				this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
-			}
-			else
-			{
-				this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
-			}
-			break;
-		default:
-			throw new NotImplementedException();
-		}
-		
-		for (int variationIndex = 0; variationIndex < this.boundSnippet.GetVariationCount(); variationIndex++)
-		{
-			if (this.snippetTabBar.TabCount > variationIndex)
-			{
-				this.snippetTabBar.SetTabTitle(variationIndex, this.boundSnippet.GetVariationName(variationIndex));
-			}
-			else
-			{
-				this.snippetTabBar.AddTab(this.boundSnippet.GetVariationName(variationIndex));
-			}
-		}
+			this.moveSnippetUpButton.Disabled = this.SnippetEditable.isFirst();
+			this.moveSnippetUpButton.FocusMode =
+				this.SnippetEditable.isFirst() ? FocusModeEnum.None : FocusModeEnum.All;
 
-		while (this.snippetTabBar.TabCount > this.boundSnippet.GetVariationCount())
-		{
-			this.snippetTabBar.RemoveTab(this.snippetTabBar.TabCount - 1);
+			this.moveSnippetDownButton.Disabled = this.SnippetEditable.isLast();
+			this.moveSnippetDownButton.FocusMode =
+				this.SnippetEditable.isLast() ? FocusModeEnum.None : FocusModeEnum.All;
 		}
-
-		if (this.lastVariationInfoSelectedByTab != null)
-		{
-			for (int variationIndex = 0; variationIndex < this.boundSnippet.GetVariationCount(); variationIndex++)
-			{
-				DtgeCore.Snippet.VariationInfo currentVariationInfo = this.boundSnippet.GetVariationInfo(variationIndex);
-				if (currentVariationInfo.Id == this.lastVariationInfoSelectedByTab.Id &&
-					variationIndex != this.snippetTabBar.CurrentTab)
-				{
-					this.snippetTabBar.CurrentTab = variationIndex;
-					break;
-				}
-			}
-		}
-
-		this.lastVariationInfoSelectedByTab = this.boundSnippet.GetVariationInfo(this.snippetTabBar.CurrentTab);
-	}
-
-	private void createNewSnippetVariation()
-	{
-		this.BoundSnippet.AddVariation();
-		this.snippetTabBar.CurrentTab = this.snippetTabBar.TabCount - 1;
-		this.UpdateUIFromSnippet();
-		this.OnSnippetUpdated(false);
 	}
 
 	public void _on_snippet_text_edit_text_changed()
 	{
-		this.updateSnippetFromUI();
+		this.SnippetEditable.SetVariationText(
+			this.snippetTabBar.CurrentTab,
+			this.snippetTextEdit.Text);
 	}
 
 	public void _on_move_up_button_pressed()
 	{
-		this.OnSnippetMovedUp(this);
+		this.OnSnippetMovedUp(this.SnippetEditable);
 	}
 
 	public void _on_move_down_button_pressed()
 	{
-		this.OnSnippetMovedDown(this);
+		this.OnSnippetMovedDown(this.SnippetEditable);
 	}
 
 	public void _on_delete_button_pressed()
 	{
-		this.OnSnippetDeleted(this);
+		this.OnSnippetDeleted(this.SnippetEditable);
 	}
 
 	public void _on_conditional_mode_option_button_item_selected(int modeIndex)
 	{
-		this.BoundSnippet.ChangeMode(SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING[modeIndex]);
-		this.UpdateUIFromSnippet();
-		this.OnSnippetUpdated(false);
+		this.SnippetEditable.ChangeModeTo(SNIPPET_CONDITIONAL_MODE_INDEX_MAPPING[modeIndex]);
 	}
 
 	public void _on_new_tab_button_pressed()
@@ -221,14 +113,91 @@ public partial class SnippetPanelContainer : PanelContainer
 	public void _on_snippet_tab_bar_tab_close_pressed(int tabIndex)
 	{
 		this.snippetTabBar.RemoveTab(tabIndex);
-		this.boundSnippet.RemoveVariation(tabIndex);
-		this.UpdateUIFromSnippet();
+		this.SnippetEditable.RemoveVariationEditable(tabIndex);
 	}
 
 	public void _on_snippet_tab_bar_tab_selected(int tabIndex)
 	{
-		this.snippetTextEdit.Text = this.boundSnippet.GetVariationTextByIndex(tabIndex);
-		this.lastVariationInfoSelectedByTab = this.boundSnippet.GetVariationInfo(tabIndex);
+		GodotUtilities.UpdateNodeText(
+			this.snippetTextEdit,
+			this.SnippetEditable.GetVariationText(tabIndex));
+		this.SnippetEditable.SetCurrentVariationIndex(tabIndex);
 		this.snippetTextEdit.GrabFocus();
+	}
+
+	private void setCanChangeToModeState(DtgeCore.Snippet.Mode mode)
+	{
+		int optionButtonIndexFromMode = (int)mode;
+		string cannotChangeMessage = string.Empty;
+		bool canChange = this.SnippetEditable.CanChangeToMode(
+				mode,
+				out cannotChangeMessage);
+
+		this.conditionalModeOptionButton.SetItemDisabled(
+			optionButtonIndexFromMode,
+			!canChange);
+		this.conditionalModeOptionButton.SetItemTooltip(
+			optionButtonIndexFromMode,
+			canChange ? null : cannotChangeMessage);
+	}
+
+	private void updateVariationTabsFromSnippet()
+	{
+		this.snippetTabsHBoxContainer.Visible =
+			!this.SnippetEditable.AlwaysHasOneVariation();
+
+		for (int variationIndex = 0;
+			variationIndex < this.SnippetEditable.GetVariationCount();
+			variationIndex++)
+		{
+			if (this.snippetTabBar.TabCount > variationIndex)
+			{
+				this.snippetTabBar.SetTabTitle(
+					variationIndex,
+					this.SnippetEditable.GetVariationName(variationIndex));
+			}
+			else
+			{
+				this.snippetTabBar.AddTab(
+					this.SnippetEditable.GetVariationName(variationIndex));
+			}
+		}
+
+		while (this.snippetTabBar.TabCount > this.SnippetEditable.GetVariationCount())
+		{
+			this.snippetTabBar.RemoveTab(this.snippetTabBar.TabCount - 1);
+		}
+
+		if (this.SnippetEditable.CanEditVariationCount())
+		{
+			this.newTabButton.Visible = true;
+			if (this.snippetTabBar.TabCount > 1)
+			{
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowActiveOnly;
+			}
+			else
+			{
+				this.snippetTabBar.TabCloseDisplayPolicy =
+					TabBar.CloseButtonDisplayPolicy.ShowNever;
+			}
+		}
+		else
+		{
+			this.newTabButton.Visible = false;
+			this.snippetTabBar.TabCloseDisplayPolicy = TabBar.CloseButtonDisplayPolicy.ShowNever;
+		}
+
+		if (this.snippetTabBar.CurrentTab != this.SnippetEditable.GetCurrentVariationIndex())
+		{
+			this.snippetTabBar.CurrentTab = this.SnippetEditable.GetCurrentVariationIndex();
+		}
+	}
+
+	private void createNewSnippetVariation()
+	{
+		this.SnippetEditable.AddVariation();
+		this.UpdateUIFromEditables();
+		this.snippetTabBar.CurrentTab = this.snippetTabBar.TabCount - 1;
 	}
 }

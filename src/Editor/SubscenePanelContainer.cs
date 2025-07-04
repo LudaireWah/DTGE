@@ -1,52 +1,63 @@
-using Godot;
 using System;
+
+using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
+/**
+ * The root node for the Godot scene responsible for authoring DTGE Subscenes.
+ */
 public partial class SubscenePanelContainer : PanelContainer
 {
+	Button deleteSubsceneButton;
 	LineEdit nameLineEdit;
+	Label readOnlyNameLabel;
 
-	public Action OnSubsceneUpdated;
-	public Action<SubscenePanelContainer> OnSubsceneDeleted;
+	public Action<DtgeCore.Editing.SubsceneEditable> OnSubsceneDeleted;
 
-	private string pendingSubsceneName;
+	public DtgeCore.Editing.SubsceneEditable SubsceneEditable { get; set; }
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.nameLineEdit = GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
-		if (this.pendingSubsceneName != null)
-		{
-			nameLineEdit.Text = pendingSubsceneName;
-			pendingSubsceneName = null;
-		}
+		this.deleteSubsceneButton = this.GetNode<Button>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton");
+		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/NameLineEdit");
+		this.readOnlyNameLabel = this.GetNode<Label>("SubsceneMarginContainer/SubsceneHBoxContainer/ReadOnlyNameLabel");
 	}
 
-	public void SetSubsceneName(string subsceneName)
+	public void UpdateUIFromEditables()
 	{
-		if (this.IsNodeReady())
+		if (this.SubsceneEditable.IsReadOnly)
 		{
-			this.nameLineEdit.Text = subsceneName;
+			this.deleteSubsceneButton.Visible = false;
+			this.deleteSubsceneButton.Disabled = true;
+			this.nameLineEdit.Visible = false;
+			this.readOnlyNameLabel.Visible = true;
+			this.readOnlyNameLabel.Text = this.SubsceneEditable.Name;
+
 		}
 		else
 		{
-			this.pendingSubsceneName = subsceneName;
+			this.deleteSubsceneButton.Visible = true;
+			this.deleteSubsceneButton.Disabled = false;
+			this.nameLineEdit.Visible = true;
+			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.SubsceneEditable.Name);
+			this.readOnlyNameLabel.Visible = false;
 		}
-	}
-
-	public string GetSubsceneName()
-	{
-		return this.nameLineEdit.Text;
 	}
 
 	public void _on_subscene_delete_button_pressed()
 	{
-		this.OnSubsceneDeleted(this);
+		this.OnSubsceneDeleted(this.SubsceneEditable);
 	}
 
 	public void _on_subscene_line_edit_text_changed(string newText)
 	{
-		this.OnSubsceneUpdated();
+		if (newText != this.SubsceneEditable.Name)
+		{
+			this.SubsceneEditable.Name = newText;
+		}
 	}
 }

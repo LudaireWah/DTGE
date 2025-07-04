@@ -1,13 +1,13 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeGame;
 
 /**
- * NavigationButtonGrid is a GridContainer that contains a set of navigation
- * buttons used to present options to players. The NavigationButtonGrid is
- * responsible for tracking all the buttons, binding them to the right option,
- * and owns the layout as laid out in the Godot editor.
+ * NavigationButtonGrid is a GridContainer that contains a set of navigation buttons used to
+ * present options to players. The NavigationButtonGrid is responsible for tracking all the
+ * buttons, binding them to the right option, and owns the layout as laid out in the Godot editor.
  */
 public partial class NavigationButtonGrid : GridContainer
 {
@@ -38,13 +38,6 @@ public partial class NavigationButtonGrid : GridContainer
 	private static readonly string navigationGridShortcutStringNone = "";
 	private static readonly Key navigationGridShortcutKeyNone = Key.None;
 
-
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-		
-	}
-
 	public void ChangeGridDimensions(int columns, int rows)
 	{
 		this.columnCount = columns;
@@ -60,15 +53,19 @@ public partial class NavigationButtonGrid : GridContainer
 		while (this.GetChildCount() < desiredButtonCount)
 		{
 			NavigationButton newNavigationButton =
-				((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.NAVIGATION_BUTTON_PATH)).Instantiate<NavigationButton>();
+				((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.NAVIGATION_BUTTON_PATH))
+				.Instantiate<NavigationButton>();
 			newNavigationButton.OnOptionSelected = this.handleOptionSelected;
 
 			this.AddChild(newNavigationButton);
 		}
 
-		for (int navigationButtonIndex = 0; navigationButtonIndex < this.GetChildCount(); navigationButtonIndex++)
+		for (int navigationButtonIndex = 0;
+			navigationButtonIndex < this.GetChildCount();
+			navigationButtonIndex++)
 		{
-			NavigationButton currentNavigationButton = this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
+			NavigationButton currentNavigationButton =
+				this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
 			currentNavigationButton.SetOptionShortcut(
 				this.getStringFromNavigationButtonIndex(navigationButtonIndex),
 				this.getKeyFromNavigationButtonIndex(navigationButtonIndex));
@@ -84,9 +81,12 @@ public partial class NavigationButtonGrid : GridContainer
 		else
 		{
 			int sceneOptionCount = scene.GetOptionCount();
-			for (int navigationButtonIndex = 0; navigationButtonIndex < this.GetChildCount(); navigationButtonIndex++)
+			for (int navigationButtonIndex = 0;
+				navigationButtonIndex < this.GetChildCount();
+				navigationButtonIndex++)
 			{
-				NavigationButton currentNavigationButton = this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
+				NavigationButton currentNavigationButton =
+					this.GetChildOrNull<NavigationButton>(navigationButtonIndex);
 				if (navigationButtonIndex < sceneOptionCount)
 				{
 					currentNavigationButton.BindToOption(scene.GetOption(navigationButtonIndex));
@@ -97,11 +97,6 @@ public partial class NavigationButtonGrid : GridContainer
 				}
 			}
 		}
-	}
-
-	private void bindCachedSceneOptionsToButtons()
-	{
-		
 	}
 
 	private void handleOptionSelected(DtgeCore.Option option)
@@ -116,11 +111,13 @@ public partial class NavigationButtonGrid : GridContainer
 		switch(this.NavigationGridShortcutMode)
 		{
 		case DtgeCore.GameData.NavigationGridShortcutMode.Keyboard:
-			if (optionIndex < NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
+			if (optionIndex <
+				NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
 			{
 				int columnIndex = optionIndex % this.columnCount;
 				int rowIndex = optionIndex / this.columnCount;
-				result = NavigationButtonGrid.navigationGridShortcutStringsKeyboard[rowIndex, columnIndex];
+				result =
+					NavigationButtonGrid.navigationGridShortcutStringsKeyboard[rowIndex, columnIndex];
 			}
 			break;
 		case DtgeCore.GameData.NavigationGridShortcutMode.Numeric:
@@ -142,11 +139,13 @@ public partial class NavigationButtonGrid : GridContainer
 		switch(this.NavigationGridShortcutMode)
 		{
 		case DtgeCore.GameData.NavigationGridShortcutMode.Keyboard:
-			if (optionIndex < NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
+			if (optionIndex <
+				NavigationButtonGrid.maximumShortcutColumn * NavigationButtonGrid.maximumShortcutRow)
 			{
 				int columnIndex = optionIndex % this.columnCount;
 				int rowIndex = optionIndex / this.columnCount;
-				result = NavigationButtonGrid.navigationGridShortcutKeysKeyboard[rowIndex, columnIndex];
+				result =
+					NavigationButtonGrid.navigationGridShortcutKeysKeyboard[rowIndex, columnIndex];
 			}
 			break;
 		case DtgeCore.GameData.NavigationGridShortcutMode.Numeric:

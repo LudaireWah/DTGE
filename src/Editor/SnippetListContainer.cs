@@ -1,200 +1,59 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 
 namespace DtgeEditor;
 
 /**
- * The root node for the Godot scene that manages the set of
- * SnipetPanels used to author DTGE snippets. It maintains
- * the list and coordinates updates to and from the snippets.
+ * The root node for the Godot scene that manages the set of SnipetPanels used to author DTGE
+ * snippets. It maintains the list and coordinates updates to and from the snippets.
  */
 public partial class SnippetListContainer : VBoxContainer
 {
 	VBoxContainer snippetListVBoxContainer;
-	bool firstSceneHasBeenSet;
-	bool uiNeedUpdate;
 
-	private DtgeCore.Scene dtgeScene;
-
-	public DtgeCore.Scene DtgeScene
-	{
-		get { return dtgeScene; }
-		set
-		{
-			this.dtgeScene = value;
-			this.uiNeedUpdate = true;
-		}
-	}
-
-	public Action OnSnippetListUpdated;
+	public DtgeCore.Editing.SceneEditable DtgeSceneEditable { get; set; }
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		this.snippetListVBoxContainer = this.GetNode<VBoxContainer>("SnippetListScrollContainer/SnippetListVBoxContainer");
-
-		this.firstSceneHasBeenSet = false;
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public void UpdateFromEditables()
 	{
-		if (this.uiNeedUpdate)
+		for (int snippetIndex = 0;
+			snippetIndex < this.DtgeSceneEditable.GetSnippetCount();
+			snippetIndex++)
 		{
-			this.updateSnippetPanelContainersFromSnippets();
-			this.uiNeedUpdate = false;
-		}
-	}
-
-	public void FlushChangesForSave()
-	{
-		for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
-		{
-			this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex).FlushChangesForSave();
-		}
-	}
-
-	public void HandleSnippetUpdated(bool countChanged)
-	{
-		if (countChanged)
-		{
-			this.dtgeScene.ClearAllSnippets();
-			for (int snippetPanelIndex = 0; snippetPanelIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelIndex++)
-			{
-				SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChild<SnippetPanelContainer>(snippetPanelIndex);
-				this.dtgeScene.AddSnippet(currentSnippetPanelContainer.BoundSnippet);
-			}
-		}
-
-		if (this.OnSnippetListUpdated != null)
-		{
-			this.OnSnippetListUpdated();
-		}
-	}
-
-	public void HandleMoveSnippetUp(SnippetPanelContainer targetSnippet)
-	{
-		SnippetPanelContainer currentSnippetPanelContainer = null;
-		SnippetPanelContainer aboveSnippetPanelContainer = null;
-
-		for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
-		{
-			currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
-			if (currentSnippetPanelContainer != null &&
-				aboveSnippetPanelContainer != null &&
-				currentSnippetPanelContainer == targetSnippet)
-			{
-				DtgeCore.Snippet aboveSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
-				aboveSnippetCopy.CopyFrom(aboveSnippetPanelContainer.BoundSnippet);
-				aboveSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
-				currentSnippetPanelContainer.BoundSnippet.CopyFrom(aboveSnippetCopy);
-				break;
-			}
-			aboveSnippetPanelContainer = currentSnippetPanelContainer;
-		}
-
-		if (currentSnippetPanelContainer != null)
-		{
-			currentSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		if (aboveSnippetPanelContainer != null)
-		{
-			aboveSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		this.OnSnippetListUpdated();
-	}
-
-	public void HandleMoveSnippetDown(SnippetPanelContainer targetSnippet)
-	{
-		SnippetPanelContainer currentSnippetPanelContainer = null;
-		SnippetPanelContainer belowSnippetPanelContainer = null;
-		for (int snippetPanelChildIndex = 0; snippetPanelChildIndex < this.snippetListVBoxContainer.GetChildCount(); snippetPanelChildIndex++)
-		{
-			currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex);
-			belowSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetPanelChildIndex + 1);
-			if (currentSnippetPanelContainer != null &&
-				belowSnippetPanelContainer != null &&
-				currentSnippetPanelContainer == targetSnippet)
-			{
-				DtgeCore.Snippet belowSnippetCopy = new DtgeCore.Snippet(this.dtgeScene);
-				belowSnippetCopy.CopyFrom(belowSnippetPanelContainer.BoundSnippet);
-				belowSnippetPanelContainer.BoundSnippet.CopyFrom(currentSnippetPanelContainer.BoundSnippet);
-				currentSnippetPanelContainer.BoundSnippet.CopyFrom(belowSnippetCopy);
-
-				break;
-			}
-		}
-
-		if (currentSnippetPanelContainer != null)
-		{
-			currentSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		if (belowSnippetPanelContainer != null)
-		{
-			belowSnippetPanelContainer.UpdateUIFromSnippet();
-		}
-
-		this.OnSnippetListUpdated();
-	}
-
-	public void HandleSnippetDeleted(SnippetPanelContainer toRemove)
-	{
-		this.snippetListVBoxContainer.RemoveChild(toRemove);
-		this.HandleSnippetUpdated(true);
-	}
-
-	public void HandleSubsceneUpdate()
-	{
-		for (int subsceneIndex = 0; subsceneIndex < this.snippetListVBoxContainer.GetChildCount(); subsceneIndex++)
-		{
-			SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(subsceneIndex);
+			DtgeCore.Editing.SnippetEditable snippetEditable =
+				this.DtgeSceneEditable.GetSnippetByIndex(snippetIndex);
+			SnippetPanelContainer currentSnippetPanelContainer =
+				this.snippetListVBoxContainer
+				.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
 			if (currentSnippetPanelContainer != null)
 			{
-				currentSnippetPanelContainer.UpdateUIFromSnippet();
-			}
-		}
-	}
-
-	public void _on_add_snippet_button_pressed()
-	{
-		DtgeCore.Snippet newSnippet = new DtgeCore.Snippet(this.dtgeScene);
-		this.DtgeScene.AddSnippet(newSnippet);
-		this.addNewSnippetPanelContainer(newSnippet);
-		this.OnSnippetListUpdated();
-	}
-
-	private void updateSnippetPanelContainersFromSnippets()
-	{
-		List<DtgeCore.Snippet> updatedSnippets = this.dtgeScene.SnippetList;
-		int nonNullSnippetCount = 0;
-
-		for (int snippetIndex = 0; snippetIndex < updatedSnippets.Count; snippetIndex++)
-		{
-			DtgeCore.Snippet currentSnippet = updatedSnippets[snippetIndex];
-			if (currentSnippet == null)
-			{
-				break;
+				currentSnippetPanelContainer.SnippetEditable = snippetEditable;
+				currentSnippetPanelContainer.UpdateUIFromEditables();
 			}
 			else
 			{
-				nonNullSnippetCount++;
-				SnippetPanelContainer currentSnippetPanelContainer = this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(snippetIndex);
-				if (currentSnippetPanelContainer != null)
+				SnippetPanelContainer newSnippetPanelContainer =
+					((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
+					.Instantiate<SnippetPanelContainer>();
+
+				if (newSnippetPanelContainer != null)
 				{
-					currentSnippetPanelContainer.BoundSnippet = updatedSnippets[snippetIndex];
-				}
-				else
-				{
-					this.addNewSnippetPanelContainer(updatedSnippets[snippetIndex]);
+					newSnippetPanelContainer.SnippetEditable = snippetEditable;
+					newSnippetPanelContainer.OnSnippetMovedUp = this.HandleSnippetMovedUp;
+					newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
+					newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
+					this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
+					newSnippetPanelContainer.UpdateUIFromEditables();
 				}
 			}
 		}
 
-		while (nonNullSnippetCount < this.snippetListVBoxContainer.GetChildCount())
+		while (this.DtgeSceneEditable.GetSnippetCount() <
+			this.snippetListVBoxContainer.GetChildCount())
 		{
 			SnippetPanelContainer excessSnippetPanelContainer
 				= this.snippetListVBoxContainer.GetChildOrNull<SnippetPanelContainer>(
@@ -203,19 +62,24 @@ public partial class SnippetListContainer : VBoxContainer
 		}
 	}
 
-	private void addNewSnippetPanelContainer(DtgeCore.Snippet snippet)
+	public void _on_add_snippet_button_pressed()
 	{
-		SnippetPanelContainer newSnippetPanelContainer =
-			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH)).Instantiate<SnippetPanelContainer>();
+		DtgeCore.Editing.SnippetEditable newSnippetEditable =
+			this.DtgeSceneEditable.AllocateNewSnippet();
+	}
 
-		if (newSnippetPanelContainer != null)
-		{
-			newSnippetPanelContainer.BoundSnippet = snippet;
-			newSnippetPanelContainer.OnSnippetUpdated = this.HandleSnippetUpdated;
-			newSnippetPanelContainer.OnSnippetMovedUp = this.HandleMoveSnippetUp;
-			newSnippetPanelContainer.OnSnippetMovedDown = this.HandleMoveSnippetDown;
-			newSnippetPanelContainer.OnSnippetDeleted = this.HandleSnippetDeleted;
-			this.snippetListVBoxContainer.AddChild(newSnippetPanelContainer);
-		}
+	private void HandleSnippetMovedUp(DtgeCore.Editing.SnippetEditable targetSnippet)
+	{
+		this.DtgeSceneEditable.TryMoveSnippet(targetSnippet, -1);
+	}
+
+	private void HandleMoveSnippetDown(DtgeCore.Editing.SnippetEditable targetSnippet)
+	{
+		this.DtgeSceneEditable.TryMoveSnippet(targetSnippet, 1);
+	}
+
+	private void HandleSnippetDeleted(DtgeCore.Editing.SnippetEditable toRemove)
+	{
+		this.DtgeSceneEditable.RemoveSnippet(toRemove);
 	}
 }

@@ -1,22 +1,22 @@
-using Godot;
 using System;
+
+using Godot;
 
 namespace DtgeGame;
 
 /**
- * The NavigationButton collects together a Godot button plus a few
- * other things to display a few things like keyboard shortcuts,
- * placeholders for options that don't exist, and similar stuff. The
- * bulk of the button logic is handled by the Godot Button.
+ * The NavigationButton collects together a Godot button plus a few other things to display a few
+ * things like keyboard shortcuts, placeholders for options that don't exist, and similar stuff.
+ * The bulk of the button logic is handled by the Godot Button.
  */
 public partial class NavigationButton : MarginContainer
 {
-	public DtgeCore.Option boundOption;
-
 	Button button;
 	MarginContainer shortcutMarginContainer;
 	Label shortcutLabel;
 	ColorRect navigationButtonPlaceholderColorRect;
+
+	public DtgeCore.Option boundOption;
 
 	public Action<DtgeCore.Option> OnOptionSelected;
 
@@ -26,10 +26,10 @@ public partial class NavigationButton : MarginContainer
 
 	public override void _Ready()
 	{
-		this.button = GetNode<Button>("MainButton");
-		this.shortcutMarginContainer = GetNode<MarginContainer>("ShortcutContainer");
-		this.shortcutLabel = GetNode<Label>("ShortcutContainer/ShortcutLabel");
-		this.navigationButtonPlaceholderColorRect = GetNode<ColorRect>("NavigationButtonPlaceholderColorRect");
+		this.button = this.GetNode<Button>("MainButton");
+		this.shortcutMarginContainer = this.GetNode<MarginContainer>("ShortcutContainer");
+		this.shortcutLabel = this.GetNode<Label>("ShortcutContainer/ShortcutLabel");
+		this.navigationButtonPlaceholderColorRect = this.GetNode<ColorRect>("NavigationButtonPlaceholderColorRect");
 		if (this.shortcutNeedsUpdate)
 		{
 			this.SetOptionShortcut(this.desiredShortcutText, this.desiredShortcutKey);
@@ -95,7 +95,7 @@ public partial class NavigationButton : MarginContainer
 
 	private void _on_navigation_button_pressed()
 	{
-		if (boundOption != null && this.OnOptionSelected != null)
+		if (this.boundOption != null && this.OnOptionSelected != null)
 		{
 			this.OnOptionSelected(this.boundOption);
 		}

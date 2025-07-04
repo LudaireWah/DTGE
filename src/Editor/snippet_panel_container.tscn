@@ -39,11 +39,11 @@ popup/item_2/id = 2
 
 [node name="MoveUpButton" type="Button" parent="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer"]
 layout_mode = 2
-text = "↑"
+text = "⮝"
 
 [node name="MoveDownButton" type="Button" parent="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer"]
 layout_mode = 2
-text = "↓"
+text = "⮟"
 
 [node name="DeleteButton" type="Button" parent="SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer"]
 layout_mode = 2

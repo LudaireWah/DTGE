@@ -1,10 +1,12 @@
-using Godot;
 using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using Godot;
 
 namespace DtgeGame;
 
+/**
+ * The root Godot control for the window that allows players to change their game settings.
+ */
 public partial class GameSettingsWindow : Window
 {
 	MarginContainer rootMarginContainer;
@@ -17,18 +19,13 @@ public partial class GameSettingsWindow : Window
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.rootMarginContainer = GetNode<MarginContainer>("RootMarginContainer");
-		this.sceneTextSizeLineEdit = GetNode<LineEdit>("RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit");
+		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
+		this.sceneTextSizeLineEdit = this.GetNode<LineEdit>("RootMarginContainer/RootVBoxContainer/SettingsHBoxContainer/SettingValues/SceneTextSizeLineEdit");
 
-		this.SizeChanged += this.HandleWindowSizeChanged;
+		this.SizeChanged += this._on_window_size_changed;
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-	}
-
-	public void HandleWindowSizeChanged()
+	public void _on_window_size_changed()
 	{
 		Rect2 newViewport = this.GetViewport().GetVisibleRect();
 		this.rootMarginContainer.SetSize(newViewport.Size);

@@ -1,6 +1,13 @@
-using Godot;
 using System;
 
+using Godot;
+
+/**
+ * This is a simple window that provides the three titular buttons and On functions for each,
+ * allowing easy use of this very common pattern in UX where you ask whether or not to do some
+ * special action as part of what a user did hwile also giving them the option to back out of
+ * taking that action in the first place.
+ */
 public partial class YesNoCancelDialog : Window
 {
 	MarginContainer rootMarginContainer;
@@ -13,15 +20,10 @@ public partial class YesNoCancelDialog : Window
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.rootMarginContainer = GetNode<MarginContainer>("RootMarginContainer");
-		this.dialogText = GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
+		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
+		this.dialogText = this.GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
 
 		this.SizeChanged += this.HandleWindowSizeChanged;
-	}
-
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
 	}
 
 	public void HandleWindowSizeChanged()
