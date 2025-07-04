@@ -12,12 +12,17 @@ public class SubsceneEditable : Subscene
 
 	public new string Name
 	{
-		get {
+		get
+		{
 			return base.Name;
 		}
 		set
 		{
-			if (base.Name != value)
+			if (this.IsReadOnly)
+			{
+				GlobalErrorHandler.InvokeError("A read only subscene's name was set.");
+			}
+			else if (base.Name != value)
 			{
 				base.Name = value;
 				this.notifyParentOfEdit();
@@ -25,18 +30,29 @@ public class SubsceneEditable : Subscene
 		}
 	}
 
+	public readonly bool IsReadOnly;
+
 	private SceneEditable parentSceneEditable;
 
 	public SubsceneEditable(SceneEditable parentSceneEditable)
 		: base(parentSceneEditable, SubsceneEditable.DEFAULT_NEW_SUBSCENE_NAME)
 	{
 		this.parentSceneEditable = parentSceneEditable;
+		this.IsReadOnly = false;
+	}
+
+	public SubsceneEditable(SceneEditable parentSceneEditable, string name, bool readOnly)
+		:base(parentSceneEditable, name)
+	{
+		this.parentSceneEditable = parentSceneEditable;
+		this.IsReadOnly = readOnly;
 	}
 
 	public SubsceneEditable(SceneEditable parentSceneEditable, SubsceneSerializable serializable)
 		: base(parentSceneEditable, serializable)
 	{
 		this.parentSceneEditable = parentSceneEditable;
+		this.IsReadOnly = serializable.IsReadOnly;
 	}
 
 	public SubsceneSerializable ToSerializable()

@@ -11,7 +11,9 @@ namespace DtgeEditor;
  */
 public partial class SubscenePanelContainer : PanelContainer
 {
+	Button deleteSubsceneButton;
 	LineEdit nameLineEdit;
+	Label readOnlyNameLabel;
 
 	public Action<SubscenePanelContainer> OnSubsceneDeleted;
 
@@ -20,14 +22,29 @@ public partial class SubscenePanelContainer : PanelContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneLineEdit");
+		this.deleteSubsceneButton = this.GetNode<Button>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton");
+		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/NameLineEdit");
+		this.readOnlyNameLabel = this.GetNode<Label>("SubsceneMarginContainer/SubsceneHBoxContainer/ReadOnlyNameLabel");
 	}
 
 	public void UpdateUIFromEditables()
 	{
-		if (this.nameLineEdit.Text != this.SubsceneEditable.Name)
+		if (this.SubsceneEditable.IsReadOnly)
 		{
-			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.SubsceneEditable.Name);	
+			this.deleteSubsceneButton.Visible = false;
+			this.deleteSubsceneButton.Disabled = true;
+			this.nameLineEdit.Visible = false;
+			this.readOnlyNameLabel.Visible = true;
+			this.readOnlyNameLabel.Text = this.SubsceneEditable.Name;
+
+		}
+		else
+		{
+			this.deleteSubsceneButton.Visible = true;
+			this.deleteSubsceneButton.Disabled = false;
+			this.nameLineEdit.Visible = true;
+			GodotUtilities.UpdateNodeText(this.nameLineEdit, this.SubsceneEditable.Name);
+			this.readOnlyNameLabel.Visible = false;
 		}
 	}
 

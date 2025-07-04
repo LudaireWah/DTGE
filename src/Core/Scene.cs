@@ -195,7 +195,7 @@ public class Scene
 		if (subsceneName == null)
 		{
 			this.CurrentSubsceneIndex = 0;
-			success = true;
+			success = this.NullSubsceneEnabled || this.SubsceneList.Count == 0;
 		}
 		else
 		{

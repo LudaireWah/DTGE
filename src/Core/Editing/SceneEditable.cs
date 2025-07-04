@@ -309,22 +309,29 @@ public class SceneEditable : Scene
 
 	public void RemoveSubscene(SubsceneEditable subsceneEditable)
 	{
-		SubsceneEditable currentSubsceneBeforeRemoval = this.CurrentSubscene;
-		this.SubsceneList.Remove(subsceneEditable);
-
-		if (subsceneEditable == currentSubsceneBeforeRemoval)
+		if (subsceneEditable.IsReadOnly)
 		{
-			if (this.CurrentSubsceneIndex != 0)
-			{
-				this.CurrentSubsceneIndex--;
-			}
+			GlobalErrorHandler.InvokeError("An attempt was made to delete a read only subscene when only the SceneEditable should do that.");
 		}
 		else
 		{
-			this.CurrentSubsceneIndex = this.SubsceneList.IndexOf(currentSubsceneBeforeRemoval);
+			SubsceneEditable currentSubsceneBeforeRemoval = this.CurrentSubscene;
+			this.SubsceneList.Remove(subsceneEditable);
+
+			if (subsceneEditable == currentSubsceneBeforeRemoval)
+			{
+				if (this.CurrentSubsceneIndex != 0)
+				{
+					this.CurrentSubsceneIndex--;
+				}
+			}
+			else
+			{
+				this.CurrentSubsceneIndex = this.SubsceneList.IndexOf(currentSubsceneBeforeRemoval);
+			}
+			this.NotifySubsceneSnippetsOfChange();
+			this.NotifyUIUpdateNeeded();
 		}
-		this.NotifySubsceneSnippetsOfChange();
-		this.NotifyUIUpdateNeeded();
 	}
 
 	public void RemoveSubsceneByIndex(int subsceneIndex)
@@ -337,9 +344,10 @@ public class SceneEditable : Scene
 		if (!this.NullSubsceneEnabled)
 		{
 			SubsceneEditable nullSubscene =
-				new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME);
+				new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME, true);
 			this.SubsceneList.Insert(0, nullSubscene);
 			this.NullSubsceneEnabled = true;
+			this.CurrentSubsceneIndex = 0;
 			this.NotifySubsceneSnippetsOfChange();
 			this.NotifyUIUpdateNeeded();
 		}
@@ -351,6 +359,12 @@ public class SceneEditable : Scene
 		{
 			this.SubsceneList.RemoveAt(0);
 			this.NullSubsceneEnabled = false;
+
+			if (this.CurrentSubsceneIndex != 0)
+			{
+				this.CurrentSubsceneIndex--;
+			}
+
 			this.NotifySubsceneSnippetsOfChange();
 			this.NotifyUIUpdateNeeded();
 		}

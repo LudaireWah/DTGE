@@ -290,22 +290,23 @@ public partial class DtgeSceneEditContainer : Control
 	{
 		this.allowNoSubsceneCheckButton.ButtonPressed =
 			this.DtgeSceneEditable.NullSubsceneEnabled;
-		for (int editableSubsceneIndex = 0;
-			editableSubsceneIndex < this.DtgeSceneEditable.GetSubsceneCount();
-			editableSubsceneIndex++)
+		for (int subsceneIndex = 0;
+			subsceneIndex < this.DtgeSceneEditable.GetSubsceneCount();
+			subsceneIndex++)
 		{
 			SubscenePanelContainer currentSubscenePanelContainer =
 				this.subsceneListHBoxContainer.GetChildOrNull<SubscenePanelContainer>(
-					editableSubsceneIndex);
+					subsceneIndex);
 			if (currentSubscenePanelContainer != null)
 			{
 				currentSubscenePanelContainer.SubsceneEditable =
-					this.DtgeSceneEditable.GetSubscene(editableSubsceneIndex);
+					this.DtgeSceneEditable.GetSubscene(subsceneIndex);
+				currentSubscenePanelContainer.UpdateUIFromEditables();
 			}
 			else
 			{
 				this.addNewSubscenePanelContainer(
-					this.DtgeSceneEditable.GetSubscene(editableSubsceneIndex));
+					this.DtgeSceneEditable.GetSubscene(subsceneIndex));
 			}
 		}
 
@@ -320,7 +321,6 @@ public partial class DtgeSceneEditContainer : Control
 
 		if (this.DtgeSceneEditable.GetSubsceneCount() == 0)
 		{
-			this.DtgeSceneEditable.DisableNullSubscene();
 			this.allowNoSubsceneCheckButton.Visible = false;
 		}
 		else

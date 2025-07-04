@@ -315,9 +315,16 @@ public partial class SnippetEditable : Snippet
 	{
 		if (this.CurrentMode == Mode.Subscene)
 		{
-			SubsceneSnippetImplementationEditable subsceneImplementation =
-				this.CurrentImplementationEditable as SubsceneSnippetImplementationEditable;
-			subsceneImplementation.UpdateVariationsFromSubscenes();
+			if (this.parentSceneEditable.GetSubsceneCount() == 0)
+			{
+				this.ChangeModeTo(Mode.Simple);
+			}
+			else
+			{
+				SubsceneSnippetImplementationEditable subsceneImplementation =
+					this.CurrentImplementationEditable as SubsceneSnippetImplementationEditable;
+				subsceneImplementation.UpdateVariationsFromSubscenes();
+			}
 		}
 	}
 

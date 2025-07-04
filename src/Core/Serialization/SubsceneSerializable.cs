@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace DtgeCore.Serialization;
 
@@ -16,9 +17,17 @@ public class SubsceneSerializable : SceneElementSerializable
 		set { this.subsceneVersion0Data.Name = value; }
 	}
 
+	[JsonIgnore]
+	public bool IsReadOnly
+	{
+		get { return this.subsceneVersion0Data.IsReadOnly; }
+		set { this.subsceneVersion0Data.IsReadOnly = value; }
+	}
+
 	private class SubsceneVersion0
 	{
 		public string Name { get; set; }
+		public bool IsReadOnly { get; set; }
 	}
 
 	[JsonInclude]

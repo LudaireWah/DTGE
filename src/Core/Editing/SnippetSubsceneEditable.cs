@@ -1,4 +1,6 @@
-﻿using DtgeCore.Serialization;
+﻿using System.Collections.Generic;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore.Editing;
 
@@ -19,10 +21,13 @@ public partial class SnippetEditable
 	{
 		private SceneEditable parentSceneEditable;
 
+		private List<SUID> orderedSubceneSuids;
+
 		public SubsceneSnippetImplementationEditable(SceneEditable parentSceneEditable)
 			: base(parentSceneEditable)
 		{
 			this.parentSceneEditable = parentSceneEditable;
+			this.orderedSubceneSuids = new List<SUID>();
 		}
 
 		public SubsceneSnippetImplementationEditable(
@@ -31,12 +36,14 @@ public partial class SnippetEditable
 			: base(parentSceneEditable)
 		{
 			this.parentSceneEditable = parentSceneEditable;
+			this.orderedSubceneSuids = new List<SUID>();
 
 			for (int subsceneIndex = 0;
 				subsceneIndex < this.parentSceneEditable.GetSubsceneCount();
 				subsceneIndex++)
 			{
 				Subscene subscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
+				this.orderedSubceneSuids.Add(subscene.Id);
 				if (subsceneIndex < other.GetVariationCount())
 				{
 					this.VariationsBySubsceneId[subscene.Id] = new VariationEditable(
@@ -58,12 +65,18 @@ public partial class SnippetEditable
 			: base(parentSceneEditable)
 		{
 			this.parentSceneEditable = parentSceneEditable;
+			this.orderedSubceneSuids = new List<SUID>();
 
-			foreach (SUID subsceneId in serializable.VariationsBySubsceneId.Keys)
+			for (int subsceneIndex = 0;
+				subsceneIndex < this.parentSceneEditable.GetSubsceneCount();
+				subsceneIndex++)
 			{
-				this.VariationsBySubsceneId[subsceneId] = new VariationEditable(
+				SubsceneEditable subsceneEditable =
+					this.parentSceneEditable.GetSubscene(subsceneIndex);
+				this.orderedSubceneSuids.Add(subsceneEditable.Id);
+				this.VariationsBySubsceneId[subsceneEditable.Id] = new VariationEditable(
 					parentSceneEditable,
-					serializable.VariationsBySubsceneId[subsceneId]);
+					serializable.VariationsBySubsceneId[subsceneEditable.Id]);
 			}
 		}
 
@@ -152,26 +165,25 @@ public partial class SnippetEditable
 
 		public VariationEditable GetVariationEditable(int variationIndex)
 		{
-			Subscene subscene = this.parentSceneEditable.GetSubscene(variationIndex);
-			return this.VariationsBySubsceneId[subscene.Id] as VariationEditable;
+			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]]
+				as VariationEditable;
 		}
 
 		public string GetVariationName(int variationIndex)
 		{
-			return this.parentSceneEditable.GetSubscene(variationIndex).Name;
+			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Name;
 		}
 
 		public string GetVariationText(int variationIndex)
 		{
-			SUID subsceneId = this.parentSceneEditable.GetSubscene(variationIndex).Id;
-			return this.VariationsBySubsceneId[subsceneId].Text;
+			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Text;
 		}
 
 		public void SetVariationText(int variationIndex, string variationText)
 		{
-			SUID subsceneId = this.parentSceneEditable.GetSubscene(variationIndex).Id;
 			VariationEditable variationEditable =
-				this.VariationsBySubsceneId[subsceneId] as VariationEditable;
+				this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]]
+				as VariationEditable;
 			if (variationEditable.Text != variationText)
 			{
 				variationEditable.Text = variationText;
@@ -181,7 +193,7 @@ public partial class SnippetEditable
 
 		public int GetVariationCount()
 		{
-			return this.parentSceneEditable.GetSubsceneCount();
+			return this.orderedSubceneSuids.Count;
 		}
 
 		public int GetCurrentVariationIndex()
@@ -214,12 +226,15 @@ public partial class SnippetEditable
 
 		public void UpdateVariationsFromSubscenes()
 		{
+			this.orderedSubceneSuids.Clear();
+
 			for (int subsceneIndex = 0;
 				subsceneIndex < this.parentSceneEditable.GetSubsceneCount();
 				subsceneIndex++)
 			{
 				SubsceneEditable subsceneEditable =
 					this.parentSceneEditable.GetSubscene(subsceneIndex);
+				this.orderedSubceneSuids.Add(subsceneEditable.Id);
 				if (!this.VariationsBySubsceneId.ContainsKey(subsceneEditable.Id))
 				{
 					this.VariationsBySubsceneId[subsceneEditable.Id] = new VariationEditable(
