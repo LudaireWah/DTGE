@@ -90,10 +90,10 @@ public partial class Game : Control
 	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		DtgeCore.Scene.SceneId sceneId = new DtgeCore.Scene.SceneId(option.TargetSceneId);
+		DtgeCore.SceneId sceneId = new DtgeCore.SceneId(option.TargetSceneId);
 		DtgeCore.Scene dtgeScene;
 		DtgeCore.SceneManager.GetSceneSuccessValue successValue =
-			sceneManager.GetSceneAndSubsceneById(sceneId, out dtgeScene);
+			sceneManager.GetSceneAndSetSubsceneById(sceneId, out dtgeScene);
 
 		switch (successValue)
 		{
@@ -101,16 +101,16 @@ public partial class Game : Control
 			this.currentDtgeScene = dtgeScene;
 			break;
 		case DtgeCore.SceneManager.GetSceneSuccessValue.SceneNotFound:
-			this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.scene + "], which was not found");
+			this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.sceneName + "], which was not found");
 			break;
 		case DtgeCore.SceneManager.GetSceneSuccessValue.SubsceneNotFound:
-			if (sceneId.subscene == null)
+			if (sceneId.subsceneName == null)
 			{
-				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.scene + "] without a subscene, which is not supported by that Scene");
+				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.sceneName + "] without a subscene, which is not supported by that Scene");
 			}
 			else
 			{
-				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Subscene [" + sceneId.subscene + "], which was not found in Scene [" + sceneId.scene + "]");
+				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Subscene [" + sceneId.subsceneName + "], which was not found in Scene [" + sceneId.sceneName + "]");
 			}
 			break;
 		default:
@@ -231,7 +231,7 @@ public partial class Game : Control
 			{
 				string sceneJson = sceneFile.GetAsText();
 				DtgeCore.Scene newScene = DtgeCore.Scene.DeserializeFromJsonString(sceneJson);
-				if (newScene == null || newScene.Id == null)
+				if (newScene == null || newScene.Name == null)
 				{
 					this.PopupErrorDialog("Error code VOID: A scene failed to load or had no id.");
 				}
@@ -239,7 +239,7 @@ public partial class Game : Control
 				{
 					sceneManager.AddScene(newScene);
 
-					if (newScene.Id == gameData.StartSceneName)
+					if (newScene.Name == gameData.StartSceneName)
 					{
 						if (startScene != null)
 						{

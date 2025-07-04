@@ -24,14 +24,14 @@ public class SceneEditable : Scene
 
 	public const string NULL_SUBSCENE_NAME = "(None)";
 
-	public new string Id
+	public new string Name
 	{
-		get { return base.Id; }
+		get { return base.Name; }
 		set
 		{
-			if (base.Id != value)
+			if (base.Name != value)
 			{
-				base.Id = value;
+				base.Name = value;
 				this.NotifyUIUpdateNeeded();
 			}
 		}
@@ -115,7 +115,7 @@ public class SceneEditable : Scene
 	protected SceneEditable(SceneSerializable serializable)
 		: base()
 	{
-		this.Id = serializable.Id;
+		this.Name = serializable.Name;
 		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
 		this.CurrentSubsceneIndex = 0;
 		this.RenderImage = serializable.RenderImage;
@@ -147,15 +147,15 @@ public class SceneEditable : Scene
 			this.SnippetList.Add(snippetEditable);
 		}
 
-		this.NotifyUIUpdateNeeded();
-
 		this.nextSUID = serializable.NextSUID;
+
+		this.NotifyUIUpdateNeeded();
 	}
 
 	private SceneSerializable ToSerializable()
 	{
 		SceneSerializable serializable = new SceneSerializable();
-		serializable.Id = this.Id;
+		serializable.Name = this.Name;
 		serializable.NullSubsceneEnabled = this.NullSubsceneEnabled;
 		serializable.RenderImage = this.RenderImage;
 		serializable.ImagePosition = this.ImagePosition;

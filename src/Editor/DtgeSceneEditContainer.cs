@@ -14,7 +14,7 @@ public partial class DtgeSceneEditContainer : Control
 {
 	OptionEditList optionEditList;
 
-	LineEdit dtgeSceneIdEntry;
+	LineEdit dtgeSceneNameEntry;
 	Button addSceneImageButton;
 	HBoxContainer sceneImageHboxContainer;
 	Button removeSceneImageButton;
@@ -50,7 +50,7 @@ public partial class DtgeSceneEditContainer : Control
 		}
 	}
 
-	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.SceneId> OnTryOpenScene;
 	public Action OnSceneUpdated;
 
 	// Called when the node enters the scene tree for the first time.
@@ -58,7 +58,7 @@ public partial class DtgeSceneEditContainer : Control
 	{
 		this.optionEditList = this.GetNode<OptionEditList>("OptionEditList");
 		
-		this.dtgeSceneIdEntry = this.GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/IdLineEdit");
+		this.dtgeSceneNameEntry = this.GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/SceneNameLineEdit");
 		this.addSceneImageButton = this.GetNode<Button>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton");
 		this.sceneImageHboxContainer = this.GetNode<HBoxContainer>("VBoxContainer/SceneImageHBoxContainer");
 		this.removeSceneImageButton = this.GetNode<Button>("VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton");
@@ -153,10 +153,10 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void GiveIdEntryFocus()
 	{
-		this.dtgeSceneIdEntry.GrabFocus();
+		this.dtgeSceneNameEntry.GrabFocus();
 	}
 
-	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	private void HandleTryOpenScene(DtgeCore.SceneId sceneId)
 	{
 		this.OnTryOpenScene(sceneId);
 	}
@@ -172,7 +172,7 @@ public partial class DtgeSceneEditContainer : Control
 
 	public void _on_id_line_edit_text_changed(string new_text)
 	{
-		this.DtgeSceneEditable.Id = new_text;
+		this.DtgeSceneEditable.Name = new_text;
 		if (this.OnSceneUpdated != null)
 		{
 			this.OnSceneUpdated();
@@ -276,9 +276,9 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void updateSceneHeader()
 	{
-		if (this.dtgeSceneIdEntry.Text != this.DtgeSceneEditable.Id)
+		if (this.dtgeSceneNameEntry.Text != this.DtgeSceneEditable.Name)
 		{
-			this.dtgeSceneIdEntry.Text = this.DtgeSceneEditable.Id;
+			this.dtgeSceneNameEntry.Text = this.DtgeSceneEditable.Name;
 		}
 		this.addSceneImageButton.Visible = !this.DtgeSceneEditable.RenderImage;
 		this.sceneImageHboxContainer.Visible = this.DtgeSceneEditable.RenderImage;

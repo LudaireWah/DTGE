@@ -16,6 +16,12 @@ namespace DtgeCore;
  * responsible for managing these elements as well as some scene level things such as an optional
  * image that can be displayed alongside the text.
  * 
+ * Scenes are identified by their name and optionally a subscene name. This id is entered by
+ * authors as scene_name.subscene_name. Scene names should be unique within a DTGE game while
+ * subscene names should be unique within the subscene they're a part of. Within a scene,
+ * different elements are identified by a special identifier called a SUID. You can find more
+ * details on SUIDs and their use in SceneElement.cs and Suid.cs.
+ * 
  * A Scene is mostly read only while running the game. The class and its elements reflect that.
  * Any changes of state that happen in the game should be represented by moving between scenes or
  * the Entity system (still upcoming DTGE-12). There are a few exceptions such as subscenes and
@@ -33,37 +39,7 @@ public class Scene
 		OnlyImage
 	}
 
-	public struct SceneId
-	{
-		public string scene;
-		public string subscene;
-
-		public SceneId(string sceneIdString)
-		{
-			string[] ids = sceneIdString.Split(".");
-			this.scene = ids[0];
-			if (ids.Length > 1)
-			{
-				this.subscene = ids[1];
-			}
-			else
-			{
-				this.subscene = null;
-			}
-			if (ids.Length > 2)
-			{
-				// error
-			}
-		}
-
-		public SceneId(string sceneName, string subsceneName)
-		{
-			this.scene = sceneName;
-			this.subscene = subsceneName;
-		}
-	}
-
-	public string Id { get; protected set; }
+	public string Name { get; protected set; }
 	public bool NullSubsceneEnabled { get; protected set; }
 	public int CurrentSubsceneIndex { get; set; }
 	public Subscene CurrentSubscene
@@ -93,7 +69,7 @@ public class Scene
 
 	public Scene()
 	{
-		this.Id = "";
+		this.Name = "";
 		this.NullSubsceneEnabled = false;
 		this.CurrentSubsceneIndex = 0;
 		this.RenderImage = false;
@@ -109,7 +85,7 @@ public class Scene
 
 	protected Scene(SceneSerializable serializable)
 	{
-		this.Id = serializable.Id;
+		this.Name = serializable.Name;
 		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
 		this.CurrentSubsceneIndex = 0;
 		this.RenderImage= serializable.RenderImage;
@@ -140,6 +116,8 @@ public class Scene
 		Random seedGenerator = new Random();
 		this.sceneRandomSeed = seedGenerator.Next();
 		this.SceneRandom = new Random(this.sceneRandomSeed);
+
+		this.nextSUID = serializable.NextSUID;
 	}
 
 	public static Scene DeserializeFromJsonString(string jsonString)

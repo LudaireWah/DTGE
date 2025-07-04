@@ -33,10 +33,10 @@ namespace DtgeCore.Serialization;
 public class SceneSerializable
 {
 	[JsonIgnore]
-	public string Id
+	public string Name
 	{
-		get { return this.sceneVersion0Data.Id; }
-		set { this.sceneVersion0Data.Id = value; }
+		get { return this.sceneVersion0Data.Name; }
+		set { this.sceneVersion0Data.Name = value; }
 	}
 	[JsonIgnore]
 	public bool NullSubsceneEnabled
@@ -89,7 +89,7 @@ public class SceneSerializable
 
 	private class SceneVersion0
 	{
-		public string Id { get; set; }
+		public string Name { get; set; }
 		public bool NullSubsceneEnabled { get; set; }
 		public bool RenderImage { get; set; }
 		public Scene.SceneImagePosition ImagePosition { get; set; }

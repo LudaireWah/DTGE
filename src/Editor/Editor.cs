@@ -255,14 +255,14 @@ public partial class Editor : Control
 			else
 			{
 				this.saveAsFileDialog.CurrentFile =
-					this.dtgeSceneEditContainer.DtgeSceneEditable.Id;
+					this.dtgeSceneEditContainer.DtgeSceneEditable.Name;
 				this.saveAsFileDialog.Popup();
 			}
 			break;
 		}
 		case PopupMenuIds.FileSaveAs:
 		{
-			this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeSceneEditable.Id;
+			this.saveAsFileDialog.CurrentFile = this.dtgeSceneEditContainer.DtgeSceneEditable.Name;
 			this.saveAsFileDialog.Popup();
 			break;
 		}
@@ -425,7 +425,7 @@ public partial class Editor : Control
 		{
 			this.createNewSceneTab();
 		}
-		this.dtgeSceneEditContainer.DtgeSceneEditable.Id =
+		this.dtgeSceneEditContainer.DtgeSceneEditable.Name =
 			(string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(
 				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
 		bool subsceneIsNonNull =
@@ -461,7 +461,7 @@ public partial class Editor : Control
 		this.updateWindowSize();
 	}
 
-	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	private void HandleTryOpenScene(DtgeCore.SceneId sceneId)
 	{
 		bool sceneFoundInTabs = false;
 
@@ -471,7 +471,7 @@ public partial class Editor : Control
 		{
 			DtgeSceneTabInfo dtgeSceneTabInfo =
 				this.openDtgeSceneDictionary[this.getKeyFromTabIndex(dtgeSceneTabIndex)];
-			if (dtgeSceneTabInfo.dtgeScene.Id == sceneId.scene)
+			if (dtgeSceneTabInfo.dtgeScene.Name == sceneId.sceneName)
 			{
 				this.dtgeSceneTabBar.CurrentTab = dtgeSceneTabIndex;
 				sceneFoundInTabs = true;
@@ -491,7 +491,7 @@ public partial class Editor : Control
 				"No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
 
 			string[] sceneFileNames = sceneDirectory.GetFiles();
-			string targetSceneFileName = sceneId.scene + ".dscn";
+			string targetSceneFileName = sceneId.sceneName + ".dscn";
 
 			for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
 			{
@@ -523,23 +523,23 @@ public partial class Editor : Control
 		if (sceneFoundInTabs || sceneFoundInFiles)
 		{
 			bool subsceneSuccessfullySet =
-				this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subscene);
+				this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subsceneName);
 			if (!subsceneSuccessfullySet)
 			{
-				if (sceneId.subscene != null)
+				if (sceneId.subsceneName != null)
 				{
 					this.createNewSubsceneFromOptionConfirmationDialog.DialogText =
-						"Scene [" + sceneId.scene + "] does not contain subscene [" + sceneId.subscene + "]. Do you want to create this subscene?";
+						"Scene [" + sceneId.sceneName + "] does not contain subscene [" + sceneId.subsceneName + "]. Do you want to create this subscene?";
 					this.createNewSubsceneFromOptionConfirmationDialog.RemoveMeta(
 						CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
 					this.createNewSubsceneFromOptionConfirmationDialog.SetMeta(
-						CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
+						CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subsceneName);
 					this.createNewSubsceneFromOptionConfirmationDialog.Popup();
 				}
 				else
 				{
 					this.enableNullSubsceneOptionConfirmationDialog.DialogText =
-						"Scene [" + sceneId.scene + "] does not support (None) subscenes. Do you want to allow them?";
+						"Scene [" + sceneId.sceneName + "] does not support (None) subscenes. Do you want to allow them?";
 					this.enableNullSubsceneOptionConfirmationDialog.Popup();
 				}
 			}
@@ -548,7 +548,7 @@ public partial class Editor : Control
 		if (!sceneFoundInTabs && !sceneFoundInFiles)
 		{
 			this.createNewSceneFromOptionConfirmationDialog.DialogText =
-				"No scene [" + sceneId.scene + "] was found. Do you want to create one?";
+				"No scene [" + sceneId.sceneName + "] was found. Do you want to create one?";
 			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
 				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
 			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
@@ -556,13 +556,13 @@ public partial class Editor : Control
 			this.createNewSceneFromOptionConfirmationDialog.RemoveMeta(
 				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
 			this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME, sceneId.scene);
-			if (sceneId.subscene != null)
+				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME, sceneId.sceneName);
+			if (sceneId.subsceneName != null)
 			{
 				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL, sceneId.subscene != null);
+					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL, sceneId.subsceneName != null);
 				this.createNewSceneFromOptionConfirmationDialog.SetMeta(
-					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subscene);
+					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME, sceneId.subsceneName);
 			}
 			this.createNewSceneFromOptionConfirmationDialog.Popup();
 		}
@@ -637,7 +637,7 @@ public partial class Editor : Control
 		openedDtgeSceneTabInfo.path = path;
 		openedDtgeSceneTabInfo.saved = true;
 
-		this.dtgeSceneTabBar.AddTab(scene.Id);
+		this.dtgeSceneTabBar.AddTab(scene.Name);
 		int newTabIndex = this.dtgeSceneTabBar.TabCount - 1;
 		this.dtgeSceneTabBar.SetTabMetadata(newTabIndex, this.nextKeyforOpenDtgeSceneDictionary);
 		this.openDtgeSceneDictionary.Add(
@@ -683,13 +683,13 @@ public partial class Editor : Control
 
 		string updatedTabTitle;
 
-		if (dtgeSceneTabInfo.dtgeScene.Id.Equals(""))
+		if (dtgeSceneTabInfo.dtgeScene.Name.Equals(""))
 		{
 			updatedTabTitle = "(empty id)";
 		}
 		else
 		{
-			updatedTabTitle = dtgeSceneTabInfo.dtgeScene.Id;
+			updatedTabTitle = dtgeSceneTabInfo.dtgeScene.Name;
 		}
 
 		if (!dtgeSceneTabInfo.saved)
@@ -747,9 +747,9 @@ public partial class Editor : Control
 	{
 		this.saveYesNoCancelDialog.Size = this.smallDialogInitialSize;
 		string sceneDisplayName = "";
-		if (dtgeSceneTabInfo.dtgeScene.Id.Length > 0)
+		if (dtgeSceneTabInfo.dtgeScene.Name.Length > 0)
 		{
-			sceneDisplayName = "Scene [" + dtgeSceneTabInfo.dtgeScene.Id + "]";
+			sceneDisplayName = "Scene [" + dtgeSceneTabInfo.dtgeScene.Name + "]";
 		}
 		else
 		{

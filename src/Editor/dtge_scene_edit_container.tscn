@@ -23,10 +23,10 @@ layout_mode = 2
 [node name="PropertyLabelContainer" type="VBoxContainer" parent="VBoxContainer/PropertiesContainer"]
 layout_mode = 2
 
-[node name="IdLabel" type="Label" parent="VBoxContainer/PropertiesContainer/PropertyLabelContainer"]
+[node name="SceneNameLabel" type="Label" parent="VBoxContainer/PropertiesContainer/PropertyLabelContainer"]
 custom_minimum_size = Vector2(0, 31)
 layout_mode = 2
-text = "Scene Id"
+text = "Scene Name"
 vertical_alignment = 1
 
 [node name="PropertyEntryContainer" type="VBoxContainer" parent="VBoxContainer/PropertiesContainer"]
@@ -37,7 +37,7 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="IdLineEdit" type="LineEdit" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
+[node name="SceneNameLineEdit" type="LineEdit" parent="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -186,7 +186,7 @@ size = Vector2i(600, 350)
 ok_button_text = "Open"
 file_mode = 0
 
-[connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/IdLineEdit" to="." method="_on_id_line_edit_text_changed"]
+[connection signal="text_changed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/SceneNameLineEdit" to="." method="_on_id_line_edit_text_changed"]
 [connection signal="pressed" from="VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton" to="." method="_on_add_scene_image_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton" to="." method="_on_remove_scene_image_button_pressed"]
 [connection signal="item_selected" from="VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton" to="." method="_on_image_position_option_button_item_selected"]

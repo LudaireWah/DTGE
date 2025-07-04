@@ -16,7 +16,7 @@ public partial class OptionEditList : VBoxContainer
 
 	public DtgeCore.Editing.SceneEditable DtgeSceneEditable;
 
-	public Action<DtgeCore.Scene.SceneId> OnTryOpenScene;
+	public Action<DtgeCore.SceneId> OnTryOpenScene;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -79,7 +79,7 @@ public partial class OptionEditList : VBoxContainer
 		this.DtgeSceneEditable.RemoveOption(optionEditable);
 	}
 
-	private void HandleTryOpenScene(DtgeCore.Scene.SceneId sceneId)
+	private void HandleTryOpenScene(DtgeCore.SceneId sceneId)
 	{
 		this.OnTryOpenScene(sceneId);
 	}
