@@ -15,7 +15,7 @@ public partial class SubscenePanelContainer : PanelContainer
 	LineEdit nameLineEdit;
 	Label readOnlyNameLabel;
 
-	public Action<SubscenePanelContainer> OnSubsceneDeleted;
+	public Action<DtgeCore.Editing.SubsceneEditable> OnSubsceneDeleted;
 
 	public DtgeCore.Editing.SubsceneEditable SubsceneEditable { get; set; }
 
@@ -50,7 +50,7 @@ public partial class SubscenePanelContainer : PanelContainer
 
 	public void _on_subscene_delete_button_pressed()
 	{
-		this.OnSubsceneDeleted(this);
+		this.OnSubsceneDeleted(this.SubsceneEditable);
 	}
 
 	public void _on_subscene_line_edit_text_changed(string newText)

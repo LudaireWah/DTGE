@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://cfepolkldqo55"]
+[gd_scene load_steps=5 format=3 uid="uid://cfepolkldqo55"]
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
 [ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
+[ext_resource type="PackedScene" uid="uid://5mnni8r4lui2" path="res://src/Editor/subscene_list_container.tscn" id="3_j6fin"]
 [ext_resource type="PackedScene" uid="uid://bmqr2dojcmlm3" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
 [node name="DtgeSceneEditContainer" type="SplitContainer"]
@@ -87,27 +88,8 @@ text = "Choose File..."
 [node name="ImagePathLabel" type="Label" parent="VBoxContainer/SceneImageHBoxContainer"]
 layout_mode = 2
 
-[node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="SubsceneListContainer" parent="VBoxContainer" instance=ExtResource("3_j6fin")]
 layout_mode = 2
-
-[node name="NewSubsceneButton" type="Button" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-text = "Add new subscene"
-
-[node name="AllowNoSubsceneCheckButton" type="CheckButton" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
-layout_mode = 2
-text = "Include None"
-
-[node name="SubsceneListScrollContainer" type="ScrollContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-vertical_scroll_mode = 0
-
-[node name="SubsceneListHBoxContainer" type="HBoxContainer" parent="VBoxContainer/SubsceneListHeaderHBoxContainer/SubsceneListScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
 [node name="SceneTextEditContainer" type="HSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -191,8 +173,6 @@ file_mode = 0
 [connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton" to="." method="_on_remove_scene_image_button_pressed"]
 [connection signal="item_selected" from="VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton" to="." method="_on_image_position_option_button_item_selected"]
 [connection signal="pressed" from="VBoxContainer/SceneImageHBoxContainer/ChooseImageButton" to="." method="_on_choose_image_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
-[connection signal="toggled" from="VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton" to="." method="_on_scene_text_copy_snippets_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton" to="." method="_on_scene_text_paste_snippets_button_pressed"]
 [connection signal="toggled" from="VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/ShowPreviewCheckButton" to="." method="_on_show_preview_check_button_toggled"]

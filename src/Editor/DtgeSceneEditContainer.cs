@@ -22,9 +22,7 @@ public partial class DtgeSceneEditContainer : Control
 	Button sceneImageChooseFileButton;
 	Label sceneImagePathLabel;
 
-	HBoxContainer subsceneListHBoxContainer;
-	CheckButton allowNoSubsceneCheckButton;
-	Button newSubsceneButton;
+	SubsceneListContainer subsceneListContainer;
 
 	Button dtgeSceneTextCopySnippetsButton;
 	Button dtgeSceneTextPasteSnippetsButton;
@@ -66,9 +64,7 @@ public partial class DtgeSceneEditContainer : Control
 		this.sceneImageChooseFileButton = this.GetNode<Button>("VBoxContainer/SceneImageHBoxContainer/ChooseImageButton");
 		this.sceneImagePathLabel = this.GetNode<Label>("VBoxContainer/SceneImageHBoxContainer/ImagePathLabel");
 
-		this.newSubsceneButton = this.GetNode<Button>("VBoxContainer/SubsceneListHeaderHBoxContainer/NewSubsceneButton");
-		this.allowNoSubsceneCheckButton = this.GetNode<CheckButton>("VBoxContainer/SubsceneListHeaderHBoxContainer/AllowNoSubsceneCheckButton");
-		this.subsceneListHBoxContainer = this.GetNode<HBoxContainer>("VBoxContainer/SubsceneListHeaderHBoxContainer/SubsceneListScrollContainer/SubsceneListHBoxContainer");
+		this.subsceneListContainer = this.GetNode<SubsceneListContainer>("VBoxContainer/SubsceneListContainer");
 
 		this.dtgeSceneTextCopySnippetsButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton");
 		this.dtgeSceneTextPasteSnippetsButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton");
@@ -114,12 +110,14 @@ public partial class DtgeSceneEditContainer : Control
 					this.Visible = true;
 					this.updateSceneHeader();
 					this.setSceneTextPreviewText(true);
+
 					this.updateSceneTextPreview();
 
 					this.optionEditList.DtgeSceneEditable = this.DtgeSceneEditable;
 					this.optionEditList.UpdateFromEditables();
 
-					this.updateSubsceneListFromDTGEScene();
+					this.subsceneListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
+					this.subsceneListContainer.UpdateFromEditables();
 
 					this.snippetListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 					this.snippetListContainer.UpdateFromEditables();
@@ -167,7 +165,6 @@ public partial class DtgeSceneEditContainer : Control
 			this.DtgeSceneEditable.AllocateNewSubscene();
 		newSubscene.Name = subsceneName;
 		this.DtgeSceneEditable.SetCurrentSubscene(newSubscene);
-		this.addNewSubscenePanelContainer(newSubscene);
 	}
 
 	public void _on_id_line_edit_text_changed(string new_text)
@@ -218,24 +215,6 @@ public partial class DtgeSceneEditContainer : Control
 		}
 	}
 
-	public void _on_new_subscene_button_pressed()
-	{
-		this.AddSubscene("");
-	}
-
-	public void _on_allow_no_subscene_check_button_toggled(bool on)
-	{
-		if (on)
-		{
-			this.DtgeSceneEditable.EnableNullSubscene();
-		}
-		else
-		{
-			this.DtgeSceneEditable.DisableNullSubscene();
-		}
-		this.updateSubsceneListFromDTGEScene();
-	}
-
 	public void _on_add_scene_image_button_pressed()
 	{
 		this.DtgeSceneEditable.RenderImage = true;
@@ -268,12 +247,6 @@ public partial class DtgeSceneEditContainer : Control
 		this.UpdateFromEditables();
 	}
 
-	private void HandleSubsceneDeleted(SubscenePanelContainer subscenePanelContainer)
-	{
-		this.DtgeSceneEditable.RemoveSubsceneByIndex(subscenePanelContainer.GetIndex());
-		this.subsceneListHBoxContainer.RemoveChild(subscenePanelContainer);
-	}
-
 	private void updateSceneHeader()
 	{
 		if (this.dtgeSceneNameEntry.Text != this.DtgeSceneEditable.Name)
@@ -284,51 +257,6 @@ public partial class DtgeSceneEditContainer : Control
 		this.sceneImageHboxContainer.Visible = this.DtgeSceneEditable.RenderImage;
 		this.sceneImagePositionOptionButton.Selected = (int)this.DtgeSceneEditable.ImagePosition;
 		this.sceneImagePathLabel.Text = this.DtgeSceneEditable.ImagePath;
-	}
-
-	private void updateSubsceneListFromDTGEScene()
-	{
-		this.allowNoSubsceneCheckButton.ButtonPressed =
-			this.DtgeSceneEditable.NullSubsceneEnabled;
-		for (int subsceneIndex = 0;
-			subsceneIndex < this.DtgeSceneEditable.GetSubsceneCount();
-			subsceneIndex++)
-		{
-			SubscenePanelContainer currentSubscenePanelContainer =
-				this.subsceneListHBoxContainer.GetChildOrNull<SubscenePanelContainer>(
-					subsceneIndex);
-			if (currentSubscenePanelContainer != null)
-			{
-				currentSubscenePanelContainer.SubsceneEditable =
-					this.DtgeSceneEditable.GetSubscene(subsceneIndex);
-				currentSubscenePanelContainer.UpdateUIFromEditables();
-			}
-			else
-			{
-				this.addNewSubscenePanelContainer(
-					this.DtgeSceneEditable.GetSubscene(subsceneIndex));
-			}
-		}
-
-		while (this.subsceneListHBoxContainer.GetChildCount() >
-			this.DtgeSceneEditable.GetSubsceneCount())
-		{
-			Node nodeToRemove =
-				this.subsceneListHBoxContainer.GetChild(
-					this.subsceneListHBoxContainer.GetChildCount() - 1);
-			this.subsceneListHBoxContainer.RemoveChild(nodeToRemove);
-		}
-
-		if (this.DtgeSceneEditable.GetSubsceneCount() == 0)
-		{
-			this.allowNoSubsceneCheckButton.Visible = false;
-		}
-		else
-		{
-			this.allowNoSubsceneCheckButton.Visible = true;
-		}
-
-		this.updateSceneTextPreview();
 	}
 
 	private void updateSceneTextPreview()
@@ -351,30 +279,11 @@ public partial class DtgeSceneEditContainer : Control
 		this.setSceneTextPreviewText(true);
 	}
 
-
-	private void addNewSubscenePanelContainer(DtgeCore.Editing.SubsceneEditable subsceneEditable)
-	{
-		SubscenePanelContainer newSubscenePanelContainer =
-			((PackedScene)GD.Load(
-				DtgeGodotCommon.GodotConstants.SUBSCENE_PANEL_CONTAINER_PATH))
-				.Instantiate<SubscenePanelContainer>();
-
-		if (newSubscenePanelContainer != null)
-		{
-			newSubscenePanelContainer.SubsceneEditable = subsceneEditable;
-			newSubscenePanelContainer.OnSubsceneDeleted = this.HandleSubsceneDeleted;
-			this.subsceneListHBoxContainer.AddChild(newSubscenePanelContainer);
-			newSubscenePanelContainer.UpdateUIFromEditables();
-		}
-	}
-
 	private void setSceneTextPreviewText(bool preserveRandomization)
 	{
 		//this.dtgeSceneTextPreviewRichTextLabel.Text =
 		//	this.DtgeSceneEditable.CalculateSceneText();
 		this.dtgeSceneTextPreviewRichTextLabel.Text =
 			this.DtgeSceneEditable.CalculateDebugSceneText(preserveRandomization);
-		//this.dtgeSceneTextPreviewRichTextLabel.Text =
-		//	this.DtgeSceneEditable.GetCopyableText();
 	}
 }

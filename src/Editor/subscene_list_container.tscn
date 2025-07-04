@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://5mnni8r4lui2"]
+
+[ext_resource type="Script" path="res://src/Editor/SubsceneListContainer.cs" id="1_k1fd5"]
+
+[node name="SubsceneListHeaderHBoxContainer" type="HBoxContainer"]
+script = ExtResource("1_k1fd5")
+
+[node name="NewSubsceneButton" type="Button" parent="."]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "Add new subscene"
+
+[node name="AllowNoSubsceneCheckButton" type="CheckButton" parent="."]
+layout_mode = 2
+text = "Include None"
+
+[node name="SubsceneListScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+vertical_scroll_mode = 0
+
+[node name="SubsceneListHBoxContainer" type="HBoxContainer" parent="SubsceneListScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="pressed" from="NewSubsceneButton" to="." method="_on_new_subscene_button_pressed"]
+[connection signal="toggled" from="AllowNoSubsceneCheckButton" to="." method="_on_allow_no_subscene_check_button_toggled"]
