@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://cfepolkldqo55"]
 
 [ext_resource type="Script" path="res://src/Editor/DtgeSceneEditContainer.cs" id="1_ggvl2"]
-[ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_edit_list.tscn" id="2_swfsj"]
+[ext_resource type="PackedScene" uid="uid://d2tclmur7pj0d" path="res://src/Editor/option_list_container.tscn" id="2_swfsj"]
 [ext_resource type="PackedScene" uid="uid://5mnni8r4lui2" path="res://src/Editor/subscene_list_container.tscn" id="3_j6fin"]
 [ext_resource type="PackedScene" uid="uid://bmqr2dojcmlm3" path="res://src/Editor/snippet_list_container.tscn" id="3_q0oq0"]
 
@@ -10,7 +10,7 @@ offset_right = 1152.0
 offset_bottom = 648.0
 script = ExtResource("1_ggvl2")
 
-[node name="OptionEditList" parent="." instance=ExtResource("2_swfsj")]
+[node name="OptionListContainer" parent="." instance=ExtResource("2_swfsj")]
 layout_mode = 2
 size_flags_stretch_ratio = 0.2
 

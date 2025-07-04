@@ -12,7 +12,7 @@ namespace DtgeEditor;
  */
 public partial class DtgeSceneEditContainer : Control
 {
-	OptionEditList optionEditList;
+	OptionListContainer optionListContainer;
 
 	LineEdit dtgeSceneNameEntry;
 	Button addSceneImageButton;
@@ -54,7 +54,7 @@ public partial class DtgeSceneEditContainer : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.optionEditList = this.GetNode<OptionEditList>("OptionEditList");
+		this.optionListContainer = this.GetNode<OptionListContainer>("OptionListContainer");
 		
 		this.dtgeSceneNameEntry = this.GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/SceneNameLineEdit");
 		this.addSceneImageButton = this.GetNode<Button>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton");
@@ -78,9 +78,10 @@ public partial class DtgeSceneEditContainer : Control
 		this.pasteSnippetsFailedAcceptDialog = this.GetNode<AcceptDialog>("PasteSnippetsFailedAcceptDialog");
 		this.chooseImageFileDialog = this.GetNode<FileDialog>("ChooseImageFileDialog");
 
-		this.optionEditList.OnTryOpenScene = this.HandleTryOpenScene;
-		this.optionEditList.DtgeSceneEditable = this.DtgeSceneEditable;
+		this.optionListContainer.OnTryOpenScene = this.HandleTryOpenScene;
+		this.optionListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 		this.snippetListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
+		this.subsceneListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 
 		this.UpdateFromEditables();
 	}
@@ -113,8 +114,8 @@ public partial class DtgeSceneEditContainer : Control
 
 					this.updateSceneTextPreview();
 
-					this.optionEditList.DtgeSceneEditable = this.DtgeSceneEditable;
-					this.optionEditList.UpdateFromEditables();
+					this.optionListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
+					this.optionListContainer.UpdateFromEditables();
 
 					this.subsceneListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
 					this.subsceneListContainer.UpdateFromEditables();
