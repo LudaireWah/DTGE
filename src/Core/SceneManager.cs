@@ -72,33 +72,42 @@ public class SceneManager
 		this.scenes[newScene.Name] = newScene;
 	}
 
-	public GetSceneSuccessValue GetSceneById(string id, out Scene outScene)
+	public bool TryGetNextSceneFromOption(Option option, out Scene targetScene, out string message)
 	{
-		GetSceneSuccessValue successValue = GetSceneSuccessValue.Success;
-		bool foundScene = this.scenes.TryGetValue(id, out outScene);
+		SceneId targetSceneId = new SceneId(option.TargetSceneId);
+		Scene obtainedScene = null;
+		bool foundScene = this.scenes.TryGetValue(targetSceneId.sceneName, out obtainedScene);
+		bool subsceneSetSuccessfully = false;
 
 		if (!foundScene)
 		{
-			successValue = GetSceneSuccessValue.SceneNotFound;
+			targetScene = null;
+			message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "], which was not found.";
 		}
-
-		return successValue;
-	}
-
-	public GetSceneSuccessValue GetSceneAndSetSubsceneById(SceneId id, out Scene outScene)
-	{
-		GetSceneSuccessValue successValue = this.GetSceneById(id.sceneName, out outScene);
-		
-		if (successValue == GetSceneSuccessValue.Success)
+		else
 		{
-			
-			bool subsceneSetSuccessfully = outScene.SetCurrentSubscene(id.subsceneName);
-			if (!subsceneSetSuccessfully)
+			subsceneSetSuccessfully = obtainedScene.SetCurrentSubscene(targetSceneId.subsceneName);
+			if (subsceneSetSuccessfully)
 			{
-				successValue = GetSceneSuccessValue.SubsceneNotFound;
+				targetScene = obtainedScene;
+				message = null;
+			}
+			else
+			{
+				if (targetSceneId.subsceneName == null)
+				{
+					targetScene = null;
+					message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "] without a subscene, which is not supported by that Scene.";
+				}
+				else
+				{
+					targetScene = null;
+					message = "Option [" + option.Name + "] attempted to open Subscene [" + targetSceneId.subsceneName + "], which was not found in Scene [" + targetSceneId.sceneName + "].";
+				}
 			}
 		}
-		return successValue;
+
+		return foundScene && subsceneSetSuccessfully;
 	}
 
 	public void ClearScenes()

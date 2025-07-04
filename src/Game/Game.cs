@@ -90,31 +90,14 @@ public partial class Game : Control
 	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		DtgeCore.SceneId sceneId = new DtgeCore.SceneId(option.TargetSceneId);
 		DtgeCore.Scene dtgeScene;
-		DtgeCore.SceneManager.GetSceneSuccessValue successValue =
-			sceneManager.GetSceneAndSetSubsceneById(sceneId, out dtgeScene);
+		string failureMessage;
+		bool sceneSuccessfullySet =
+			sceneManager.TryGetNextSceneFromOption(option, out dtgeScene, out failureMessage);
 
-		switch (successValue)
+		if (!sceneSuccessfullySet)
 		{
-		case DtgeCore.SceneManager.GetSceneSuccessValue.Success:
-			this.currentDtgeScene = dtgeScene;
-			break;
-		case DtgeCore.SceneManager.GetSceneSuccessValue.SceneNotFound:
-			this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.sceneName + "], which was not found");
-			break;
-		case DtgeCore.SceneManager.GetSceneSuccessValue.SubsceneNotFound:
-			if (sceneId.subsceneName == null)
-			{
-				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Scene [" + sceneId.sceneName + "] without a subscene, which is not supported by that Scene");
-			}
-			else
-			{
-				this.PopupErrorDialog("Error code DEAD_END: Option [" + option.Id + "] attempted to open Subscene [" + sceneId.subsceneName + "], which was not found in Scene [" + sceneId.sceneName + "]");
-			}
-			break;
-		default:
-			throw new NotImplementedException();
+			this.PopupErrorDialog(failureMessage);
 		}
 
 		this.updateUIFromScene();
