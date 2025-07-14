@@ -75,6 +75,7 @@ public partial class Editor : Control
 	AcceptDialog gamePreviewAcceptDialog;
 	DtgeGame.Game gamePreviewScene;
 	ProjectSettingsConfirmationDialog projectSettingsConfirmationDialog;
+	AcceptDialog errorAcceptDialog;
 
 	private Vector2I smallDialogInitialSize;
 	private Vector2I largeDialogInitialSize;
@@ -85,16 +86,20 @@ public partial class Editor : Control
 	// A dictionary using creation order as a unique key, as we can't safely assume that scene ids
 	// are unique during authorship. This key will be stored with the tabs as metadata to
 	// associate them with the entry in the dictionary
-	private Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary;
-	private int nextKeyforOpenDtgeSceneDictionary;
+	private Dictionary<int, DtgeSceneTabInfo> openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
+	private int nextKeyforOpenDtgeSceneDictionary = 0;
 
 	private string pendingSceneIdForCreateNewSceneFromOptionConfirmationDialog;
 
+	private (string, string) pendingError = (null, null);
 	private bool anyEditsMade = false;
 
-	public Editor()
+	public override void _EnterTree()
 	{
+		base._EnterTree();
 
+		GodotEditorErrorHandler.ConnectToDtgeErrors();
+		GodotEditorErrorHandler.RegisterErrorCallback(this.popupErrorDialog);
 	}
 
 	// Called when the node enters the scene tree for the first time.
@@ -102,31 +107,26 @@ public partial class Editor : Control
 	{
 		base._Ready();
 
-		this.marginContainer = this.GetNode<MarginContainer>("MarginContainer");
-		this.dtgeSceneTabBar = this.GetNode<TabBar>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar");
-		this.addNewDtgeSceneButton = this.GetNode<Button>("MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton");
-		this.dtgeSceneEditContainer = this.GetNode<DtgeSceneEditContainer>("MarginContainer/VBoxContainer/DtgeSceneEditContainer");
-		this.filePopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/File");
-		this.gamePopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Game");
-		this.helpPopupMenu = this.GetNode<PopupMenu>("MarginContainer/VBoxContainer/MenuBar/Help");
-		this.openFileDialog = this.GetNode<FileDialog>("OpenFileDialog");
-		this.saveAsFileDialog = this.GetNode<FileDialog>("SaveAsFileDialog");
-		this.saveAsAndCloseFileDialog = this.GetNode<FileDialog>("SaveAsAndCloseFileDialog");
-		this.aboutAcceptDialog = this.GetNode<AcceptDialog>("AboutAcceptDialog");
-		this.tutorialAcceptDialog = this.GetNode<AcceptDialog>("TutorialAcceptDialog");
-		this.licenseAcceptDialog = this.GetNode<AcceptDialog>("LicenseAcceptDialog");
-		this.gamePreviewAcceptDialog = this.GetNode<AcceptDialog>("GamePreviewAcceptDialog");
-		this.saveYesNoCancelDialog = this.GetNode<YesNoCancelDialog>("SaveYesNoCancelDialog");
-		this.createNewSceneFromOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("CreateNewSceneFromOptionConfirmationDialog");
-		this.createNewSubsceneFromOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("CreateNewSubsceneFromOptionConfirmationDialog");
-		this.enableNullSubsceneOptionConfirmationDialog = this.GetNode<ConfirmationDialog>("EnableNullSubsceneConfirmationDialog");
-		this.projectSettingsConfirmationDialog = this.GetNode<ProjectSettingsConfirmationDialog>("ProjectSettingsConfirmationDialog");
-
-		Editor.initializeGameDataFromFile();
-		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
-
-		this.openDtgeSceneDictionary = new Dictionary<int, DtgeSceneTabInfo>();
-		this.nextKeyforOpenDtgeSceneDictionary = 0;
+		this.marginContainer = GodotUtilities.GetNodeSmart<MarginContainer>(this, "MarginContainer", GodotEditorErrorHandler.InvokeError);
+		this.dtgeSceneTabBar = GodotUtilities.GetNodeSmart<TabBar>(this, "MarginContainer/VBoxContainer/SceneTabsHBoxContainer/DtgeScenesTabBar", GodotEditorErrorHandler.InvokeError);
+		this.addNewDtgeSceneButton = GodotUtilities.GetNodeSmart<Button>(this, "MarginContainer/VBoxContainer/SceneTabsHBoxContainer/AddNewDtgeSceneButton", GodotEditorErrorHandler.InvokeError);
+		this.dtgeSceneEditContainer = GodotUtilities.GetNodeSmart<DtgeSceneEditContainer>(this, "MarginContainer/VBoxContainer/DtgeSceneEditContainer", GodotEditorErrorHandler.InvokeError);
+		this.filePopupMenu = GodotUtilities.GetNodeSmart<PopupMenu>(this, "MarginContainer/VBoxContainer/MenuBar/File", GodotEditorErrorHandler.InvokeError);
+		this.gamePopupMenu = GodotUtilities.GetNodeSmart<PopupMenu>(this, "MarginContainer/VBoxContainer/MenuBar/Game", GodotEditorErrorHandler.InvokeError);
+		this.helpPopupMenu = GodotUtilities.GetNodeSmart<PopupMenu>(this, "MarginContainer/VBoxContainer/MenuBar/Help", GodotEditorErrorHandler.InvokeError);
+		this.openFileDialog = GodotUtilities.GetNodeSmart<FileDialog>(this, "OpenFileDialog", GodotEditorErrorHandler.InvokeError);
+		this.saveAsFileDialog = GodotUtilities.GetNodeSmart<FileDialog>(this, "SaveAsFileDialog", GodotEditorErrorHandler.InvokeError);
+		this.saveAsAndCloseFileDialog = GodotUtilities.GetNodeSmart<FileDialog>(this, "SaveAsAndCloseFileDialog", GodotEditorErrorHandler.InvokeError);
+		this.aboutAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "AboutAcceptDialog", GodotEditorErrorHandler.InvokeError);
+		this.tutorialAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "TutorialAcceptDialog", GodotEditorErrorHandler.InvokeError);
+		this.licenseAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "LicenseAcceptDialog", GodotEditorErrorHandler.InvokeError);
+		this.gamePreviewAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "GamePreviewAcceptDialog", GodotEditorErrorHandler.InvokeError);
+		this.saveYesNoCancelDialog = GodotUtilities.GetNodeSmart<YesNoCancelDialog>(this, "SaveYesNoCancelDialog", GodotEditorErrorHandler.InvokeError);
+		this.createNewSceneFromOptionConfirmationDialog = GodotUtilities.GetNodeSmart<ConfirmationDialog>(this, "CreateNewSceneFromOptionConfirmationDialog", GodotEditorErrorHandler.InvokeError);
+		this.createNewSubsceneFromOptionConfirmationDialog = GodotUtilities.GetNodeSmart<ConfirmationDialog>(this, "CreateNewSubsceneFromOptionConfirmationDialog", GodotEditorErrorHandler.InvokeError);
+		this.enableNullSubsceneOptionConfirmationDialog = GodotUtilities.GetNodeSmart<ConfirmationDialog>(this, "EnableNullSubsceneConfirmationDialog", GodotEditorErrorHandler.InvokeError);
+		this.projectSettingsConfirmationDialog = GodotUtilities.GetNodeSmart<ProjectSettingsConfirmationDialog>(this, "ProjectSettingsConfirmationDialog", GodotEditorErrorHandler.InvokeError);
+		this.errorAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "ErrorAcceptDialog", GodotEditorErrorHandler.InvokeError);
 
 		this.dtgeSceneEditContainer.OnTryOpenScene = this.HandleTryOpenScene;
 		this.dtgeSceneEditContainer.OnSceneUpdated = this.HandleSceneUpdated;
@@ -142,6 +142,9 @@ public partial class Editor : Control
 		this.helpPopupMenu.AddItem("About", (int)PopupMenuIds.HelpAbout);
 		this.helpPopupMenu.AddItem("Tutorial", (int)PopupMenuIds.HelpTutorial, Key.F1);
 		this.helpPopupMenu.AddItem("License", (int)PopupMenuIds.HelpLicense);
+
+		Editor.initializeGameDataFromFile();
+		DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 
 		this.openFileDialog.AddFilter("*.dscn", "DTGE Scene");
 		this.openFileDialog.RootSubfolder = gameData.SceneDirectoryPath;
@@ -171,6 +174,12 @@ public partial class Editor : Control
 
 		this.currentState = EditorState.Active;
 		this.GetTree().AutoAcceptQuit = false;
+
+		if (this.pendingError.Item1 != null && this.pendingError.Item2 != null)
+		{
+			this.popupErrorDialog(this.pendingError.Item1, this.pendingError.Item2);
+			this.pendingError = (null, null);
+		}
 
 		this.anyEditsMade = false;
 	}
@@ -330,7 +339,8 @@ public partial class Editor : Control
 		FileAccess sceneFile = FileAccess.Open(path, FileAccess.ModeFlags.Read);
 		if (sceneFile == null)
 		{
-			return; // TODO
+			Error godotError = FileAccess.GetOpenError();
+			GodotEditorErrorHandler.InvokeError("Failed to open file. " + godotError.ToString());
 		}
 		else
 		{
@@ -387,14 +397,11 @@ public partial class Editor : Control
 
 	public void _on_dtge_scenes_tab_bar_tab_close_pressed(int tabIndex)
 	{
-		if (this.dtgeSceneTabBar.TabCount == 0)
+		if (this.dtgeSceneTabBar.CurrentTab != tabIndex)
 		{
+			GodotEditorErrorHandler.InvokeError("The editor was somehow told to close a non-active tab, which is not supported.");
 		}
-		else if (this.dtgeSceneTabBar.CurrentTab != tabIndex)
-		{
-			throw new Exception("The editor isn't supposed to support closing any tabs except the active one");
-		}
-		else
+		else if (this.dtgeSceneTabBar.TabCount > 0)
 		{
 			DtgeSceneTabInfo targetDtgeSceneTabInfo =
 				this.openDtgeSceneDictionary[this.getKeyFromTabIndex(tabIndex)];
@@ -425,12 +432,14 @@ public partial class Editor : Control
 		{
 			this.createNewSceneTab();
 		}
+
 		this.dtgeSceneEditContainer.DtgeSceneEditable.Name =
 			(string)this.createNewSceneFromOptionConfirmationDialog.GetMeta(
 				CONFIRMATIONDIALOG_METADATA_TAG_SCENE_NAME);
 		bool subsceneIsNonNull =
 			(bool)this.createNewSceneFromOptionConfirmationDialog.GetMeta(
 				CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_IS_NON_NULL);
+
 		if (subsceneIsNonNull)
 		{
 			string subsceneName =
@@ -438,6 +447,7 @@ public partial class Editor : Control
 					CONFIRMATIONDIALOG_METADATA_TAG_SUBSCENE_NAME);
 			this.dtgeSceneEditContainer.AddSubscene(subsceneName);
 		}
+
 		this.setCurrentSceneTabInfoSaved(false);
 		this.updateTabTitle(this.dtgeSceneTabBar.CurrentTab);
 
@@ -486,35 +496,42 @@ public partial class Editor : Control
 			DtgeCore.GameData gameData = DtgeCore.GameData.GetGameData();
 
 			DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
-			DtgeCore.GlobalErrorHandler.InvokeErrorIf(
-				sceneDirectory == null,
-				"No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
-
-			string[] sceneFileNames = sceneDirectory.GetFiles();
-			string targetSceneFileName = sceneId.sceneName + ".dscn";
-
-			for (int sceneFileIndex = 0; sceneFileIndex < sceneFileNames.Length; sceneFileIndex++)
+			
+			if (sceneDirectory == null)
 			{
-				string sceneFileName = sceneFileNames[sceneFileIndex];
+				GodotEditorErrorHandler.InvokeError("No scene directory was found. For now, create a folder called \"" + gameData.SceneDirectoryPath + "\" in your root folder. This experience will be improved as part of DTGE-21. ");
+			}
+			else
+			{
+				string[] sceneFileNames = sceneDirectory.GetFiles();
+				string targetSceneFileName = sceneId.sceneName + ".dscn";
 
-				if (sceneFileName == targetSceneFileName)
+				for (int sceneFileIndex = 0;
+					sceneFileIndex < sceneFileNames.Length;
+					sceneFileIndex++)
 				{
-					string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
-					FileAccess sceneFile =
-						FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
+					string sceneFileName = sceneFileNames[sceneFileIndex];
 
-					if (sceneFile != null)
+					if (sceneFileName == targetSceneFileName)
 					{
-						string sceneJson = sceneFile.GetAsText();
-						DtgeCore.Editing.SceneEditable newScene =
-							DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(sceneJson);
-						if (newScene != null)
-						{
-							this.createOpenedSceneTab(newScene, sceneFilePath);
-							sceneFoundInFiles = true;
-						}
+						string sceneFilePath = gameData.SceneDirectoryPath + "/" + sceneFileName;
+						FileAccess sceneFile =
+							FileAccess.Open(sceneFilePath, FileAccess.ModeFlags.Read);
 
-						sceneFile.Close();
+						if (sceneFile != null)
+						{
+							string sceneJson = sceneFile.GetAsText();
+							DtgeCore.Editing.SceneEditable newScene =
+								DtgeCore.Editing.SceneEditable.DeserializeFromJsonString(
+									sceneJson);
+							if (newScene != null)
+							{
+								this.createOpenedSceneTab(newScene, sceneFilePath);
+								sceneFoundInFiles = true;
+							}
+
+							sceneFile.Close();
+						}
 					}
 				}
 			}
@@ -523,7 +540,8 @@ public partial class Editor : Control
 		if (sceneFoundInTabs || sceneFoundInFiles)
 		{
 			bool subsceneSuccessfullySet =
-				this.dtgeSceneEditContainer.DtgeSceneEditable.SetCurrentSubscene(sceneId.subsceneName);
+				this.dtgeSceneEditContainer.DtgeSceneEditable.TrySetCurrentSubscene(
+					sceneId.subsceneName);
 			if (!subsceneSuccessfullySet)
 			{
 				if (sceneId.subsceneName != null)
@@ -581,7 +599,11 @@ public partial class Editor : Control
 
 		FileAccess gameDataFile =
 			FileAccess.Open(DtgeCore.GameData.GAME_DATA_FILE_PATH, FileAccess.ModeFlags.Write);
-		if (gameDataFile != null)
+		if (gameDataFile == null)
+		{
+			GodotEditorErrorHandler.InvokeError("Failed to open the game data file.");
+		}
+		else
 		{
 			string gameDataString = JsonSerializer.Serialize<DtgeCore.GameData>(gameData);
 			gameDataFile.StoreString(gameDataString);
@@ -598,9 +620,16 @@ public partial class Editor : Control
 			((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.GAME_SCENE_PATH))
 			.Instantiate<DtgeGame.Game>();
 
-		this.gamePreviewAcceptDialog.AddChild(this.gamePreviewScene);
-		this.gamePreviewAcceptDialog.Popup();
-		this._on_game_preview_accept_dialog_size_changed();
+		if (this.gamePreviewScene == null)
+		{
+			GodotEditorErrorHandler.InvokeError("Failed to load the Godot Scene needed to run the debug game.");
+		}
+		else
+		{
+			this.gamePreviewAcceptDialog.AddChild(this.gamePreviewScene);
+			this.gamePreviewAcceptDialog.Popup();
+			this._on_game_preview_accept_dialog_size_changed();
+		}
 	}
 
 	private void createNewSceneTab()
@@ -729,7 +758,8 @@ public partial class Editor : Control
 		FileAccess sceneFile = FileAccess.Open(path, FileAccess.ModeFlags.Write);
 		if (sceneFile == null)
 		{
-			return; // TODO
+			Error godotError = FileAccess.GetOpenError();
+			GodotEditorErrorHandler.InvokeError("Failed to open file in order to save. " + godotError.ToString());
 		}
 		else
 		{
@@ -755,8 +785,7 @@ public partial class Editor : Control
 		{
 			sceneDisplayName = "unnamed scene";
 		}
-		this.saveYesNoCancelDialog.SetDialogText(
-			"Would you like to save " + sceneDisplayName+ " before closing it?");
+		this.saveYesNoCancelDialog.SetDialogText("Would you like to save " + sceneDisplayName+ " before closing it?");
 		this.saveYesNoCancelDialog.OnYesSelected = () =>
 		{
 			if (dtgeSceneTabInfo.path != null)
@@ -846,5 +875,20 @@ public partial class Editor : Control
 			(int)(newViewport.Size.X * LARGE_ACCEPT_DIALOG_SIZE_RATIO_X);
 		this.largeDialogInitialSize.Y =
 			(int)(newViewport.Size.Y * LARGE_ACCEPT_DIALOG_SIZE_RATIO_Y);
+	}
+
+	private void popupErrorDialog(string title, string message)
+	{
+		if (this.errorAcceptDialog == null)
+		{
+			this.pendingError = (title, message);
+		}
+		else
+		{
+			this.errorAcceptDialog.Size = this.smallDialogInitialSize;
+			this.errorAcceptDialog.Title = title;
+			this.errorAcceptDialog.DialogText = message;
+			this.errorAcceptDialog.Popup();
+		}
 	}
 }

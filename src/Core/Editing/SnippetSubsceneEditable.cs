@@ -36,25 +36,33 @@ public partial class SnippetEditable
 			: base(parentSceneEditable)
 		{
 			this.parentSceneEditable = parentSceneEditable;
-			this.orderedSubceneSuids = new List<SUID>();
 
-			for (int subsceneIndex = 0;
-				subsceneIndex < this.parentSceneEditable.GetSubsceneCount();
-				subsceneIndex++)
+			if (other == null)
 			{
-				Subscene subscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
-				this.orderedSubceneSuids.Add(subscene.Id);
-				if (subsceneIndex < other.GetVariationCount())
+				EditingErrorHandler.InvokeEditingError("A Subscene Snippet's Implementation was constructed from a null other implementation.");
+			}
+			else
+			{
+				this.orderedSubceneSuids = new List<SUID>();
+
+				for (int subsceneIndex = 0;
+					subsceneIndex < this.parentSceneEditable.GetSubsceneCount();
+					subsceneIndex++)
 				{
-					this.VariationsBySubsceneId[subscene.Id] = new VariationEditable(
-						parentSceneEditable,
-						subscene.Name,
-						other.GetVariationText(subsceneIndex));
-				}
-				else
-				{
-					this.VariationsBySubsceneId[subscene.Id] =
-						new VariationEditable(parentSceneEditable, subscene.Name, string.Empty);
+					Subscene subscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
+					this.orderedSubceneSuids.Add(subscene.Id);
+					if (subsceneIndex < other.GetVariationCount())
+					{
+						this.VariationsBySubsceneId[subscene.Id] = new VariationEditable(
+							parentSceneEditable,
+							subscene.Name,
+							other.GetVariationText(subsceneIndex));
+					}
+					else
+					{
+						this.VariationsBySubsceneId[subscene.Id] =
+							new VariationEditable(parentSceneEditable, subscene.Name, string.Empty);
+					}
 				}
 			}
 		}
@@ -82,12 +90,19 @@ public partial class SnippetEditable
 
 		public void PopulateSerializable(SnippetSubsceneSerializable serializable)
 		{
-			foreach (SUID subsceneId in this.VariationsBySubsceneId.Keys)
+			if (serializable == null)
 			{
-				VariationEditable variationEditable =
-					this.VariationsBySubsceneId[subsceneId] as VariationEditable;
-				serializable.VariationsBySubsceneId[subsceneId] =
-					variationEditable.ToSerializable();
+				EditingErrorHandler.InvokeSaveError("SnippetSubsceneEditable's PopulateSerializable function received a null serializable.");
+			}
+			else
+			{
+				foreach (SUID subsceneId in this.VariationsBySubsceneId.Keys)
+				{
+					VariationEditable variationEditable =
+						this.VariationsBySubsceneId[subsceneId] as VariationEditable;
+					serializable.VariationsBySubsceneId[subsceneId] =
+						variationEditable.ToSerializable();
+				}
 			}
 		}
 
@@ -99,7 +114,11 @@ public partial class SnippetEditable
 			bool canConvert = false;
 			message = string.Empty;
 
-			if (otherSnippetEditable.GetVariationCount()
+			if (otherSnippetEditable == null)
+			{
+				EditingErrorHandler.InvokeEditingError("SnippetSubsceneEditable's CanConvertFrom function received a null other snippet implementation.");
+			}
+			else if (otherSnippetEditable.GetVariationCount()
 				<= parentSceneEditable.GetSubsceneCount())
 			{
 				canConvert = true;
@@ -140,9 +159,13 @@ public partial class SnippetEditable
 
 		public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
 		{
-			if (pastedTextSplitByVariation.Length != this.parentSceneEditable.GetSubsceneCount())
+			if (pastedTextSplitByVariation == null)
 			{
-				GlobalErrorHandler.InvokeError("There was a mismatch between subscene count and pasted variation count when restoring from pasted text.");
+				EditingErrorHandler.InvokeEditingError("A Subscene Snippet's RestoreFromPastedText function received a null pasted strings array.");
+			}
+			else if (pastedTextSplitByVariation.Length != this.parentSceneEditable.GetSubsceneCount())
+			{
+				EditingErrorHandler.InvokeEditingError("A Subscene snippet received a pasted text array whose length did not match the number of subscenes.");
 			}
 			else
 			{
@@ -151,11 +174,19 @@ public partial class SnippetEditable
 					Subscene subscene = this.parentSceneEditable.GetSubscene(subsceneIndex);
 					VariationEditable variationEditable =
 						this.VariationsBySubsceneId[subscene.Id] as VariationEditable;
-					variationEditable.Text = pastedTextSplitByVariation[subsceneIndex];
-				}
-			}
 
-			this.notifyParentOfEdit();
+					if (variationEditable == null)
+					{
+						EditingErrorHandler.InvokeEditingError("A Subscene Snippet's RestoreFromPastedText function encountered a null variation.");
+					}
+					else
+					{
+						variationEditable.Text = pastedTextSplitByVariation[subsceneIndex];
+					}
+				}
+
+				this.notifyParentOfEdit();
+			}
 		}
 
 		public bool CanEditVariationCount()
@@ -163,31 +194,57 @@ public partial class SnippetEditable
 			return false;
 		}
 
-		public VariationEditable GetVariationEditable(int variationIndex)
-		{
-			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]]
-				as VariationEditable;
-		}
-
 		public string GetVariationName(int variationIndex)
 		{
-			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Name;
+			string variationName = null;
+
+			if (!CoreErrorHandler.IsValidIndex(variationIndex, this.parentSceneEditable.GetSubsceneCount()))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Subscene Snippet's GetVariationName was called with an invalid index. The index was " + variationIndex + ". The subscene count was " + this.parentSceneEditable.GetSubsceneCount() + ".");
+			}
+			else
+			{
+				variationName =
+					this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Name;
+			}
+
+			return variationName;
 		}
 
 		public string GetVariationText(int variationIndex)
 		{
-			return this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Text;
+			string variationText = null;
+
+			if (!CoreErrorHandler.IsValidIndex(variationIndex, this.parentSceneEditable.GetSubsceneCount()))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Subscene Snippet's GetVariationText was called with an invalid index. The index was " + variationIndex + ". The subscene count was " + this.parentSceneEditable.GetSubsceneCount() + ".");
+			}
+			else
+			{
+				variationText =
+					this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]].Text;
+			}
+
+			return variationText;
 		}
 
 		public void SetVariationText(int variationIndex, string variationText)
 		{
-			VariationEditable variationEditable =
+
+			if (!CoreErrorHandler.IsValidIndex(variationIndex, this.parentSceneEditable.GetSubsceneCount()))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Subscene Snippet's SetVariationText was called with an invalid index. The index was " + variationIndex + ". The subscene count was " + this.parentSceneEditable.GetSubsceneCount() + ".");
+			}
+			else
+			{
+				VariationEditable variationEditable =
 				this.VariationsBySubsceneId[this.orderedSubceneSuids[variationIndex]]
 				as VariationEditable;
-			if (variationEditable.Text != variationText)
-			{
-				variationEditable.Text = variationText;
-				this.notifyParentOfEdit();
+				if (variationEditable.Text != variationText)
+				{
+					variationEditable.Text = variationText;
+					this.notifyParentOfEdit();
+				}
 			}
 		}
 
@@ -212,15 +269,13 @@ public partial class SnippetEditable
 
 		public bool AddVariation()
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to add a new variation to a subscene snippet.");
-
+			EditingErrorHandler.InvokeIllegalOperationError("A Subscene Snippet's AddVariation was called, which should never be called (check CanEditVariationCount).");
 			return false;
 		}
 
 		public bool RemoveVariationEditable(int variationIndex)
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to remove a variation from a subscene snippet.");
-
+			EditingErrorHandler.InvokeIllegalOperationError("A Subscene Snippet's RemoveVariationEditable was called, which should never be called (check CanEditVariationCount).");
 			return false;
 		}
 

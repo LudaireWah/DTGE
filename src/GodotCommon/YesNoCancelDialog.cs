@@ -1,5 +1,7 @@
 using System;
 
+using DtgeGodotCommon;
+
 using Godot;
 
 /**
@@ -20,8 +22,8 @@ public partial class YesNoCancelDialog : Window
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.rootMarginContainer = this.GetNode<MarginContainer>("RootMarginContainer");
-		this.dialogText = this.GetNode<RichTextLabel>("RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text");
+		this.rootMarginContainer = GodotUtilities.GetNodeSmart<MarginContainer>(this, "RootMarginContainer", this.errorCallback);
+		this.dialogText = GodotUtilities.GetNodeSmart<RichTextLabel>(this, "RootMarginContainer/VBoxContainer/VBoxContainer/Dialog Text", this.errorCallback);
 
 		this.SizeChanged += this.HandleWindowSizeChanged;
 	}
@@ -67,5 +69,10 @@ public partial class YesNoCancelDialog : Window
 			this.OnCancelSelected();
 		}
 		this.Hide();
+	}
+
+	private void errorCallback(string message)
+	{
+		throw new Exception(message);
 	}
 }

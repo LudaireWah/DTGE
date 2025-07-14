@@ -158,6 +158,9 @@ ok_button_text = "Close"
 [node name="ProjectSettingsConfirmationDialog" parent="." instance=ExtResource("4_y4mjv")]
 visible = false
 
+[node name="ErrorAcceptDialog" type="AcceptDialog" parent="."]
+initial_position = 2
+
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/File" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Game" to="." method="_on_popup_menu_index_pressed"]
 [connection signal="id_pressed" from="MarginContainer/VBoxContainer/MenuBar/Help" to="." method="_on_popup_menu_index_pressed"]

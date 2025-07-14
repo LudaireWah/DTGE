@@ -1,3 +1,5 @@
+using DtgeGodotCommon;
+
 using Godot;
 
 namespace DtgeEditor;
@@ -15,7 +17,7 @@ public partial class SnippetListContainer : VBoxContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.snippetListVBoxContainer = this.GetNode<VBoxContainer>("SnippetListScrollContainer/SnippetListVBoxContainer");
+		this.snippetListVBoxContainer = GodotUtilities.GetNodeSmart<VBoxContainer>(this, "SnippetListScrollContainer/SnippetListVBoxContainer", GodotEditorErrorHandler.InvokeError);
 	}
 
 	public void UpdateFromEditables()
@@ -40,7 +42,11 @@ public partial class SnippetListContainer : VBoxContainer
 					((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SNIPPET_PANEL_CONTAINER_PATH))
 					.Instantiate<SnippetPanelContainer>();
 
-				if (newSnippetPanelContainer != null)
+				if (newSnippetPanelContainer == null)
+				{
+					GodotEditorErrorHandler.InvokeError("Failed to find the Godot Scene for initializing a Snippet Panel Container.");
+				}
+				else
 				{
 					newSnippetPanelContainer.SnippetEditable = snippetEditable;
 					newSnippetPanelContainer.OnSnippetMovedUp = this.HandleSnippetMovedUp;
@@ -70,12 +76,12 @@ public partial class SnippetListContainer : VBoxContainer
 
 	private void HandleSnippetMovedUp(DtgeCore.Editing.SnippetEditable targetSnippet)
 	{
-		this.DtgeSceneEditable.TryMoveSnippet(targetSnippet, -1);
+		this.DtgeSceneEditable.MoveSnippet(targetSnippet, -1);
 	}
 
 	private void HandleMoveSnippetDown(DtgeCore.Editing.SnippetEditable targetSnippet)
 	{
-		this.DtgeSceneEditable.TryMoveSnippet(targetSnippet, 1);
+		this.DtgeSceneEditable.MoveSnippet(targetSnippet, 1);
 	}
 
 	private void HandleSnippetDeleted(DtgeCore.Editing.SnippetEditable toRemove)

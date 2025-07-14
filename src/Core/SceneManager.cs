@@ -11,21 +11,30 @@ public struct SceneId
 	public string sceneName;
 	public string subsceneName;
 
-	public SceneId(string sceneIdString)
+	public SceneId(string targetString)
 	{
-		string[] ids = sceneIdString.Split(".");
-		this.sceneName = ids[0];
-		if (ids.Length > 1)
+		if (targetString == null)
 		{
-			this.subsceneName = ids[1];
+			CoreErrorHandler.InvokePlayError("A SceneId was constructed with a null string.");
 		}
 		else
 		{
-			this.subsceneName = null;
-		}
-		if (ids.Length > 2)
-		{
-			// error
+			string[] ids = targetString.Split(".");
+
+			if (ids.Length == 1)
+			{
+				this.sceneName = ids[0];
+				this.subsceneName = null;
+			}
+			else if (ids.Length == 2)
+			{
+				this.sceneName = ids[0];
+				this.subsceneName = ids[1];
+			}
+			else
+			{
+				CoreErrorHandler.InvokePlayError("A SceneId was constructed with a malformed string. There should be no more than one '.' in the target string.");
+			}
 		}
 	}
 
@@ -50,12 +59,7 @@ public class SceneManager
 	}
 
 	private static SceneManager instance;
-	private readonly Dictionary<string, Scene> scenes;
-
-	private SceneManager()
-	{
-		this.scenes= new Dictionary<string, Scene>();
-	}
+	private readonly Dictionary<string, Scene> scenes = new Dictionary<string, Scene>();
 
 	public static SceneManager GetSceneManager()
 	{
@@ -72,42 +76,38 @@ public class SceneManager
 		this.scenes[newScene.Name] = newScene;
 	}
 
-	public bool TryGetNextSceneFromOption(Option option, out Scene targetScene, out string message)
+	public Scene GetNextSceneFromOption(Option option)
 	{
+		Scene targetScene = null;
+
 		SceneId targetSceneId = new SceneId(option.TargetSceneId);
-		Scene obtainedScene = null;
-		bool foundScene = this.scenes.TryGetValue(targetSceneId.sceneName, out obtainedScene);
+		Scene scene = null;
+		bool foundScene = this.scenes.TryGetValue(targetSceneId.sceneName, out scene);
 		bool subsceneSetSuccessfully = false;
 
 		if (!foundScene)
 		{
-			targetScene = null;
-			message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "], which was not found.";
+			CoreErrorHandler.InvokePlayError("Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "], which was not found.");
 		}
 		else
 		{
-			subsceneSetSuccessfully = obtainedScene.SetCurrentSubscene(targetSceneId.subsceneName);
-			if (subsceneSetSuccessfully)
+			subsceneSetSuccessfully = scene.TrySetCurrentSubscene(targetSceneId.subsceneName);
+			if (!subsceneSetSuccessfully)
 			{
-				targetScene = obtainedScene;
-				message = null;
-			}
-			else
-			{
+				scene = null;
+
 				if (targetSceneId.subsceneName == null)
 				{
-					targetScene = null;
-					message = "Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "] without a subscene, which is not supported by that Scene.";
+					CoreErrorHandler.InvokePlayError("Option [" + option.Name + "] attempted to open Scene [" + targetSceneId.sceneName + "] without a subscene, which is not supported by that Scene.");
 				}
 				else
 				{
-					targetScene = null;
-					message = "Option [" + option.Name + "] attempted to open Subscene [" + targetSceneId.subsceneName + "], which was not found in Scene [" + targetSceneId.sceneName + "].";
+					CoreErrorHandler.InvokePlayError("Option [" + option.Name + "] attempted to open Subscene [" + targetSceneId.subsceneName + "], which was not found in Scene [" + targetSceneId.sceneName + "].");
 				}
 			}
 		}
 
-		return foundScene && subsceneSetSuccessfully;
+		return targetScene;
 	}
 
 	public void ClearScenes()

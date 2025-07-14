@@ -20,12 +20,7 @@ public class SnippetRandomSerializable : SnippetSerializable
 
 	private class SnippetRandomVersion0
 	{
-		public List<VariationSerializable> Variations { get; set; }
-
-		public SnippetRandomVersion0()
-		{
-			this.Variations = new List<VariationSerializable>();
-		}
+		public List<VariationSerializable> Variations { get; set; } = new List<VariationSerializable>();
 	}
 
 	[JsonInclude]

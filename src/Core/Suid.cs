@@ -25,7 +25,24 @@ public class SUID
 
 	public static bool operator ==(SUID left, SUID right)
 	{
-		return left.suid == right.suid;
+		bool equals = false;
+		bool leftIsNull = Object.ReferenceEquals(left, null);
+		bool rightIsNull = object.ReferenceEquals(right, null);
+		
+		if (leftIsNull && rightIsNull)
+		{
+			equals = true;
+		}
+		else if (leftIsNull || rightIsNull)
+		{
+			equals = false;
+		}
+		else
+		{
+			equals = left.suid == right.suid;
+		}
+
+		return equals;
 	}
 
 	public static bool operator !=(SUID left, SUID right)
@@ -71,7 +88,14 @@ public class SUIDConverter : JsonConverter<SUID>
 		SUID value,
 		JsonSerializerOptions options)
 	{
-		JsonSerializer.Serialize(writer, value.ToInt(), options);
+		if (value == null)
+		{
+			JsonSerializer.Serialize(writer, null, options);
+		}
+		else
+		{
+			JsonSerializer.Serialize(writer, value.ToInt(), options);
+		}
 	}
 
 	public override SUID ReadAsPropertyName(
@@ -87,6 +111,13 @@ public class SUIDConverter : JsonConverter<SUID>
 		[DisallowNull] SUID value,
 		JsonSerializerOptions options)
 	{
-		writer.WritePropertyName(value.ToInt().ToString());
+		if (value == null)
+		{
+			writer.WritePropertyName("null");
+		}
+		else
+		{
+			writer.WritePropertyName(value.ToInt().ToString());
+		}
 	}
 }

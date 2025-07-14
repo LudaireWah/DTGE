@@ -73,35 +73,42 @@ public partial class SnippetEditable : Snippet
 	}
 
 	public SnippetEditable(SceneEditable parentSceneEditable, SnippetSerializable serializable)
-		:base(parentSceneEditable, serializable)
+		:base(parentSceneEditable)
 	{
-		this.parentSceneEditable = parentSceneEditable;
-
-		switch (serializable.Mode)
+		if (serializable == null)
 		{
-		case Mode.Simple:
-			SnippetSimpleSerializable simpleSerializable =
-				serializable as SnippetSimpleSerializable;
-			this.CurrentImplementationEditable =
-				new SimpleSnippetImplementationEditable(parentSceneEditable, simpleSerializable);
-			break;
-		case Mode.Subscene:
-			SnippetSubsceneSerializable subsceneSerializable =
-				serializable as SnippetSubsceneSerializable;
-			this.CurrentImplementationEditable =
-				new SubsceneSnippetImplementationEditable(
-					parentSceneEditable,
-					subsceneSerializable);
-			break;
-		case Mode.Random:
-			SnippetRandomSerializable randomSerializable =
-				serializable as SnippetRandomSerializable;
-			this.CurrentImplementationEditable =
-				new RandomSnippetImplementationEditable(parentSceneEditable, randomSerializable);
-			break;
-		default:
-			GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
-			break;
+			CoreErrorHandler.InvokeInitializationError("A Snippet was initialized with a null serializable.");
+		}
+		else
+		{
+			this.parentSceneEditable = parentSceneEditable;
+
+			switch (serializable.Mode)
+			{
+			case Mode.Simple:
+				SnippetSimpleSerializable simpleSerializable =
+					serializable as SnippetSimpleSerializable;
+				this.CurrentImplementationEditable =
+					new SimpleSnippetImplementationEditable(parentSceneEditable, simpleSerializable);
+				break;
+			case Mode.Subscene:
+				SnippetSubsceneSerializable subsceneSerializable =
+					serializable as SnippetSubsceneSerializable;
+				this.CurrentImplementationEditable =
+					new SubsceneSnippetImplementationEditable(
+						parentSceneEditable,
+						subsceneSerializable);
+				break;
+			case Mode.Random:
+				SnippetRandomSerializable randomSerializable =
+					serializable as SnippetRandomSerializable;
+				this.CurrentImplementationEditable =
+					new RandomSnippetImplementationEditable(parentSceneEditable, randomSerializable);
+				break;
+			default:
+				EditingErrorHandler.InvokeLoadError("A Snippet was initialized with an unknown Snippet Mode.");
+				break;
+			}
 		}
 	}
 
@@ -136,7 +143,7 @@ public partial class SnippetEditable : Snippet
 			serializable = randomSerializable;
 			break;
 		default:
-			GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
+			EditingErrorHandler.InvokeSaveError("A Snippet was serialized while set to an unknown Snippet Mode.");
 			break;
 		}
 
@@ -167,7 +174,7 @@ public partial class SnippetEditable : Snippet
 			canConvert = true;
 			break;
 		default:
-			GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
+			EditingErrorHandler.InvokeIllegalOperationError("Snippet's CanChangeToMode was called with an unknown Snippet Mode.");
 			break;
 		}
 
@@ -181,7 +188,7 @@ public partial class SnippetEditable : Snippet
 
 		if (!this.CanChangeToMode(mode, out changeFailedMessage))
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to change a snippet to a mode it couldn't be changed to. " + changeFailedMessage);
+			EditingErrorHandler.InvokeIllegalOperationError("An attempt was made to change a snippet to a mode it couldn't be changed to (Call CanChangeToMode first). Reason: " + changeFailedMessage);
 		}
 		else
 		{
@@ -208,7 +215,7 @@ public partial class SnippetEditable : Snippet
 						this.CurrentImplementationEditable);
 				break;
 			default:
-				GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
+				EditingErrorHandler.InvokeIllegalOperationError("Snippet's ChangeToMode was called with an unknown Snippet Mode.");
 				break;
 			}
 		}
@@ -239,7 +246,7 @@ public partial class SnippetEditable : Snippet
 			canEditVariationCount = true;
 			break;
 		default:
-			GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
+			EditingErrorHandler.InvokeEditingError("Snippet's CanEditVariationCount was called while the Snippet was set to an unknown Snippet Mode.");
 			break;
 		}
 
@@ -273,8 +280,8 @@ public partial class SnippetEditable : Snippet
 
 	public void RestoreFromPastedText(string[] pastedTextSplitByVariations)
 	{
-		this.notifyParentOfEdit();
 		this.CurrentImplementationEditable.RestoreFromPastedText(pastedTextSplitByVariations);
+		this.notifyParentOfEdit();
 	}
 
 	public string GetVariationName(int variationIndex)
@@ -328,12 +335,12 @@ public partial class SnippetEditable : Snippet
 		}
 	}
 
-	public bool isFirst()
+	public bool IsFirst()
 	{
 		return this == this.parentSceneEditable.GetSnippetByIndex(0);
 	}
 
-	public bool isLast()
+	public bool IsLast()
 	{
 		return this == this.parentSceneEditable.GetSnippetByIndex(
 			this.parentSceneEditable.GetSnippetCount() - 1);

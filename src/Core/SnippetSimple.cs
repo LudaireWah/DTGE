@@ -16,20 +16,49 @@ public partial class Snippet
 
 		public SimpleSnippetImplementation(Scene parentScene)
 		{
-			this.SingleVariation = new Variation(parentScene, "(Simple)", string.Empty);
+			if (parentScene == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Simple Snippet's Implementation was initialized with a null parent Scene.");
+			}
+			else
+			{
+				this.SingleVariation = new Variation(parentScene, "(Simple)", string.Empty);
+			}
 		}
 
 		public SimpleSnippetImplementation(
 			Scene parentScene,
 			SnippetSimpleSerializable serializable)
 		{
-			this.SingleVariation =
-				new Variation(parentScene, serializable.SingleVariation);
+			if (parentScene == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Simple Snippet's Implementation was initialized with a null parent Scene.");
+			}
+			else if (serializable == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Simple Snippet's Implementation was initialized with a null serializable.");
+			}
+			else
+			{
+				this.SingleVariation =
+					new Variation(parentScene, serializable.SingleVariation);
+			}
 		}
 
 		public string CalculateText()
 		{
-			return this.SingleVariation.Text;
+			string variationText = null;
+
+			if (this.SingleVariation == null)
+			{
+				CoreErrorHandler.InvokePlayError("A Simple snippet had a null variation.");
+			}
+			else
+			{
+				variationText = this.SingleVariation.Text;
+			}
+
+			return variationText;
 
 		}
 	}

@@ -17,6 +17,9 @@ namespace DtgeGame;
 public partial class Game : Control
 {
 	private const string SETTINGS_PATH = "dtge.config";
+	private const string INITIALIZATION_ERROR_POPUP_TITLE = "Initialization Error";
+	private const string PLAY_ERROR_POPUP_TITLE = "Play Error";
+	private const string GAME_SHELL_ERROR_TITLE = "Game Shell Error";
 
 	private enum PopupMenuIds
 	{
@@ -82,6 +85,10 @@ public partial class Game : Control
 		this.loadScenesFromFiles();
 		this.updateUIFromScene();
 
+		DtgeCore.CoreErrorHandler.RegisterInitializationErrorCallback(
+			this.HandleInitializationError);
+		DtgeCore.CoreErrorHandler.RegisterPlayErrorCallback(this.HandlePlayError);
+
 		this.GetTree().Root.SizeChanged += this._on_root_size_changed;
 		this.updateWindowSize();
 		this.manualViewportSizeOverride = false;
@@ -90,17 +97,12 @@ public partial class Game : Control
 	private void handleOptionSelected(DtgeCore.Option option)
 	{
 		DtgeCore.SceneManager sceneManager = DtgeCore.SceneManager.GetSceneManager();
-		DtgeCore.Scene dtgeScene;
-		string failureMessage;
-		bool sceneSuccessfullySet =
-			sceneManager.TryGetNextSceneFromOption(option, out dtgeScene, out failureMessage);
+		DtgeCore.Scene nextScene = sceneManager.GetNextSceneFromOption(option);
 
-		if (!sceneSuccessfullySet)
+		if (nextScene != null)
 		{
-			this.PopupErrorDialog(failureMessage);
+			this.LoadScene(nextScene);
 		}
-
-		this.updateUIFromScene();
 	}
 
 	public void LoadScene(DtgeCore.Scene scene)
@@ -157,8 +159,24 @@ public partial class Game : Control
 		this.marginContainer.SetSize(newViewport);
 	}
 
-	private void PopupErrorDialog(string errorText)
+	private void HandleInitializationError(string errorText)
 	{
+		this.PopupErrorDialog(INITIALIZATION_ERROR_POPUP_TITLE, errorText);
+	}
+
+	private void HandlePlayError(string errorText)
+	{
+		this.PopupErrorDialog(PLAY_ERROR_POPUP_TITLE, errorText);
+	}
+
+	private void raiseGameClientError(string errorText)
+	{
+		this.PopupErrorDialog(GAME_SHELL_ERROR_TITLE, errorText);
+	}
+
+	private void PopupErrorDialog(string errorTitle, string errorText)
+	{
+		this.errorAcceptDialog.Title = errorTitle;
 		this.errorAcceptDialog.DialogText = errorText;
 		this.errorAcceptDialog.Popup();
 	}
@@ -196,7 +214,7 @@ public partial class Game : Control
 		DirAccess sceneDirectory = DirAccess.Open(gameData.SceneDirectoryPath);
 		if (sceneDirectory == null)
 		{
-			this.PopupErrorDialog("Error Code LABYRINTH: No scene directory found.");
+			this.raiseGameClientError("Error Code LABYRINTH: No scene directory found.");
 			return;
 		}
 
@@ -216,7 +234,7 @@ public partial class Game : Control
 				DtgeCore.Scene newScene = DtgeCore.Scene.DeserializeFromJsonString(sceneJson);
 				if (newScene == null || newScene.Name == null)
 				{
-					this.PopupErrorDialog("Error code VOID: A scene failed to load or had no id.");
+					this.raiseGameClientError("Error code VOID: A scene failed to load or had no id.");
 				}
 				else
 				{
@@ -226,7 +244,7 @@ public partial class Game : Control
 					{
 						if (startScene != null)
 						{
-							this.PopupErrorDialog("Error code GEMINI: Two start scenes found.");
+							this.raiseGameClientError("Error code GEMINI: Two start scenes found.");
 						}
 						startScene = newScene;
 					}
@@ -238,7 +256,7 @@ public partial class Game : Control
 
 		if (startScene == null)
 		{
-			this.PopupErrorDialog("Eror code NONSTARTER: No start scene found.");
+			this.raiseGameClientError("Eror code NONSTARTER: No start scene found.");
 		}
 		else
 		{

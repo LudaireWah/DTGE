@@ -94,17 +94,10 @@ public class SceneSerializable
 		public bool RenderImage { get; set; }
 		public Scene.SceneImagePosition ImagePosition { get; set; }
 		public string ImagePath { get; set; }
-		public List<OptionSerializable> OptionList { get; set; }
-		public List<SubsceneSerializable> SubsceneList { get; set; }
-		public List<SnippetSerializable> SnippetList { get; set; }
+		public List<OptionSerializable> OptionList { get; set; } = new List<OptionSerializable>();
+		public List<SubsceneSerializable> SubsceneList { get; set; } = new List<SubsceneSerializable>();
+		public List<SnippetSerializable> SnippetList { get; set; } = new List<SnippetSerializable>();
 		public int NextSUID { get; set; }
-
-		public SceneVersion0()
-		{
-			this.OptionList = new List<OptionSerializable>();
-			this.SubsceneList = new List<SubsceneSerializable>();
-			this.SnippetList = new List<SnippetSerializable>();
-		}
 	}
 
 	[JsonInclude]
@@ -127,7 +120,7 @@ public class SceneSerializable
 		}
 		catch (Exception exception)
 		{
-			GlobalErrorHandler.InvokeError("An exception was hit during serialization. Exception message: " + exception.Message);
+			CoreErrorHandler.InvokeInitializationError("An exception was hit during serialization. Exception message: " + exception.Message);
 		}
 
 		return jsonString;
@@ -135,7 +128,29 @@ public class SceneSerializable
 
 	public static SceneSerializable DeserializeFromString(string sceneJson)
 	{
-		SceneSerializable sceneSerializable = JsonSerializer.Deserialize<SceneSerializable>(sceneJson);
+		SceneSerializable sceneSerializable = null;
+
+		if (sceneJson == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("A Scene Serializable was initialized with a null json string.");
+		}
+		else
+		{
+			try
+			{
+				sceneSerializable = JsonSerializer.Deserialize<SceneSerializable>(sceneJson);
+			}
+			catch (JsonException jsonException)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Scene Serializable failed to be deserialized. Exception: " + jsonException.Message);
+			}
+
+			if (sceneSerializable == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Scene Serializable failed to be deserialized.");
+			}
+		}
+
 		return sceneSerializable;
 	}
 }

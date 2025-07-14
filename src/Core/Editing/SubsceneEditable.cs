@@ -20,7 +20,7 @@ public class SubsceneEditable : Subscene
 		{
 			if (this.IsReadOnly)
 			{
-				GlobalErrorHandler.InvokeError("A read only subscene's name was set.");
+				EditingErrorHandler.InvokeIllegalOperationError("A Read-Only Subscene's name was set, which is not allowed.");
 			}
 			else if (base.Name != value)
 			{

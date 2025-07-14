@@ -11,20 +11,38 @@ namespace DtgeCore;
  */
 public abstract class SceneElement
 {
-    public SUID Id { get; private set; }
+	public SUID Id { get; private set; } = null;
 
-    protected Scene ParentScene { get; private set; }
+	protected Scene ParentScene { get; private set; } = null;
 
     protected SceneElement(Scene parentScene)
-    {
-        this.Id = parentScene.GetSUID();
-        this.ParentScene = parentScene;
+	{
+		if (parentScene == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("A SceneElement was initialized with a null parentScene.");
+		}
+		else
+		{
+			this.Id = parentScene.GetSUID();
+			this.ParentScene = parentScene;
+		}
     }
 
-	protected SceneElement(Scene parentScene, SceneElementSerializable sceneElementSerializable)           
+	protected SceneElement(Scene parentScene, SceneElementSerializable serializable)
 	{
-		this.Id = sceneElementSerializable.Id;
-		this.ParentScene = parentScene;
+		if (parentScene == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("A SceneElement was initialized with a null parentScene.");
+		}
+		else if (serializable == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("A SceneElement was initialized with a null serializable.");
+		}
+		else
+		{
+			this.Id = serializable.Id;
+			this.ParentScene = parentScene;
+		}
 	}
 
 	protected T CreateSerializable<T>() where T : SceneElementSerializable, new()
@@ -33,11 +51,6 @@ public abstract class SceneElement
 		serializable.Id = this.Id;
 		return serializable;
 	}
-
-    protected void CopyFrom(SceneElement other)
-    {
-        this.Id = other.Id;
-    }
 
 	public static bool operator ==(SceneElement left, SceneElement right)
 	{
@@ -74,6 +87,6 @@ public abstract class SceneElement
 
 	public override int GetHashCode()
 	{
-		return this.Id.GetHashCode();
+		return this.Id != null ? this.Id.GetHashCode() : 0;
 	}
 }

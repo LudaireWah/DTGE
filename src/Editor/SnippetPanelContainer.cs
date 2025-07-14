@@ -34,13 +34,13 @@ public partial class SnippetPanelContainer : PanelContainer
 
 	public override void _Ready()
 	{
-		this.conditionalModeOptionButton = this.GetNode<OptionButton>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton");
-		this.snippetTextEdit = this.GetNode<TextEdit>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTextEdit");
-		this.snippetTabsHBoxContainer = this.GetNode<HBoxContainer>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer");
-		this.snippetTabBar = this.GetNode<TabBar>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar");
-		this.newTabButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton");
-		this.moveSnippetUpButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton");
-		this.moveSnippetDownButton = this.GetNode<Button>("SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveDownButton");
+		this.conditionalModeOptionButton = GodotUtilities.GetNodeSmart<OptionButton>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/ConditionalModeOptionButton", GodotEditorErrorHandler.InvokeError);
+		this.snippetTextEdit = GodotUtilities.GetNodeSmart<TextEdit>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetTextEdit", GodotEditorErrorHandler.InvokeError);
+		this.snippetTabsHBoxContainer = GodotUtilities.GetNodeSmart<HBoxContainer>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer", GodotEditorErrorHandler.InvokeError);
+		this.snippetTabBar = GodotUtilities.GetNodeSmart<TabBar>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/SnippetTabBar", GodotEditorErrorHandler.InvokeError);
+		this.newTabButton = GodotUtilities.GetNodeSmart<Button>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetTabsHBoxContainer/NewTabButton", GodotEditorErrorHandler.InvokeError);
+		this.moveSnippetUpButton = GodotUtilities.GetNodeSmart<Button>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveUpButton", GodotEditorErrorHandler.InvokeError);
+		this.moveSnippetDownButton = GodotUtilities.GetNodeSmart<Button>(this, "SnippetMarginContainer/SnippetVBoxContainer/SnippetHeaderContainer/MoveDownButton", GodotEditorErrorHandler.InvokeError);
 
 		this.snippetTextEdit.FocusMode = FocusModeEnum.Click;
 	}
@@ -68,13 +68,13 @@ public partial class SnippetPanelContainer : PanelContainer
 				this.snippetTextEdit,
 				this.SnippetEditable.GetVariationText(this.snippetTabBar.CurrentTab));
 
-			this.moveSnippetUpButton.Disabled = this.SnippetEditable.isFirst();
+			this.moveSnippetUpButton.Disabled = this.SnippetEditable.IsFirst();
 			this.moveSnippetUpButton.FocusMode =
-				this.SnippetEditable.isFirst() ? FocusModeEnum.None : FocusModeEnum.All;
+				this.SnippetEditable.IsFirst() ? FocusModeEnum.None : FocusModeEnum.All;
 
-			this.moveSnippetDownButton.Disabled = this.SnippetEditable.isLast();
+			this.moveSnippetDownButton.Disabled = this.SnippetEditable.IsLast();
 			this.moveSnippetDownButton.FocusMode =
-				this.SnippetEditable.isLast() ? FocusModeEnum.None : FocusModeEnum.All;
+				this.SnippetEditable.IsLast() ? FocusModeEnum.None : FocusModeEnum.All;
 		}
 	}
 

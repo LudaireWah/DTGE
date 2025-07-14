@@ -1,5 +1,7 @@
 using DtgeEditor;
 
+using DtgeGodotCommon;
+
 using Godot;
 using System;
 
@@ -14,9 +16,9 @@ public partial class SubsceneListContainer : HBoxContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.newSubsceneButton = this.GetNode<Button>("NewSubsceneButton");
-		this.allowNoSubsceneCheckButton = this.GetNode<CheckButton>("AllowNoSubsceneCheckButton");
-		this.subsceneListHBoxContainer = this.GetNode<HBoxContainer>("SubsceneListScrollContainer/SubsceneListHBoxContainer");
+		this.newSubsceneButton = GodotUtilities.GetNodeSmart<Button>(this, "NewSubsceneButton", GodotEditorErrorHandler.InvokeError);
+		this.allowNoSubsceneCheckButton = GodotUtilities.GetNodeSmart<CheckButton>(this, "AllowNoSubsceneCheckButton", GodotEditorErrorHandler.InvokeError);
+		this.subsceneListHBoxContainer = GodotUtilities.GetNodeSmart<HBoxContainer>(this, "SubsceneListScrollContainer/SubsceneListHBoxContainer", GodotEditorErrorHandler.InvokeError);
 	}
 
 	public void UpdateFromEditables()
@@ -41,7 +43,11 @@ public partial class SubsceneListContainer : HBoxContainer
 					((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.SUBSCENE_PANEL_CONTAINER_PATH))
 					.Instantiate<SubscenePanelContainer>();
 
-				if (newSubscenePanelContainer != null)
+				if (newSubscenePanelContainer == null)
+				{
+					GodotEditorErrorHandler.InvokeError("Failed to find the Godot Scene for initializing a Snippet Panel Container.");
+				}
+				else
 				{
 					newSubscenePanelContainer.SubsceneEditable = subsceneEditable;
 					newSubscenePanelContainer.OnSubsceneDeleted = this.HandleSubsceneDeleted;

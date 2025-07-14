@@ -1,8 +1,8 @@
 using System;
 
-using DtgeCore;
-
 using Godot;
+
+using DtgeGodotCommon;
 
 namespace DtgeEditor;
 
@@ -54,29 +54,29 @@ public partial class DtgeSceneEditContainer : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.optionListContainer = this.GetNode<OptionListContainer>("OptionListContainer");
+		this.optionListContainer = GodotUtilities.GetNodeSmart<OptionListContainer>(this, "OptionListContainer", GodotEditorErrorHandler.InvokeError);
 		
-		this.dtgeSceneNameEntry = this.GetNode<LineEdit>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/SceneNameLineEdit");
-		this.addSceneImageButton = this.GetNode<Button>("VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton");
-		this.sceneImageHboxContainer = this.GetNode<HBoxContainer>("VBoxContainer/SceneImageHBoxContainer");
-		this.removeSceneImageButton = this.GetNode<Button>("VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton");
-		this.sceneImagePositionOptionButton = this.GetNode<OptionButton>("VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton");
-		this.sceneImageChooseFileButton = this.GetNode<Button>("VBoxContainer/SceneImageHBoxContainer/ChooseImageButton");
-		this.sceneImagePathLabel = this.GetNode<Label>("VBoxContainer/SceneImageHBoxContainer/ImagePathLabel");
+		this.dtgeSceneNameEntry = GodotUtilities.GetNodeSmart<LineEdit>(this, "VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/SceneNameLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.addSceneImageButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/PropertiesContainer/PropertyEntryContainer/SceneIdAndAddImageHBoxContainer/AddSceneImageButton", GodotEditorErrorHandler.InvokeError);
+		this.sceneImageHboxContainer = GodotUtilities.GetNodeSmart<HBoxContainer>(this, "VBoxContainer/SceneImageHBoxContainer", GodotEditorErrorHandler.InvokeError);
+		this.removeSceneImageButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/SceneImageHBoxContainer/RemoveSceneImageButton", GodotEditorErrorHandler.InvokeError);
+		this.sceneImagePositionOptionButton = GodotUtilities.GetNodeSmart<OptionButton>(this, "VBoxContainer/SceneImageHBoxContainer/ImagePositionOptionButton", GodotEditorErrorHandler.InvokeError);
+		this.sceneImageChooseFileButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/SceneImageHBoxContainer/ChooseImageButton", GodotEditorErrorHandler.InvokeError);
+		this.sceneImagePathLabel = GodotUtilities.GetNodeSmart<Label>(this, "VBoxContainer/SceneImageHBoxContainer/ImagePathLabel", GodotEditorErrorHandler.InvokeError);
 
-		this.subsceneListContainer = this.GetNode<SubsceneListContainer>("VBoxContainer/SubsceneListContainer");
+		this.subsceneListContainer = GodotUtilities.GetNodeSmart<SubsceneListContainer>(this, "VBoxContainer/SubsceneListContainer", GodotEditorErrorHandler.InvokeError);
 
-		this.dtgeSceneTextCopySnippetsButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton");
-		this.dtgeSceneTextPasteSnippetsButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton");
+		this.dtgeSceneTextCopySnippetsButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextCopySnippetsButton", GodotEditorErrorHandler.InvokeError);
+		this.dtgeSceneTextPasteSnippetsButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SceneTextEntryHeader/SceneTextPasteSnippetsButton", GodotEditorErrorHandler.InvokeError);
 		
-		this.snippetListContainer = this.GetNode<SnippetListContainer>("VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SnippetListContainer");
+		this.snippetListContainer = GodotUtilities.GetNodeSmart<SnippetListContainer>(this, "VBoxContainer/SceneTextEditContainer/SceneTextEntryContainer/SnippetListContainer", GodotEditorErrorHandler.InvokeError);
 
-		this.dtgeSceneTextPreviewContainer = this.GetNode<VBoxContainer>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer");
-		this.dtgeSceneTextPreviewRandomizeButton = this.GetNode<Button>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton");
-		this.dtgeSceneTextPreviewRichTextLabel = this.GetNode<RichTextLabel>("VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/SceneTextPreviewRichTextLabel");
+		this.dtgeSceneTextPreviewContainer = GodotUtilities.GetNodeSmart<VBoxContainer>(this, "VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer", GodotEditorErrorHandler.InvokeError);
+		this.dtgeSceneTextPreviewRandomizeButton = GodotUtilities.GetNodeSmart<Button>(this, "VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/HBoxContainer/SceneTextPreviewRandomizeButton", GodotEditorErrorHandler.InvokeError);
+		this.dtgeSceneTextPreviewRichTextLabel = GodotUtilities.GetNodeSmart<RichTextLabel>(this, "VBoxContainer/SceneTextEditContainer/SceneTextPreviewContainer/SceneTextPreviewRichTextLabel", GodotEditorErrorHandler.InvokeError);
 
-		this.pasteSnippetsFailedAcceptDialog = this.GetNode<AcceptDialog>("PasteSnippetsFailedAcceptDialog");
-		this.chooseImageFileDialog = this.GetNode<FileDialog>("ChooseImageFileDialog");
+		this.pasteSnippetsFailedAcceptDialog = GodotUtilities.GetNodeSmart<AcceptDialog>(this, "PasteSnippetsFailedAcceptDialog", GodotEditorErrorHandler.InvokeError);
+		this.chooseImageFileDialog = GodotUtilities.GetNodeSmart<FileDialog>(this, "ChooseImageFileDialog", GodotEditorErrorHandler.InvokeError);
 
 		this.optionListContainer.OnTryOpenScene = this.HandleTryOpenScene;
 		this.optionListContainer.DtgeSceneEditable = this.DtgeSceneEditable;
@@ -133,7 +133,7 @@ public partial class DtgeSceneEditContainer : Control
 				}
 				catch (Exception exception)
 				{
-					GlobalErrorHandler.InvokeError("An exception was hit while updating the editor UI. Exception: " + exception.Message);
+					GodotEditorErrorHandler.InvokeError("An unknown error while updating the editor UI.\r\nException: " + exception.Message);
 				}
 			}
 		}
@@ -165,12 +165,25 @@ public partial class DtgeSceneEditContainer : Control
 		DtgeCore.Editing.SubsceneEditable newSubscene =
 			this.DtgeSceneEditable.AllocateNewSubscene();
 		newSubscene.Name = subsceneName;
-		this.DtgeSceneEditable.SetCurrentSubscene(newSubscene);
+		this.DtgeSceneEditable.TrySetCurrentSubscene(newSubscene.Name);
 	}
 
-	public void _on_id_line_edit_text_changed(string new_text)
+	public void _on_id_line_edit_text_changed(string newText)
 	{
-		this.DtgeSceneEditable.Name = new_text;
+		if (!DtgeCore.Editing.UserDefinedNameValidator.IsValidName(newText))
+		{
+			GodotUtilities.PlayTextEntryErrorSound();
+			string correctedName = DtgeCore.Editing.UserDefinedNameValidator.CorrectName(newText);
+			this.DtgeSceneEditable.Name = correctedName;
+			int oldCaretColumn = this.dtgeSceneNameEntry.CaretColumn;
+			this.dtgeSceneNameEntry.Text = correctedName;
+			this.dtgeSceneNameEntry.CaretColumn = oldCaretColumn;
+		}
+		else
+		{
+			this.DtgeSceneEditable.Name = newText;
+		}
+
 		if (this.OnSceneUpdated != null)
 		{
 			this.OnSceneUpdated();
@@ -282,8 +295,6 @@ public partial class DtgeSceneEditContainer : Control
 
 	private void setSceneTextPreviewText(bool preserveRandomization)
 	{
-		//this.dtgeSceneTextPreviewRichTextLabel.Text =
-		//	this.DtgeSceneEditable.CalculateSceneText();
 		this.dtgeSceneTextPreviewRichTextLabel.Text =
 			this.DtgeSceneEditable.CalculateDebugSceneText(preserveRandomization);
 	}

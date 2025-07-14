@@ -39,9 +39,9 @@ public class Scene
 		OnlyImage
 	}
 
-	public string Name { get; protected set; }
-	public bool NullSubsceneEnabled { get; protected set; }
-	public int CurrentSubsceneIndex { get; set; }
+	public string Name { get; protected set; } = "";
+	public bool NullSubsceneEnabled { get; protected set; } = false;
+	public int CurrentSubsceneIndex { get; set; } = 0;
 	public Subscene CurrentSubscene
 	{
 		get
@@ -54,30 +54,21 @@ public class Scene
 			return currentSubscene;
 		}
 	}
-	public bool RenderImage { get; protected set; }
-	public SceneImagePosition ImagePosition {  get; protected set; }
-	public string ImagePath {  get; protected set; }
+	public bool RenderImage { get; protected set; } = false;
+	public SceneImagePosition ImagePosition {  get; protected set; } = SceneImagePosition.Top;
+	public string ImagePath { get; protected set; } = null;
 
 	public Random SceneRandom { get; private set; }
 
-	protected List<Option> OptionList { get; private set; }
-	protected List<Subscene> SubsceneList { get; private set; }
-	protected List<Snippet> SnippetList { get; private set; }
+	protected List<Option> OptionList { get; private set; } = new List<Option>();
+	protected List<Subscene> SubsceneList { get; private set; } = new List<Subscene>();
+	protected List<Snippet> SnippetList { get; private set; } = new List<Snippet>();
 
 	protected int nextSUID = SUID.FIRST_VALID_SUID;
 	private readonly int sceneRandomSeed;
 
 	public Scene()
 	{
-		this.Name = "";
-		this.NullSubsceneEnabled = false;
-		this.CurrentSubsceneIndex = 0;
-		this.RenderImage = false;
-		this.ImagePath = null;
-		this.OptionList = new List<Option>();
-		this.SubsceneList = new List<Subscene>();
-		this.SnippetList = new List<Snippet>();
-
 		Random seedGenerator = new Random();
 		this.sceneRandomSeed = seedGenerator.Next();
 		this.SceneRandom = new Random(this.sceneRandomSeed);
@@ -85,47 +76,60 @@ public class Scene
 
 	protected Scene(SceneSerializable serializable)
 	{
-		this.Name = serializable.Name;
-		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
-		this.CurrentSubsceneIndex = 0;
-		this.RenderImage= serializable.RenderImage;
-		this.ImagePath= serializable.ImagePath;
-
-		this.OptionList = new List<Option>();
-		for (int optionIndex = 0; optionIndex < serializable.OptionList.Count; optionIndex++)
+		if (serializable == null)
 		{
-			this.OptionList.Add(new Option(this, serializable.OptionList[optionIndex]));
+			CoreErrorHandler.InvokeInitializationError("A Scene was initialized with a null serializable.");
 		}
-
-		this.SubsceneList = new List<Subscene>();
-		for (int subsceneIndex = 0;
-			subsceneIndex < serializable.SubsceneList.Count;
-			subsceneIndex++)
+		else
 		{
-			this.SubsceneList.Add(new Subscene(this, serializable.SubsceneList[subsceneIndex]));
-		}
+			this.Name = serializable.Name;
+			this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
+			this.CurrentSubsceneIndex = 0;
+			this.RenderImage = serializable.RenderImage;
+			this.ImagePath = serializable.ImagePath;
 
-		this.SnippetList = new List<Snippet>();
-		for (int snippetIndex = 0; snippetIndex < serializable.SnippetList.Count; snippetIndex++)
-		{
-			SnippetSerializable deserializingSnippetSerializable =
-				serializable.SnippetList[snippetIndex];
-			this.SnippetList.Add(new Snippet(this, deserializingSnippetSerializable));
+			for (int optionIndex = 0; optionIndex < serializable.OptionList.Count; optionIndex++)
+			{
+				this.OptionList.Add(new Option(this, serializable.OptionList[optionIndex]));
+			}
+			for (int subsceneIndex = 0;
+				subsceneIndex < serializable.SubsceneList.Count;
+				subsceneIndex++)
+			{
+				this.SubsceneList.Add(
+					new Subscene(this, serializable.SubsceneList[subsceneIndex]));
+			}
+			for (int snippetIndex = 0;
+				snippetIndex < serializable.SnippetList.Count;
+				snippetIndex++)
+			{
+				this.SnippetList.Add(new Snippet(this, serializable.SnippetList[snippetIndex]));
+			}
+
+			this.nextSUID = serializable.NextSUID;
 		}
 
 		Random seedGenerator = new Random();
 		this.sceneRandomSeed = seedGenerator.Next();
 		this.SceneRandom = new Random(this.sceneRandomSeed);
-
-		this.nextSUID = serializable.NextSUID;
 	}
 
 	public static Scene DeserializeFromJsonString(string jsonString)
 	{
-		SceneSerializable sceneSerializable =
-			JsonSerializer.Deserialize<SceneSerializable>(jsonString);
+		Scene scene = null;
 
-		return new Scene(sceneSerializable);
+		if (jsonString == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("A scene was deserialized from a null string.");
+		}
+		else
+		{
+			SceneSerializable sceneSerializable = 
+				SceneSerializable.DeserializeFromString(jsonString);
+			scene = new Scene(sceneSerializable);
+		}
+
+		return scene;
 	}
 
 	public SUID GetSUID()
@@ -136,14 +140,30 @@ public class Scene
 	public string CalculateSceneText()
 	{
 		string sceneText = "";
+		bool errorEncountered = false;
 
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
 			Snippet currentSnippet = this.SnippetList[snippetIndex];
-			sceneText += currentSnippet.CalculateText();
+			if (currentSnippet == null)
+			{
+				CoreErrorHandler.InvokePlayError("Scene [" + this.Name + "] encountered a null snippet at index " + snippetIndex + " while calculating scene text.");
+			}
+			else
+			{
+				try
+				{
+					sceneText += currentSnippet.CalculateText();
+				}
+				catch (Exception exception)
+				{
+					errorEncountered = true;
+					CoreErrorHandler.InvokePlayError("Scene [" + this.Name + "] encountered an unknown error while calculating scene text for snippet index " + snippetIndex + ". Exception: " + exception.Message);
+				}
+			}
 		}
 
-		return sceneText;
+		return errorEncountered ? "" : sceneText;
 	}
 
 	public int GetOptionCount()
@@ -153,27 +173,30 @@ public class Scene
 
 	public Option GetOption(int index)
 	{
-		return this.OptionList[index];
-	}
+		Option option = null;
 
-	public bool SetCurrentSubsceneByIndex(int index)
-	{
-		bool success = false;
-		if (index < this.SubsceneList.Count)
+		if (CoreErrorHandler.IsValidIndex(index, this.OptionList.Count))
 		{
-			this.CurrentSubsceneIndex = index;
-			success = true;
+			option = this.OptionList[index];
 		}
-		return success;
+		else
+		{
+			CoreErrorHandler.InvokePlayError("Scene [" + this.Name + "]'s GetOption function was called with an invalid index of " + index + ". The scene has " + this.OptionList.Count + " Options.");
+		}
+
+		return option;
 	}
 
-	public bool SetCurrentSubscene(string subsceneName)
+	public bool TrySetCurrentSubscene(string subsceneName)
 	{
 		bool success = false;
 		if (subsceneName == null)
 		{
-			this.CurrentSubsceneIndex = 0;
-			success = this.NullSubsceneEnabled || this.SubsceneList.Count == 0;
+			if (this.NullSubsceneEnabled || this.SubsceneList.Count == 0)
+			{
+				success = true;
+				this.CurrentSubsceneIndex = 0;
+			}
 		}
 		else
 		{
@@ -193,29 +216,6 @@ public class Scene
 				this.CurrentSubsceneIndex = desiredSubsceneIndex;
 				success = true;
 			}
-		}
-
-		return success;
-	}
-
-	public bool SetCurrentSubscene(Subscene subscene)
-	{
-		bool success = false;
-		int desiredSubsceneIndex = -1;
-
-		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
-		{
-			if (this.SubsceneList[subsceneIndex].Id == subscene.Id)
-			{
-				desiredSubsceneIndex = subsceneIndex;
-				break;
-			}
-		}
-		
-		if (desiredSubsceneIndex != -1)
-		{
-			this.CurrentSubsceneIndex = desiredSubsceneIndex;
-			success = true;
 		}
 
 		return success;

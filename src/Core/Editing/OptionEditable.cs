@@ -26,7 +26,11 @@ public class OptionEditable : Option
         get { return base.TargetSceneId; }
         set
         {
-            if (base.TargetSceneId != value)
+            if (!UserDefinedNameValidator.IsValidNestableName(value))
+            {
+                EditingErrorHandler.InvokeIllegalOperationError("An Option's TargetSceneId was set to an invalid string. It should only contain alphanumerics and period; use UserDefinedValidation to validate and correct strings before setting them on DtgeCore elements.");
+            }
+            else if (base.TargetSceneId != value)
 			{
 				base.TargetSceneId = value;
 				this.notifyParentOfEdit();
@@ -75,15 +79,15 @@ public class OptionEditable : Option
 	public OptionEditable(SceneEditable parentSceneEditable)
         : base(parentSceneEditable)
     {
-        this.parentSceneEditable = parentSceneEditable;
+		this.parentSceneEditable = parentSceneEditable;
 	}
 
     public OptionEditable(
         SceneEditable parentSceneEditable,
         OptionSerializable optionSerializable)
         : base(parentSceneEditable, optionSerializable)
-    {
-        this.parentSceneEditable = parentSceneEditable;
+	{
+		this.parentSceneEditable = parentSceneEditable;
     }
 
     public OptionSerializable ToSerializable()
@@ -115,6 +119,7 @@ public class OptionEditable : Option
 			"  Display Name: " + this.DisplayName + "\n" +
 			"  Tooltip: " + tooltipText + "\n" +
 			"  Enabled: " + this.Enabled + "\n";
+
 		return optionString;
 	}
 

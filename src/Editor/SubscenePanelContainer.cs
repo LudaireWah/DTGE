@@ -22,9 +22,9 @@ public partial class SubscenePanelContainer : PanelContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.deleteSubsceneButton = this.GetNode<Button>("SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton");
-		this.nameLineEdit = this.GetNode<LineEdit>("SubsceneMarginContainer/SubsceneHBoxContainer/NameLineEdit");
-		this.readOnlyNameLabel = this.GetNode<Label>("SubsceneMarginContainer/SubsceneHBoxContainer/ReadOnlyNameLabel");
+		this.deleteSubsceneButton = GodotUtilities.GetNodeSmart<Button>(this, "SubsceneMarginContainer/SubsceneHBoxContainer/SubsceneDeleteButton", GodotEditorErrorHandler.InvokeError);
+		this.nameLineEdit = GodotUtilities.GetNodeSmart<LineEdit>(this, "SubsceneMarginContainer/SubsceneHBoxContainer/NameLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.readOnlyNameLabel = GodotUtilities.GetNodeSmart<Label>(this, "SubsceneMarginContainer/SubsceneHBoxContainer/ReadOnlyNameLabel", GodotEditorErrorHandler.InvokeError);
 	}
 
 	public void UpdateUIFromEditables()

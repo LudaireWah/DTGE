@@ -47,31 +47,36 @@ public partial class Snippet : SceneElement
 	public Snippet(Scene parentScene, SnippetSerializable serializable)
 		: base(parentScene, serializable)
 	{
-		this.currentImplementation = null;
-
-		switch (serializable.Mode)
+		if (serializable == null)
 		{
-		case Mode.Simple:
-			SnippetSimpleSerializable simpleSerializable =
-				serializable as SnippetSimpleSerializable;
-			this.currentImplementation =
-				new SimpleSnippetImplementation(parentScene, simpleSerializable);
-			break;
-		case Mode.Subscene:
-			SnippetSubsceneSerializable subsceneSerializable =
-				serializable as SnippetSubsceneSerializable;
-			this.currentImplementation =
-				new SubsceneSnippetImplementation(parentScene, subsceneSerializable);
-			break;
-		case Mode.Random:
-			SnippetRandomSerializable randomSerializable =
-				serializable as SnippetRandomSerializable;
-			this.currentImplementation =
-				new RandomSnippetImplementation(parentScene, randomSerializable);
-			break;
-		default:
-			GlobalErrorHandler.InvokeError("An unknown snippet mode was encountered.");
-			break;
+			CoreErrorHandler.InvokeInitializationError("A Snippet was initialized with a null serializable.");
+		}
+		else
+		{
+			switch (serializable.Mode)
+			{
+			case Mode.Simple:
+				SnippetSimpleSerializable simpleSerializable =
+					serializable as SnippetSimpleSerializable;
+				this.currentImplementation =
+					new SimpleSnippetImplementation(parentScene, simpleSerializable);
+				break;
+			case Mode.Subscene:
+				SnippetSubsceneSerializable subsceneSerializable =
+					serializable as SnippetSubsceneSerializable;
+				this.currentImplementation =
+					new SubsceneSnippetImplementation(parentScene, subsceneSerializable);
+				break;
+			case Mode.Random:
+				SnippetRandomSerializable randomSerializable =
+					serializable as SnippetRandomSerializable;
+				this.currentImplementation =
+					new RandomSnippetImplementation(parentScene, randomSerializable);
+				break;
+			default:
+				CoreErrorHandler.InvokeInitializationError("A Snippet was initialized with an unknown Mode.");
+				break;
+			}
 		}
 	}
 

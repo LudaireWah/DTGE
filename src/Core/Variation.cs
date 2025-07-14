@@ -19,11 +19,18 @@ public class Variation : SceneElement
         this.Text = "";
     }
 
-    public Variation(Scene parentScene, VariationSerializable variationSerializable)
-        : base(parentScene, variationSerializable)
-    {
-        this.Name = variationSerializable.Name;
-        this.Text = variationSerializable.Text;
+    public Variation(Scene parentScene, VariationSerializable serializable)
+        : base(parentScene, serializable)
+	{
+        if (serializable == null)
+        {
+            CoreErrorHandler.InvokeInitializationError("A Variation was initialized with a null serializable.");
+        }
+        else
+        {
+            this.Name = serializable.Name;
+            this.Text = serializable.Text;
+        }
     }
 
     public Variation(Scene parentScene, string name, string text)

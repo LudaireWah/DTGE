@@ -18,12 +18,7 @@ public class SnippetSimpleSerializable : SnippetSerializable
 
 	private class SnippetSimpleVersion0
 	{
-		public VariationSerializable SingleVariation { get; set; }
-
-		public SnippetSimpleVersion0()
-		{
-			this.SingleVariation = new VariationSerializable();
-		}
+		public VariationSerializable SingleVariation { get; set; } = new VariationSerializable();
 	}
 
 	[JsonInclude]

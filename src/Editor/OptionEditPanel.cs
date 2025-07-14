@@ -29,13 +29,13 @@ public partial class OptionEditPanel : PanelContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.optionLocationLabel = this.GetNode<Label>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel");
-		this.idLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit");
-		this.targetSceneLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit");
-		this.displayNameLineEdit = this.GetNode<LineEdit>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit");
-		this.optionEnabledCheckButton = this.GetNode<CheckButton>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton");
-		this.moveOptionUpButton = this.GetNode<Button>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveUpButton");
-		this.moveOptionDownButton = this.GetNode<Button>("OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveDownButton");
+		this.optionLocationLabel = GodotUtilities.GetNodeSmart<Label>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/OptionLocationLabel", GodotEditorErrorHandler.InvokeError);
+		this.idLineEdit = GodotUtilities.GetNodeSmart<LineEdit>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/IdLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.targetSceneLineEdit = GodotUtilities.GetNodeSmart<LineEdit>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/TargetSceneHBoxContainer/TargetSceneLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.displayNameLineEdit = GodotUtilities.GetNodeSmart<LineEdit>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/DisplayNameLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.optionEnabledCheckButton = GodotUtilities.GetNodeSmart<CheckButton>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionPropertiesContainer/OptionPropertiesEntryContainer/OptionEnabledCheckButton", GodotEditorErrorHandler.InvokeError);
+		this.moveOptionUpButton = GodotUtilities.GetNodeSmart<Button>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveUpButton", GodotEditorErrorHandler.InvokeError);
+		this.moveOptionDownButton = GodotUtilities.GetNodeSmart<Button>(this, "OptionEditMarginContainer/OptionEditVBoxContainer/OptionEditHeaderContainer/MoveDownButton", GodotEditorErrorHandler.InvokeError);
 	}
 
 	public void UpdateFromEditables()
@@ -71,7 +71,22 @@ public partial class OptionEditPanel : PanelContainer
 
 	public void _on_target_scene_line_edit_text_changed(string newText)
 	{
-		this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
+		if (!DtgeCore.Editing.UserDefinedNameValidator.IsValidNestableName(newText))
+		{
+			GodotUtilities.PlayTextEntryErrorSound();
+			string correctedName =
+				DtgeCore.Editing.UserDefinedNameValidator.CorrectNestableName(newText);
+			this.OptionEditable.TargetSceneId = correctedName;
+			int oldCaretColumn = this.targetSceneLineEdit.CaretColumn;
+			this.targetSceneLineEdit.Text = correctedName;
+			this.targetSceneLineEdit.CaretColumn = oldCaretColumn;
+
+
+		}
+		else
+		{
+			this.OptionEditable.TargetSceneId = this.targetSceneLineEdit.Text;
+		}
 	}
 
 	public void _on_display_name_line_edit_text_changed(string newText)

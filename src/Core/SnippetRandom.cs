@@ -16,29 +16,45 @@ public partial class Snippet
 	{
 		public Mode CurrentMode { get { return Mode.Random; } }
 
-		protected List<Variation> Variations { get; private set; }
+		protected List<Variation> Variations { get; private set; } = new List<Variation>();
 
 		protected Scene parentScene;
 
 		public RandomSnippetImplementation(Scene parentScene)
 		{
-			this.parentScene = parentScene;
-			this.Variations = new List<Variation>();
+			if (parentScene == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Random Snippet's Implementation was initialized with a null parent Scene.");
+			}
+			else
+			{
+				this.parentScene = parentScene;
+			}
 		}
 
 		public RandomSnippetImplementation(
 			Scene parentScene,
 			SnippetRandomSerializable serializable)
 		{
-			this.parentScene = parentScene;
-			this.Variations = new List<Variation>();
-
-			for (int variationIndex = 0;
-				variationIndex < serializable.Variations.Count;
-				variationIndex++)
+			if (parentScene == null)
 			{
-				this.Variations.Add(
-					new Variation(parentScene, serializable.Variations[variationIndex]));
+				CoreErrorHandler.InvokeInitializationError("A Random Snippet's Implementation was initialized with a null parent Scene.");
+			}
+			else if (serializable == null)
+			{
+				CoreErrorHandler.InvokeInitializationError("A Random Snippet's Implementation was initialized with a null serializable.");
+			}
+			else
+			{
+				this.parentScene = parentScene;
+
+				for (int variationIndex = 0;
+					variationIndex < serializable.Variations.Count;
+					variationIndex++)
+				{
+					this.Variations.Add(
+						new Variation(parentScene, serializable.Variations[variationIndex]));
+				}
 			}
 		}
 

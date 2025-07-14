@@ -1,4 +1,6 @@
-﻿using DtgeCore.Serialization;
+﻿using System;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore;
 
@@ -20,9 +22,16 @@ public class Subscene : SceneElement
 		this.Name = name;
 	}
 
-	public Subscene(Scene parentScene, SubsceneSerializable subsceneSerializable)
-		:base(parentScene, subsceneSerializable)
+	public Subscene(Scene parentScene, SubsceneSerializable serializable)
+		:base(parentScene, serializable)
 	{
-		this.Name = subsceneSerializable.Name;
+		if (serializable == null)
+		{
+			CoreErrorHandler.InvokePlayError("A Subscene was initialized with a null serializable.");
+		}
+		else
+		{
+			this.Name = serializable.Name;
+		}
 	}
 }

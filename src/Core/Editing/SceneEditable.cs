@@ -1,4 +1,6 @@
-﻿using DtgeCore.Serialization;
+﻿using System;
+
+using DtgeCore.Serialization;
 
 namespace DtgeCore.Editing;
 
@@ -29,7 +31,11 @@ public class SceneEditable : Scene
 		get { return base.Name; }
 		set
 		{
-			if (base.Name != value)
+			if (!UserDefinedNameValidator.IsValidName(value))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Scene's Name was set to an invalid string. It should only contain alphanumeric characters; use UserDefinedValidation to validate and correct strings before setting them on DtgeCore elements.");
+			}
+			else if (base.Name != value)
 			{
 				base.Name = value;
 				this.NotifyUIUpdateNeeded();
@@ -115,45 +121,54 @@ public class SceneEditable : Scene
 	protected SceneEditable(SceneSerializable serializable)
 		: base()
 	{
-		this.Name = serializable.Name;
-		this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
-		this.CurrentSubsceneIndex = 0;
-		this.RenderImage = serializable.RenderImage;
-		this.ImagePath = serializable.ImagePath;
-
-		for (int optionIndex = 0;
-			optionIndex < serializable.OptionList.Count;
-			optionIndex++)
+		if (serializable == null)
 		{
-			this.OptionList.Add(
-				new OptionEditable(this, serializable.OptionList[optionIndex]));
+			EditingErrorHandler.InvokeLoadError("A Scene Editable was initialized with a null serializable.");
 		}
-
-		for (int subsceneIndex = 0; 
-			subsceneIndex < serializable.SubsceneList.Count;
-			subsceneIndex++)
+		else
 		{
-			this.SubsceneList.Add(
-				new SubsceneEditable(this, serializable.SubsceneList[subsceneIndex]));
+			this.Name = serializable.Name;
+			this.NullSubsceneEnabled = serializable.NullSubsceneEnabled;
+			this.CurrentSubsceneIndex = 0;
+			this.RenderImage = serializable.RenderImage;
+			this.ImagePath = serializable.ImagePath;
+
+			for (int optionIndex = 0;
+				optionIndex < serializable.OptionList.Count;
+				optionIndex++)
+			{
+				this.OptionList.Add(
+					new OptionEditable(this, serializable.OptionList[optionIndex]));
+			}
+
+			for (int subsceneIndex = 0;
+				subsceneIndex < serializable.SubsceneList.Count;
+				subsceneIndex++)
+			{
+				this.SubsceneList.Add(
+					new SubsceneEditable(this, serializable.SubsceneList[subsceneIndex]));
+			}
+
+			for (int snippetIndex = 0;
+				snippetIndex < serializable.SnippetList.Count;
+				snippetIndex++)
+			{
+				SnippetEditable snippetEditable = new SnippetEditable(
+					this,
+					serializable.SnippetList[snippetIndex]);
+				this.SnippetList.Add(snippetEditable);
+			}
+
+			this.nextSUID = serializable.NextSUID;
+
+			this.NotifyUIUpdateNeeded();
 		}
-
-		for (int snippetIndex = 0;
-			snippetIndex < serializable.SnippetList.Count;
-			snippetIndex++)
-		{
-			SnippetEditable snippetEditable = new SnippetEditable(
-				this,
-				serializable.SnippetList[snippetIndex]);
-			this.SnippetList.Add(snippetEditable);
-		}
-
-		this.nextSUID = serializable.NextSUID;
-
-		this.NotifyUIUpdateNeeded();
 	}
 
 	private SceneSerializable ToSerializable()
 	{
+		bool errorHit = false;
+
 		SceneSerializable serializable = new SceneSerializable();
 		serializable.Name = this.Name;
 		serializable.NullSubsceneEnabled = this.NullSubsceneEnabled;
@@ -164,39 +179,90 @@ public class SceneEditable : Scene
 		for (int optionIndex = 0; optionIndex < this.OptionList.Count; optionIndex++)
 		{
 			OptionEditable optionEditable = this.OptionList[optionIndex] as OptionEditable;
-			serializable.OptionList.Add(optionEditable.ToSerializable());
+			if (optionEditable == null)
+			{
+				EditingErrorHandler.InvokeSaveError("When serializing Scene [" + this.Name + "], the Option at index " + optionIndex + " was null.");
+				errorHit = true;
+			}
+			else
+			{
+				serializable.OptionList.Add(optionEditable.ToSerializable());
+			}
 		}
 
 		for (int subsceneIndex = 0; subsceneIndex < this.SubsceneList.Count; subsceneIndex++)
 		{
 			SubsceneEditable subsceneEditable =
 				this.SubsceneList[subsceneIndex] as SubsceneEditable;
-			serializable.SubsceneList.Add(subsceneEditable.ToSerializable());
+			if (subsceneEditable == null)
+			{
+				EditingErrorHandler.InvokeSaveError("When serializing Scene [" + this.Name + "], the Subscene at index " + subsceneIndex + " was null.");
+				errorHit = true;
+			}
+			else
+			{
+				serializable.SubsceneList.Add(subsceneEditable.ToSerializable());
+			}
 		}
 
 		for (int snippetIndex = 0;  snippetIndex < this.SnippetList.Count; snippetIndex++)
 		{
 			SnippetEditable snippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
-			serializable.SnippetList.Add(snippetEditable.ToSerializable());
+			if (snippetEditable == null)
+			{
+				EditingErrorHandler.InvokeSaveError("When serializing Scene [" + this.Name + "], the Snippet at index " + snippetIndex + " was null.");
+				errorHit = true;
+			}
+			else
+			{
+				serializable.SnippetList.Add(snippetEditable.ToSerializable());
+			}
 		}
 
 		serializable.NextSUID = this.nextSUID;
+
+		if (errorHit)
+		{
+			serializable = null;
+		}
 
 		return serializable;
 	}
 
 	public string SerializeToJsonString()
 	{
+		string jsonString = null;
 		SceneSerializable sceneSerializable = this.ToSerializable();
-		string jsonString = sceneSerializable.SerializeToString();
+		
+		if (sceneSerializable == null)
+		{
+			EditingErrorHandler.InvokeSaveError("There was an error while saving the scene.");
+		}
+		else
+		{
+			jsonString = sceneSerializable.SerializeToString();
+		}
+
 		return jsonString;
 	}
 
 	public static new SceneEditable DeserializeFromJsonString(string jsonString)
 	{
-		SceneSerializable sceneSerializable = SceneSerializable.DeserializeFromString(jsonString);
+		SceneEditable sceneEditable = new SceneEditable();
 
-		return new SceneEditable(sceneSerializable);
+		if (jsonString == null)
+		{
+			EditingErrorHandler.InvokeLoadError("A scene was deserialized from a null string.");
+		}
+
+		else
+		{
+			SceneSerializable sceneSerializable =
+				SceneSerializable.DeserializeFromString(jsonString);
+			sceneEditable = new SceneEditable(sceneSerializable);
+		}
+
+		return sceneEditable;
 	}
 
 	public void NotifyUIUpdateDone()
@@ -218,13 +284,27 @@ public class SceneEditable : Scene
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; ++snippetIndex)
 		{
 			SnippetEditable currentSnippet = this.SnippetList[snippetIndex] as SnippetEditable;
-			if (preserveRandomization)
+			if (currentSnippet == null)
 			{
-				sceneText += currentSnippet.CalculateTextStable();
+				EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered a null snippet at index " + snippetIndex + " while calculating debug scene text.");
 			}
 			else
 			{
-				sceneText += currentSnippet.CalculateText();
+				try
+				{
+					if (preserveRandomization)
+					{
+						sceneText += currentSnippet.CalculateTextStable();
+					}
+					else
+					{
+						sceneText += currentSnippet.CalculateText();
+					}
+				}
+				catch (Exception exception)
+				{
+					EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered an unknown error while calculating scene text for snippet index " + snippetIndex + ". Exception: " + exception.Message);
+				}
 			}
 		}
 
@@ -238,12 +318,27 @@ public class SceneEditable : Scene
 		{
 			SnippetEditable currentSnippetEditable =
 				this.SnippetList[snippetIndex] as SnippetEditable;
-			string snippetCopyableText =
-				currentSnippetEditable.GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
-			copyableText += snippetCopyableText;
-			if (snippetIndex != this.SnippetList.Count - 1)
+			if (currentSnippetEditable == null)
 			{
-				copyableText += COPYPASTE_SNIPPET_BOUNDARY_MARKER;
+				EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered a null snippet at index " + snippetIndex + " in GetCopyableText.");
+			}
+			else
+			{
+				string snippetCopyableText =
+					currentSnippetEditable.GetCopyableText(COPYPASTE_VARIATION_BOUNDARY_MARKER);
+				if (snippetCopyableText == null)
+				{
+					EditingErrorHandler.InvokeEditingError("In Scene [" + this.Name + "], the snippet at index " + snippetIndex + " returned null text while generating copyable text.");
+				}
+				else
+				{
+					copyableText += snippetCopyableText;
+
+					if (snippetIndex != this.SnippetList.Count - 1)
+					{
+						copyableText += COPYPASTE_SNIPPET_BOUNDARY_MARKER;
+					}
+				}
 			}
 		}
 		return copyableText;
@@ -252,48 +347,65 @@ public class SceneEditable : Scene
 	public bool RestoreFromPastedText(string pastedText)
 	{
 		bool canRestoreFromPastedText = true;
-		string[] pastedTextSplitIntoSnippets =
-			pastedText.Split(COPYPASTE_SNIPPET_BOUNDARY_MARKER);
 
-		if (pastedTextSplitIntoSnippets.Length != this.SnippetList.Count)
+		if (pastedText == null)
 		{
-			canRestoreFromPastedText = false;
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RestoreFromPastedText function received a null string.");
 		}
 		else
 		{
-			string[][] pastedTextSplitIntoVariations =
-				new string[pastedTextSplitIntoSnippets.Length][];
-			for (int snippetIndex = 0;
-				snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText;
-				snippetIndex++)
-			{
-				SnippetEditable currentSnippetEditable =
-					this.SnippetList[snippetIndex] as SnippetEditable;
-				pastedTextSplitIntoVariations[snippetIndex] =
-					pastedTextSplitIntoSnippets[snippetIndex].Split(
-						COPYPASTE_VARIATION_BOUNDARY_MARKER);
-				if (pastedTextSplitIntoVariations[snippetIndex].Length
-					!= currentSnippetEditable.GetVariationCount())
-				{
-					canRestoreFromPastedText = false;
-				}
-			}
+			string[] pastedTextSplitIntoSnippets =
+				pastedText.Split(COPYPASTE_SNIPPET_BOUNDARY_MARKER);
 
-			if (canRestoreFromPastedText)
+			if (pastedTextSplitIntoSnippets.Length != this.SnippetList.Count)
 			{
+				canRestoreFromPastedText = false;
+			}
+			else
+			{
+				string[][] pastedTextSplitIntoVariations =
+					new string[pastedTextSplitIntoSnippets.Length][];
 				for (int snippetIndex = 0;
-					snippetIndex < pastedTextSplitIntoSnippets.Length;
+					snippetIndex < pastedTextSplitIntoSnippets.Length && canRestoreFromPastedText;
 					snippetIndex++)
 				{
 					SnippetEditable currentSnippetEditable =
 						this.SnippetList[snippetIndex] as SnippetEditable;
-					currentSnippetEditable.RestoreFromPastedText(
-						pastedTextSplitIntoVariations[snippetIndex]);
+					pastedTextSplitIntoVariations[snippetIndex] =
+						pastedTextSplitIntoSnippets[snippetIndex].Split(
+							COPYPASTE_VARIATION_BOUNDARY_MARKER);
+
+					if (pastedTextSplitIntoVariations[snippetIndex].Length
+						!= currentSnippetEditable.GetVariationCount())
+					{
+						canRestoreFromPastedText = false;
+					}
+				}
+
+				if (canRestoreFromPastedText)
+				{
+					for (int snippetIndex = 0;
+						snippetIndex < pastedTextSplitIntoSnippets.Length;
+						snippetIndex++)
+					{
+						SnippetEditable snippetEditable =
+							this.SnippetList[snippetIndex] as SnippetEditable;
+
+						if (snippetEditable == null)
+						{
+							EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered a null snippet at index " + snippetIndex + " in RestoreFromPastedText.");
+						}
+						else
+						{
+							snippetEditable.RestoreFromPastedText(
+								pastedTextSplitIntoVariations[snippetIndex]);
+						}
+					}
 				}
 			}
-		}
 
-		this.NotifyUIUpdateNeeded();
+			this.NotifyUIUpdateNeeded();
+		}
 
 		return canRestoreFromPastedText;
 	}
@@ -309,9 +421,17 @@ public class SceneEditable : Scene
 
 	public void RemoveSubscene(SubsceneEditable subsceneEditable)
 	{
-		if (subsceneEditable.IsReadOnly)
+		if (subsceneEditable == null)
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to delete a read only subscene when only the SceneEditable should do that.");
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSubscene function was called with a null subscene.");
+		}
+		else if (!this.SubsceneList.Contains(subsceneEditable))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSubscene function received a subscene that does not exist within its subscenes.");
+		}
+		else if (subsceneEditable.IsReadOnly)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSubscene function received a read only subscene. Read only subscenes cannot be added, removed, or modified directly by the editor.");
 		}
 		else
 		{
@@ -336,12 +456,23 @@ public class SceneEditable : Scene
 
 	public void RemoveSubsceneByIndex(int subsceneIndex)
 	{
-		this.RemoveSubscene(this.SubsceneList[subsceneIndex] as SubsceneEditable);
+		if (!CoreErrorHandler.IsValidIndex(subsceneIndex, this.SubsceneList.Count))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSubsceneByIndex function received an invalid index of " + subsceneIndex + ". The scene had " + this.SubsceneList.Count + " subscenes.");
+		}
+		else
+		{
+			this.RemoveSubscene(this.SubsceneList[subsceneIndex] as SubsceneEditable);
+		}
 	}
 
 	public void EnableNullSubscene()
 	{
-		if (!this.NullSubsceneEnabled)
+		if (this.NullSubsceneEnabled)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s EnableNullSubscene function was called while the null subscene was already enabled.");
+		}
+		else
 		{
 			SubsceneEditable nullSubscene =
 				new SubsceneEditable(this, SceneEditable.NULL_SUBSCENE_NAME, true);
@@ -355,7 +486,11 @@ public class SceneEditable : Scene
 
 	public void DisableNullSubscene()
 	{
-		if (this.NullSubsceneEnabled)
+		if (!this.NullSubsceneEnabled)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s DisableNullSubscene function was called while the null subscene was not enabled.");
+		}
+		else
 		{
 			this.SubsceneList.RemoveAt(0);
 			this.NullSubsceneEnabled = false;
@@ -379,37 +514,58 @@ public class SceneEditable : Scene
 		return newOptionEditable;
 	}
 
-	public void RemoveOption(OptionEditable option)
+	public void RemoveOption(OptionEditable optionEditable)
 	{
-		this.OptionList.Remove(option);
-		this.NotifyUIUpdateNeeded();
-	}
-
-	public bool TryMoveOption(OptionEditable optionEditable, int numberOfPositionsToMove)
-	{
-		int currentIndex = this.OptionList.IndexOf(optionEditable);
-		int targetIndex = currentIndex + numberOfPositionsToMove;
-		bool optionMoved = false;
-
-		if (targetIndex >= 0 && targetIndex < this.OptionList.Count - 1)
+		if (optionEditable == null)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveOption function was called with a null option.");
+		}
+		else if (!this.OptionList.Contains(optionEditable))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveOption function received an option that does not exist within its options.");
+		}
+		else
 		{
 			this.OptionList.Remove(optionEditable);
-			this.OptionList.Insert(targetIndex, optionEditable);
-			optionMoved = true;
-		}
-		else if (targetIndex == this.OptionList.Count - 1)
-		{
-			this.OptionList.Remove(optionEditable);
-			this.OptionList.Add(optionEditable);
-			optionMoved = true;
-		}
-
-		if (optionMoved)
-		{
 			this.NotifyUIUpdateNeeded();
 		}
+	}
 
-		return optionMoved;
+	public void MoveOption(OptionEditable optionEditable, int offset)
+	{
+		if (optionEditable == null)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveOption function was called with a null Option.");
+		}
+		else if (offset == 0)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveOption function was called with a zero offest, which is not allowed.");
+		}
+		else
+		{
+			int currentIndex = this.OptionList.IndexOf(optionEditable);
+			int targetIndex = currentIndex + offset;
+
+			if (!CoreErrorHandler.IsValidIndex(targetIndex, this.OptionList.Count))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveOption function was called with an invalid offset. The offset was " + offset + ". The option's index was " + currentIndex + ". The resulting target index was " + targetIndex + ". Option count was " + this.OptionList.Count + ".");
+			}
+			else
+			{
+				if (targetIndex >= 0 && targetIndex < this.OptionList.Count - 1)
+				{
+					this.OptionList.Remove(optionEditable);
+					this.OptionList.Insert(targetIndex, optionEditable);
+				}
+				else if (targetIndex == this.OptionList.Count - 1)
+				{
+					this.OptionList.Remove(optionEditable);
+					this.OptionList.Add(optionEditable);
+				}
+
+				this.NotifyUIUpdateNeeded();
+			}
+		}
 	}
 
 	public void ClearAllOptions()
@@ -420,7 +576,18 @@ public class SceneEditable : Scene
 
 	public OptionEditable GetOptionByIndex(int optionIndex)
 	{
-		return this.OptionList[optionIndex] as OptionEditable;
+		OptionEditable optionEditable = null;
+
+		if (!CoreErrorHandler.IsValidIndex(optionIndex, this.OptionList.Count))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s GetOptionByIndex function received an invalid index of " + optionIndex + ". The scene had " + this.OptionList.Count + " options.");
+		}
+		else
+		{
+			optionEditable = this.OptionList[optionIndex] as OptionEditable;
+		}
+
+		return optionEditable;
 	}
 
 	public int GetSubsceneCount()
@@ -430,20 +597,44 @@ public class SceneEditable : Scene
 
 	public SubsceneEditable GetSubscene(int subsceneIndex)
 	{
-		return this.SubsceneList[subsceneIndex] as SubsceneEditable;
+		SubsceneEditable subsceneEditable = null;
+
+		if (!CoreErrorHandler.IsValidIndex(subsceneIndex, this.SubsceneList.Count))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s GetOptionByIndex function received an invalid index of " + subsceneIndex + ". The scene had " + this.OptionList.Count + " options.");
+		}
+		else
+		{
+			subsceneEditable = this.SubsceneList[subsceneIndex] as SubsceneEditable;
+		}
+
+		return subsceneEditable;
 	}
 	
 	public bool HasMatchingSubscene(SUID subsceneId)
 	{
 		bool foundMatch = false;
 
-		for (int subsceneIndex = 0;
-			subsceneIndex < this.SubsceneList.Count && !foundMatch;
-			subsceneIndex++)
+		if (subsceneId == null)
 		{
-			if (this.SubsceneList[subsceneIndex].Id == subsceneId)
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s HasMatchingSubscene function receieved a null Id.");
+		}
+		else
+		{
+			for (int subsceneIndex = 0;
+				subsceneIndex < this.SubsceneList.Count && !foundMatch;
+				subsceneIndex++)
 			{
-				foundMatch = true;
+				Subscene subscene = this.SubsceneList[subsceneIndex];
+
+				if (subscene == null)
+				{
+					EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered a null subscene at index " + subsceneIndex + " in HasMatchingSubscene.");
+				}
+				else if (subscene.Id == subsceneId)
+				{
+					foundMatch = true;
+				}
 			}
 		}
 
@@ -461,8 +652,19 @@ public class SceneEditable : Scene
 
 	public void RemoveSnippet(SnippetEditable snippetEditable)
 	{
-		this.SnippetList.Remove(snippetEditable);
-		this.NotifyUIUpdateNeeded();
+		if (snippetEditable == null)
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSnippet function was called with a null snippet.");
+		}
+		else if (!this.SnippetList.Contains(snippetEditable))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s RemoveSnippet function received a snippet that does not exist within its snippets.");
+		}
+		else
+		{
+			this.SnippetList.Remove(snippetEditable);
+			this.NotifyUIUpdateNeeded();
+		}
 	}
 
 	public int GetSnippetCount()
@@ -472,34 +674,55 @@ public class SceneEditable : Scene
 
 	public SnippetEditable GetSnippetByIndex(int snippetIndex)
 	{
-		return this.SnippetList[snippetIndex] as SnippetEditable;
+		SnippetEditable snippetEditable = null;
+
+		if (!CoreErrorHandler.IsValidIndex(snippetIndex, this.SnippetList.Count))
+		{
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s GetSnippetByIndex function received an invalid index of " + snippetIndex + ". The scene had " + this.SnippetList.Count + " snippets.");
+		}
+		else
+		{
+			snippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
+		}
+
+		return snippetEditable;
 	}
 
-	public bool TryMoveSnippet(SnippetEditable snippetEditable, int numberOfPositionsToMove)
+	public void MoveSnippet(SnippetEditable snippetEditable, int offset)
 	{
-		int currentIndex = this.SnippetList.IndexOf(snippetEditable);
-		int targetIndex = currentIndex + numberOfPositionsToMove;
-		bool snippetMoved = false;
-
-		if (targetIndex >= 0 && targetIndex < this.SnippetList.Count - 1)
+		if (snippetEditable == null)
 		{
-			this.SnippetList.Remove(snippetEditable);
-			this.SnippetList.Insert(targetIndex, snippetEditable);
-			snippetMoved = true;
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveSnippet function was called with a null Snippet.");
 		}
-		else if (targetIndex == this.SnippetList.Count - 1)
+		else if (offset == 0)
 		{
-			this.SnippetList.Remove(snippetEditable);
-			this.SnippetList.Add(snippetEditable);
-			snippetMoved = true;
+			EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveSnippet function was called with a zero offest, which is not allowed.");
 		}
-
-		if (snippetMoved)
+		else
 		{
-			this.NotifyUIUpdateNeeded();
-		}
+			int currentIndex = this.SnippetList.IndexOf(snippetEditable);
+			int targetIndex = currentIndex + offset;
 
-		return snippetMoved;
+		if (!CoreErrorHandler.IsValidIndex(targetIndex, this.SnippetList.Count))
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("Scene [" + this.Name + "]'s MoveSnippet function was called with an invalid offset. The offset was " + offset + ". The snippet's index was " + currentIndex + ". The resulting target index was " + targetIndex + ". Snippet count was " + this.SnippetList.Count + ".");
+			}
+			else
+			{
+				if (targetIndex >= 0 && targetIndex < this.SnippetList.Count - 1)
+				{
+					this.SnippetList.Remove(snippetEditable);
+					this.SnippetList.Insert(targetIndex, snippetEditable);
+				}
+				else if (targetIndex == this.SnippetList.Count - 1)
+				{
+					this.SnippetList.Remove(snippetEditable);
+					this.SnippetList.Add(snippetEditable);
+				}
+
+				this.NotifyUIUpdateNeeded();
+			}
+		}
 	}
 
 	public void NotifySubsceneSnippetsOfChange()
@@ -507,7 +730,15 @@ public class SceneEditable : Scene
 		for (int snippetIndex = 0; snippetIndex < this.SnippetList.Count; snippetIndex++)
 		{
 			SnippetEditable snippetEditable = this.SnippetList[snippetIndex] as SnippetEditable;
-			snippetEditable.NotifyOfSubsceneChange();
+
+			if (snippetEditable == null)
+			{
+				EditingErrorHandler.InvokeEditingError("Scene [" + this.Name + "] encountered a null snippet at index " + snippetIndex + " in NotifySubsceneSnippetsOfChange.");
+			}
+			else
+			{
+				snippetEditable.NotifyOfSubsceneChange();
+			}
 		}
 	}
 }

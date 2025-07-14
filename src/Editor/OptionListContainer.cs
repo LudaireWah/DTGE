@@ -1,5 +1,7 @@
 using System;
 
+using DtgeGodotCommon;
+
 using Godot;
 
 namespace DtgeEditor;
@@ -21,8 +23,8 @@ public partial class OptionListContainer : VBoxContainer
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.optionEditListVBoxContainer = this.GetNode<VBoxContainer>("OptionEditListScrollContainer/OptionEditListVBoxContainer");
-		this.tooManyOptionsLabel = this.GetNode<Label>("TooManyOptionsLabel");
+		this.optionEditListVBoxContainer = GodotUtilities.GetNodeSmart<VBoxContainer>(this, "OptionEditListScrollContainer/OptionEditListVBoxContainer", GodotEditorErrorHandler.InvokeError);
+		this.tooManyOptionsLabel = GodotUtilities.GetNodeSmart<Label>(this, "TooManyOptionsLabel", GodotEditorErrorHandler.InvokeError);
 	}
 
 	public void UpdateFromEditables()
@@ -46,7 +48,11 @@ public partial class OptionListContainer : VBoxContainer
 					((PackedScene)GD.Load(DtgeGodotCommon.GodotConstants.OPTION_EDIT_PANEL_PATH))
 					.Instantiate<OptionEditPanel>();
 
-				if (newOptionEditPanel != null)
+				if (newOptionEditPanel == null)
+				{
+					GodotEditorErrorHandler.InvokeError("Failed to find the Godot Scene for initializing an Option Edit Panel.");
+				}
+				else
 				{
 					newOptionEditPanel.OptionEditable = optionEditable;
 					newOptionEditPanel.OnOptionMovedUp = this.HandleOptionMovedUp;
@@ -95,12 +101,12 @@ public partial class OptionListContainer : VBoxContainer
 
 	private void HandleOptionMovedUp(DtgeCore.Editing.OptionEditable targetOptionEditable)
 	{
-		this.DtgeSceneEditable.TryMoveOption(targetOptionEditable, -1);
+		this.DtgeSceneEditable.MoveOption(targetOptionEditable, -1);
 	}
 
 	private void HandleOptionMovedDown(DtgeCore.Editing.OptionEditable targetOptionEditable)
 	{
-		this.DtgeSceneEditable.TryMoveOption(targetOptionEditable, 1);
+		this.DtgeSceneEditable.MoveOption(targetOptionEditable, 1);
 	}
 
 	public void HandleOptionDeleted(DtgeCore.Editing.OptionEditable optionEditable)

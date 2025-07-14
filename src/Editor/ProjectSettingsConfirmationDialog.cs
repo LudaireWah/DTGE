@@ -1,5 +1,7 @@
 using System;
 
+using DtgeGodotCommon;
+
 using Godot;
 
 namespace DtgeEditor;
@@ -19,10 +21,10 @@ public partial class ProjectSettingsConfirmationDialog : ConfirmationDialog
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		this.startSceneNameLineEdit = this.GetNode<LineEdit>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/StartSceneNameLineEdit");
-		this.navigationButtonGridShortcutModeOptionButton = this.GetNode<OptionButton>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridShortcutModeOptionButton");
-		this.navigationButtonGridColumnCountSpinBox = this.GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridColumnCountSpinBox");
-		this.navigationButtonGridRowCountSpinBox = this.GetNode<SpinBox>("ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridRowCountSpinBox");
+		this.startSceneNameLineEdit = GodotUtilities.GetNodeSmart<LineEdit>(this, "ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/StartSceneNameLineEdit", GodotEditorErrorHandler.InvokeError);
+		this.navigationButtonGridShortcutModeOptionButton = GodotUtilities.GetNodeSmart<OptionButton>(this, "ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridShortcutModeOptionButton", GodotEditorErrorHandler.InvokeError);
+		this.navigationButtonGridColumnCountSpinBox = GodotUtilities.GetNodeSmart<SpinBox>(this, "ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridColumnCountSpinBox", GodotEditorErrorHandler.InvokeError);
+		this.navigationButtonGridRowCountSpinBox = GodotUtilities.GetNodeSmart<SpinBox>(this, "ProjectSettingsHBoxContainer2/SettingsEntryVBoxContainer/NavigationButtonGridRowCountSpinBox", GodotEditorErrorHandler.InvokeError);
 
 		this.navigationButtonGridShortcutModeOptionButton.SetItemTooltip((int)DtgeCore.GameData.NavigationGridShortcutMode.Keyboard, "The navigation grid will be mapped to the keyboard grid with 1 in the top left corner. Limits columns to 10 and rows to 4.");
 		this.navigationButtonGridShortcutModeOptionButton.SetItemTooltip((int)DtgeCore.GameData.NavigationGridShortcutMode.Numeric, "The first 10 buttons in the navigation grid will be mapped to 1-0 on the keyboard. Limits columns and rows to 10.");

@@ -24,24 +24,20 @@ public class Option : SceneElement
 		this.Enabled = true;
 	}
 
-	public Option(Scene parentScene, OptionSerializable optionSerializable)
-		:base(parentScene, optionSerializable)
+	public Option(Scene parentScene, OptionSerializable serializable)
+		:base(parentScene, serializable)
 	{
-		this.Name = optionSerializable.Name;
-		this.TargetSceneId= optionSerializable.TargetSceneId;
-		this.DisplayName = optionSerializable.DisplayName;
-		this.Tooltip = optionSerializable.Tooltip;
-		this.Enabled= optionSerializable.Enabled;
-	}
-
-	public void CopyFrom(Option other)
-	{
-		base.CopyFrom(other);
-
-		this.Name = other.Name;
-		this.TargetSceneId = other.TargetSceneId;
-		this.DisplayName = other.DisplayName;
-		this.Tooltip = other.Tooltip;
-		this.Enabled = other.Enabled;
+		if (serializable == null)
+		{
+			CoreErrorHandler.InvokeInitializationError("An Option was initialized with a null serializable.");
+		}
+		else
+		{
+			this.Name = serializable.Name;
+			this.TargetSceneId = serializable.TargetSceneId;
+			this.DisplayName = serializable.DisplayName;
+			this.Tooltip = serializable.Tooltip;
+			this.Enabled = serializable.Enabled;
+		}
 	}
 }

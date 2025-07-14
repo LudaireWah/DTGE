@@ -14,12 +14,7 @@ public class SnippetSubsceneSerializable : SnippetSerializable
 
 	private class SnippetSubsceneVersion0
 	{
-		public Dictionary<SUID, VariationSerializable> VariationsBySubsceneId { get; set; }
-
-		public SnippetSubsceneVersion0()
-		{
-			this.VariationsBySubsceneId = new Dictionary<SUID, VariationSerializable>();
-		}
+		public Dictionary<SUID, VariationSerializable> VariationsBySubsceneId { get; set; } = new Dictionary<SUID, VariationSerializable>();
 	}
 
 	[JsonInclude]

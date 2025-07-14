@@ -35,10 +35,17 @@ public partial class SnippetEditable
 		{
 			this.parentSceneEditable = parentSceneEditable;
 
-			this.SingleVariation = new VariationEditable(
-				parentSceneEditable,
-				SIMPLE_SINGLE_VARIATION_NAME,
-				other.GetVariationText(0));
+			if (other == null)
+			{
+				EditingErrorHandler.InvokeEditingError("A Simple Snippet's Implementation was constructed from a null other implementation.");
+			}
+			else
+			{
+				this.SingleVariation = new VariationEditable(
+					parentSceneEditable,
+					SIMPLE_SINGLE_VARIATION_NAME,
+					other.GetVariationText(0));
+			}
 		}
 
 		public SimpleSnippetImplementationEditable(
@@ -56,8 +63,15 @@ public partial class SnippetEditable
 
 		public void PopulateSerializable(SnippetSimpleSerializable serializable)
 		{
-			serializable.SingleVariation.Name = this.SingleVariation.Name;
-			serializable.SingleVariation.Text = this.SingleVariation.Text;
+			if (serializable == null)
+			{
+				EditingErrorHandler.InvokeSaveError("SnippetSimpleEditable's PopulateSerializable function received a null serializable.");
+			}
+			else
+			{
+				serializable.SingleVariation.Name = this.SingleVariation.Name;
+				serializable.SingleVariation.Text = this.SingleVariation.Text;
+			}
 		}
 
 		public static bool CanConvertFrom(
@@ -67,13 +81,17 @@ public partial class SnippetEditable
 			bool canConvert = false;
 			message = string.Empty;
 
-			if (otherSnippetEditable.GetVariationCount() == 1)
+			if (otherSnippetEditable == null)
 			{
-				canConvert = true;
+				EditingErrorHandler.InvokeEditingError("SnippetSimpleEditable's CanConvertFrom function received a null other snippet implementation.");
+			}
+			else if (otherSnippetEditable.GetVariationCount() != 1)
+			{
+				message = "To switch to simple mode you must have exactly one variation.";
 			}
 			else
 			{
-				message = "To switch to simple mode you must have exactly one variation.";
+				canConvert = true;
 			}
 
 			return canConvert;
@@ -91,33 +109,68 @@ public partial class SnippetEditable
 
 		public void RestoreFromPastedText(string[] pastedTextSplitByVariation)
 		{
-			VariationEditable singleVariationEditable = this.SingleVariation as VariationEditable;
-			singleVariationEditable.Text = pastedTextSplitByVariation[0];
-			this.notifyParentOfEdit();
-		}
-
-		public VariationEditable GetVariationEditable(int variationIndex)
-		{
-			return this.SingleVariation as VariationEditable;
+			if (pastedTextSplitByVariation == null)
+			{
+				EditingErrorHandler.InvokeEditingError("A simple Snippet's RestoreFromPastedText function received a null pasted strings array.");
+			}
+			else if (pastedTextSplitByVariation.Length != 0)
+			{
+				EditingErrorHandler.InvokeEditingError("A Simple snippet received a pasted text array whose length was not exactly one.");
+			}
+			else
+			{
+				VariationEditable singleVariationEditable = this.SingleVariation as VariationEditable;
+				singleVariationEditable.Text = pastedTextSplitByVariation[0];
+				this.notifyParentOfEdit();
+			}
 		}
 
 		public string GetVariationName(int variationIndex)
 		{
-			return this.SingleVariation.Name;
+			string variationName = null;
+
+			if (variationIndex != 0)
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's GetVariationName was called with a non-zero index.");
+			}
+			else
+			{
+				variationName = this.SingleVariation.Name;
+			}
+
+			return variationName;
 		}
 
 		public string GetVariationText(int variationIndex)
 		{
-			return this.SingleVariation.Text;
+			string variationText = null;
+
+			if (variationIndex != 0)
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's GetVariationText was called with a non-zero index.");
+			}
+			else
+			{
+				variationText = this.SingleVariation.Text;
+			}
+			
+			return variationText;
 		}
 
 		public void SetVariationText(int variationIndex, string variationText)
 		{
-			VariationEditable variationEditable = this.SingleVariation as VariationEditable;
-			if (variationEditable.Text != variationText)
+			if (variationIndex != 0)
 			{
-				variationEditable.Text = variationText;
-				this.notifyParentOfEdit();
+				EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's SetVariationText was called with a non-zero index.");
+			}
+			else
+			{
+				VariationEditable variationEditable = this.SingleVariation as VariationEditable;
+				if (variationEditable.Text != variationText)
+				{
+					variationEditable.Text = variationText;
+					this.notifyParentOfEdit();
+				}
 			}
 		}
 
@@ -138,20 +191,21 @@ public partial class SnippetEditable
 
 		public void SetCurrentVariationIndex(int variationIndex)
 		{
-			GlobalErrorHandler.InvokeErrorIf(variationIndex != 0, "An attempt was made to set the CurrentVariationIndex of a simple snippet to something other than 0.");
+			if (variationIndex != 0)
+			{
+				EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's SetCurrentVariationIndex was called with a non-zero index.");
+			}
 		}
 
 		public bool AddVariation()
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to add a new variation to a simple snippet.");
-
+			EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's AddVariation was called, which should never be called (check CanEditVariationCount).");
 			return false;
 		}
 
 		public bool RemoveVariationEditable(int variationIndex)
 		{
-			GlobalErrorHandler.InvokeError("An attempt was made to remove a variation from a simple snippet.");
-
+			EditingErrorHandler.InvokeIllegalOperationError("A Simple Snippet's RemoveVariationEditable was called, which should never be called (check CanEditVariationCount).");
 			return false;
 		}
 
